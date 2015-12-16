@@ -1,7 +1,7 @@
 {
-  "name":"trinity",
-  "version":"0.0.1",
-  "license":"MIT",
+  "name": "trinity",
+  "version": "0.0.1",
+  "license": "MIT",
   "directories": {
     "lib": "lib"
   },
@@ -9,6 +9,7 @@
   "format": "es6",
   "registry": "jspm",
   "dependencies": {
+    "fbemitter": "npm:fbemitter@^2.0.0",
     "lodash": "npm:lodash@^3.10.1"
   },
   "devDependencies": {
@@ -16,8 +17,8 @@
     "babel-runtime": "npm:babel-runtime@^5.8.24",
     "core-js": "npm:core-js@^1.1.4"
   },
-  "map":{
+  "map": {
     "trinity": ".",
-    "trinity/closure-events":"./utils/closureEvents.js"
+    "trinity/closure-events": "./utils/closureEvents.js"
   }
 }
