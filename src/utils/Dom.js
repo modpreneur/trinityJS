@@ -1,39 +1,21 @@
-'use strict';
+/**
+ * Created by fisa on 10/26/15.
+ */
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.classlist = undefined;
-exports.disable = disable;
-exports.enable = enable;
-exports.removeNode = removeNode;
-exports.removeChildren = removeChildren;
-exports.htmlToDocumentFragment = htmlToDocumentFragment;
-exports.replaceNode = replaceNode;
-exports.createDom = createDom;
-
-var _classlist = require('./classlist.js');
-
-var _classlist2 = _interopRequireDefault(_classlist);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+import classListHelper from './classlist.js';
 
 /**
  * Just export classlit to have it all in one component
  * @type {{}}
  */
-var classlist = exports.classlist = _classlist2.default;
+export let classlist = classListHelper;
 
 /**
  * Disable element by adding attribute disabled="disabled"
  * @param element
  */
-/**
- * Created by fisa on 10/26/15.
- */
-
-function disable(element) {
-    if (!element.disabled) {
+export function disable(element){
+    if(!element.disabled) {
         element.setAttribute('disabled', 'disabled');
     }
 }
@@ -42,8 +24,8 @@ function disable(element) {
  * Enable disabled attribute by removing attribute "disabled"
  * @param element
  */
-function enable(element) {
-    if (element.disabled) {
+export function enable(element){
+    if(element.disabled){
         element.removeAttribute('disabled');
     }
 }
@@ -53,7 +35,7 @@ function enable(element) {
  * @param {Node} node The node to remove.
  * @return {Node} The node removed if removed; else, null.
  */
-function removeNode(node) {
+export function removeNode(node){
     return node && node.parentNode ? node.parentNode.removeChild(node) : null;
 }
 
@@ -61,9 +43,9 @@ function removeNode(node) {
  * Removes all the child nodes on a DOM node.
  * @param {Node} node Node to remove children from.
  */
-function removeChildren(node) {
+export function removeChildren(node){
     var child;
-    while (child = node.firstChild) {
+    while ((child = node.firstChild)) {
         node.removeChild(child);
     }
 }
@@ -73,14 +55,14 @@ function removeChildren(node) {
  * @param htmlString
  * @returns {*}
  */
-function htmlToDocumentFragment(htmlString) {
-    var tempDiv = document.createElement('div');
+export function htmlToDocumentFragment(htmlString){
+    let tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlString;
 
     if (tempDiv.childNodes.length == 1) {
         return tempDiv.removeChild(tempDiv.firstChild);
     } else {
-        var fragment = document.createDocumentFragment();
+        let fragment = document.createDocumentFragment();
         while (tempDiv.firstChild) {
             fragment.appendChild(tempDiv.firstChild);
         }
@@ -94,8 +76,8 @@ function htmlToDocumentFragment(htmlString) {
  * @param {Node} newNode Node to insert.
  * @param {Node} oldNode Node to replace.
  */
-function replaceNode(newNode, oldNode) {
-    var parent = oldNode.parentNode;
+export function replaceNode(newNode, oldNode) {
+    let parent = oldNode.parentNode;
     if (parent) {
         parent.replaceChild(newNode, oldNode);
     }
@@ -108,35 +90,36 @@ function replaceNode(newNode, oldNode) {
  * @param innerHTML
  * @returns {Element}
  */
-function createDom(tagName, elementAttributes, innerHTML) {
-    var tmpElement = document.createElement(tagName);
+export function createDom(tagName, elementAttributes, innerHTML){
+    let tmpElement = document.createElement(tagName);
     // Attributes?
-    if (elementAttributes) {
-        var attKeys = Object.keys(elementAttributes),
+    if(elementAttributes){
+        let attKeys = Object.keys(elementAttributes),
             keysLength = attKeys.length;
 
-        for (var i = 0; i < keysLength; i++) {
+        for(let i=0; i<keysLength; i++){
             tmpElement.setAttribute(attKeys[i], elementAttributes[attKeys[i]]);
         }
     }
     // InnerHTML?
-    if (innerHTML && typeof innerHTML === 'string') {
+    if(innerHTML && typeof innerHTML === 'string'){
         //TODO: innerHTML should be checked - sanitized
         tmpElement.innerHTML = innerHTML;
-    } else if (innerHTML instanceof HTMLElement) {
+    } else if(innerHTML instanceof HTMLElement) {
         tmpElement.appendChild(innerHTML);
     }
     return tmpElement;
 }
 
-var Dom = {
-    classlist: _classlist2.default,
-    disable: disable,
-    enable: enable,
-    removeNode: removeNode,
-    removeChildren: removeChildren,
-    htmlToDocumentFragment: htmlToDocumentFragment,
-    replaceNode: replaceNode,
-    createDom: createDom
+
+let Dom = {
+    classlist :classListHelper,
+    disable,
+    enable,
+    removeNode,
+    removeChildren,
+    htmlToDocumentFragment,
+    replaceNode,
+    createDom
 };
-exports.default = Dom;
+export default Dom;

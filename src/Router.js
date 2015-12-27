@@ -1,23 +1,13 @@
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+/**
+ * Created by fisa on 7/23/15.
+ */
+import _ from 'lodash';
 
 /**
  * Private help RegExpressions
  * @type {RegExp}
  */
-var optionalParam = /\((.*?)\)/g; /**
-                                   * Created by fisa on 7/23/15.
-                                   */
-
+var optionalParam = /\((.*?)\)/g;
 var namedParam = /(\(\?)?:\w+/g;
 var splatParam = /\*\w+/g;
 var escapeRegExp = /[\-{}\[\]+?.,\\\^$|#\s]/g;
@@ -35,15 +25,15 @@ function Router(routes) {
     }, this);
 
     /** Adds prefix to regular expressions **/
-    if (Router.settings.debug) {
-        this.routes = this.routes.map(function (route) {
+    if(Router.settings.debug){
+        this.routes = this.routes.map(function(route){
             route.regx = _modifyRouteRegx(route.regx);
             return route;
         }, this);
     }
 }
 
-Router.settings = {
+Router.settings ={
     debug: false
 };
 
@@ -60,7 +50,7 @@ var regxPrefix = '(?:\/\w+)*';
  * @returns {RegExp}
  * @private
  */
-function _modifyRouteRegx(regx) {
+function _modifyRouteRegx(regx){
     var source = regx.source;
     var start = source.indexOf('^') !== 0 ? 0 : 1;
     return new RegExp(regxPrefix + source.substring(start));
@@ -74,25 +64,30 @@ function _modifyRouteRegx(regx) {
 Router.prototype.findController = function findController(route) {
     route = route || window.location.pathname;
     var data = null;
-    var c = _lodash2.default.find(this.routes, function (el) {
-        var cache = el.regx.exec(route);
-        if (!!cache) {
-            data = cache;
-            return true;
-        }
-        return false;
+    var c = _.find(this.routes, function (el) {
+            var cache = el.regx.exec(route);
+            if(!!cache){
+                data = cache;
+                return true;
+            }
+            return false;
     }) || null;
 
     // If we found any controller -> create request and return it
-    if (c) {
+    if(c){
         /** Create request Info object */
         var search = window.location.search;
-        c.request = new this.Request(c.path, data.length > 2 ? _getParams(c.path, data) : null, search.length > 0 ? _getQueryObj(search) : null);
+        c.request = new this.Request(
+            c.path,
+            data.length > 2 ? _getParams(c.path, data):null,
+            search.length > 0 ? _getQueryObj(search):null
+        );
         //And return all inside one package
         return c;
     }
     return null;
 };
+
 
 /**
  * Represents request object
@@ -101,7 +96,7 @@ Router.prototype.findController = function findController(route) {
  * @param query
  * @constructor
  */
-Router.prototype.Request = function Request(path, params, query) {
+Router.prototype.Request = function Request(path, params, query){
     this.path = path;
     this.query = query;
     this.params = params;
@@ -114,12 +109,12 @@ Router.prototype.Request = function Request(path, params, query) {
  * @returns {Object}
  * @private
  */
-function _getParams(path, regxResult) {
+function _getParams(path, regxResult){
     var keys = path.match(paramsRegExp),
-        values = regxResult.slice(1, regxResult.length - 1),
+        values = regxResult.slice(1, regxResult.length -1),
         params = {};
     // create pairs
-    for (var i = 0; i < values.length; i++) {
+    for(var i=0;i<values.length;i++){
         params[keys[i].substring(1)] = values[i];
     }
     return params;
@@ -131,11 +126,11 @@ function _getParams(path, regxResult) {
  * @returns {Object}
  * @private
  */
-function _getQueryObj(str) {
+function _getQueryObj(str){
     var pairs = str.substr(1).split('&'),
         query = {};
     var ln = pairs.length;
-    for (var i = 0; i < ln; i++) {
+    for(var i=0;i<ln;i++){
         var split = pairs[i].split('=');
         query[split[0]] = split[1];
     }
@@ -148,24 +143,26 @@ function _getQueryObj(str) {
  * @param path
  * @private
  */
-function _setScope(object, path) {
-    if (!path || path.length < 1) {
+function _setScope(object, path){
+    if(!path || path.length < 1){
         window['scope'] = object;
         return;
     }
 
     var parsed = settings.scope.split('.'),
-        last = parsed.length - 1,
+        last = parsed.length-1,
         ref = window;
 
-    for (var i = 0; i < last; i++) {
-        if (!ref.hasOwnProperty(parsed[i])) {
+    for(var i=0; i<last;i++){
+        if(!ref.hasOwnProperty(parsed[i])){
             ref[parsed[i]] = {};
         }
         ref = ref[parsed[i]];
     }
     ref[parsed[last]] = object;
 }
+
+
 
 /**
  * Create regular expression from route - from backbone framework
@@ -174,10 +171,13 @@ function _setScope(object, path) {
  * @private
  */
 function _routeToRegExp(route) {
-    route = route.replace(escapeRegExp, '\\$&').replace(optionalParam, '(?:$1)?').replace(namedParam, function (match, optional) {
-        return optional ? match : '([^/?]+)';
-    }).replace(splatParam, '([^?]*?)');
+    route = route.replace(escapeRegExp, '\\$&')
+        .replace(optionalParam, '(?:$1)?')
+        .replace(namedParam, function (match, optional) {
+            return optional ? match : '([^/?]+)';
+        })
+        .replace(splatParam, '([^?]*?)');
     return new RegExp('^' + route + '(?:\\?([\\s\\S]*))?$');
 }
 
-exports.default = Router;
+export default Router;
