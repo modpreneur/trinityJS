@@ -127,7 +127,8 @@ function _initialize(){
             activeHead = this.heads[0];
         }
         tabID = activeHead.getAttribute('id');
-        __pushHistory(tabID);
+        // Replace history string
+        window.history.replaceState(null, tabID, '#'+tabID);
     }
     this.__activeTabID = tabID;
     // Add new Tab to tabs
@@ -171,12 +172,11 @@ function __handleTabClick(head, e){
 /**
  * Push new history
  * @param newHash
- * @param label
  * @private
  */
-function __pushHistory(newHash, label){
+function __pushHistory(newHash){
     if(newHash !== window.location.hash.substring(1)){
-        window.history.pushState(null, label ? label.join(''):'',[location.pathname,'#',newHash].join(''))
+        window.history.pushState(null, newHash, '#'+newHash);
     }
 }
 
