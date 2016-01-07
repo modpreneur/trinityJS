@@ -33,7 +33,6 @@ const formType = {
     DELETE : 'delete'
 };
 
-
 /**
  * Connects to formElement and change it to ajax form
  *
@@ -66,12 +65,23 @@ export default class TrinityForm extends EventEmitter {
      * @param newState
      */
     set state(newState){
+        if(newState === this.__state){
+            return;
+        }
         let oldState = this.__state;
         this.__state = newState;
 
-        //Switch classes
-        Dom.classlist.removeAll(this.activeBtn, this.settings.button[oldState].split(' '));
-        Dom.classlist.addAll(this.activeBtn, this.settings.button[newState].split(' '));
+        if(newState === 'error' || newState === 'ready'){
+            // For all btns
+            _.each(this.buttons, (btn)=>{
+                Dom.classlist.removeAll(btn, this.settings.button[oldState].split(' '));
+                Dom.classlist.addAll(btn, this.settings.button[newState].split(' '));
+            });
+        } else {
+            //Switch classes for active
+            Dom.classlist.removeAll(this.activeBtn, this.settings.button[oldState].split(' '));
+            Dom.classlist.addAll(this.activeBtn, this.settings.button[newState].split(' '));
+        }
 
         // Emit new state change
         this.emit('state-change', {
@@ -119,13 +129,25 @@ export default class TrinityForm extends EventEmitter {
      * @public
      */
     addError(key, message, inputElement){
+        this.state = 'error';
         // Create Error
         let error = new FieldError(key, message, inputElement, __createErrorMessage(key, message));
         // Add error to Form errors and get its index
         let index = this.__errors.push(error) - 1;
         //Add event listener and save listener key
-        error.listenerKey = events.listenOnce(inputElement, 'change', __removeError.bind(this, index));
+        return error.listenerKey = events.listenOnce(inputElement, 'input', __removeError.bind(this, index));
     };
+
+    /**
+     * Check if form has error with same key
+     * @param errorKey {string} - also listenerKey
+     * @returns {boolean}
+     */
+    hasError(errorKey){
+        return this.__errors.length > 0 && !!_.find(this.__errors, (err)=>{
+                return err.listenerKey === errorKey;
+            });
+    }
 
     /**
      * Removes error from TrinityForm
