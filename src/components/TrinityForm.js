@@ -48,10 +48,10 @@ export default class TrinityForm extends EventEmitter {
             throw new Error('Missing "formElement" parameter!');
         }
         this.element = formElement;
-        this.activeBtn = null;
         this.buttons = formElement.querySelectorAll('input[type="submit"], button[type="submit"]');
+        this.activeBtn = null;
         this.type = type || null;
-        this.settings = _.extend(_.cloneDeep(defaultSettings), settings);
+        this.settings = _.defaultsDeep(settings || {}, defaultSettings);
         this.__errors = [];
         this.__state = 'ready';
         //Main init
@@ -130,40 +130,56 @@ export default class TrinityForm extends EventEmitter {
      */
     addError(key, message, inputElement){
         this.state = 'error';
-        // Create Error
-        let error = new FieldError(key, message, inputElement, __createErrorMessage(key, message));
         // Add error to Form errors and get its index
-        let index = this.__errors.push(error) - 1;
-        //Add event listener and save listener key
-        return error.listenerKey = events.listenOnce(inputElement, 'input', __removeError.bind(this, index));
+        let fieldErr = _.find(this.__errors, (err)=>{
+            return err.key === key;
+        });
+        if(!fieldErr){
+            fieldErr = new FieldError(key, inputElement);
+            this.__errors.push(fieldErr);
+        }
+        if(!fieldErr.listener){
+            fieldErr.listener = events.listenOnce(inputElement, 'input', function removeError(e){
+                e.preventDefault();
+                e.stopPropagation();
+
+                _.remove(this.__errors, (err)=>{
+                    return err.key === fieldErr.key;
+                });
+                fieldErr.removeAll();
+                this.validate()
+            }, false, this);
+        }
+        return fieldErr.add(message);
     };
 
     /**
      * Check if form has error with same key
-     * @param errorKey {string} - also listenerKey
+     * @param inputKey {string} - key of input
+     * @param [errorId] {string} - id of error message
      * @returns {boolean}
      */
-    hasError(errorKey){
+    hasError(inputKey, errorId){
         return this.__errors.length > 0 && !!_.find(this.__errors, (err)=>{
-                return err.listenerKey === errorKey;
+                return err.key === inputKey && (!errorId || err.has(errorId));
             });
     }
 
     /**
-     * Removes error from TrinityForm
+     * Remove errors from TrinityForm input
      * @param input {string} | {HTMLInputElement}
      * @public
      */
     removeError(input){
-        let index = _.isString(input) ?
-            _.findIndex(this.__errors, (err)=>{
-                return err.key === input;
-            }) : _.findIndex(this.__errors, (err)=>{
+        let fieldError = (_.isString(input) ?
+                _.remove(this.__errors, (err)=>{
+                    return err.key === input;
+                }) : _.remove(this.__errors, (err)=>{
                 return err.input === input;
-            }
+            })[0]
         );
-        let error = __removeError(index);
-        events.unlistenByKey(error.listenerKey);
+        fieldError.removeAll();
+        events.unlistenByKey(fieldError.listener);
     };
 
     /**
@@ -304,44 +320,63 @@ function __errorHandler(error){
  * @param key {string}
  * @param message {string}
  * @param input {HTMLElement}
- * @param warn {HtmlElement}
  * @private
  * @constructor
  */
-function FieldError(key, message, input, warn){
-    this.key = key;
-    this.input = input;
-    this.message = message;
-    this.warning = warn;
-    this.listenerKey = null;
-    // Add error message
-    Dom.classlist.add(input, 'error');
-    let sibling = input.nextSibling;
-    if(sibling){
-        input.parentElement.insertBefore(warn, sibling);
-    } else {
-        input.parentElement.appendChild(warn);
+class FieldError {
+    constructor(key, input){
+        this.key = key;
+        this.input = input;
+        this.listener = null;
+        this.errors = [];
+        this.__counter = 0;
+        // Add error message
+        Dom.classlist.add(input, 'error');
     }
 
-}
+    add(message){
+        let errMessage = {
+            id: (this.__counter++) + '_'+ this.key,
+            message: message,
+            warning: __createErrorMessage(this.key, message)
+        };
+        this.errors.push(errMessage);
 
-/**
- * Remove Error from TrinityForm instance and returns removed FieldError instance
- * @param index {Number} - index of error instance
- * @param [e] {Event}
- * @private
- * @return {FieldError}
- */
-function __removeError(index, e){
-    if(!_.isUndefined(e)){
-        e.stopPropagation();
-        e.preventDefault();
+        let sibling = this.input.nextSibling;
+        if(sibling){
+            this.input.parentElement.insertBefore(errMessage.warning, sibling);
+        } else {
+            this.input.parentElement.appendChild(errMessage.warning);
+        }
+        return errMessage.id;
     }
-    let error = _.pullAt(this.__errors, index)[0];
-    Dom.classlist.remove(error.input, 'error');
-    Dom.removeNode(error.warning);
-    this.validate();
-    return error;
+
+    has(id){
+        return !!_.find(this.errors, (err)=>{
+            return err.id === id;
+        });
+    }
+
+    remove(id){
+        _.remove(this.errors, (err)=>{
+            if(err.id === id){
+                Dom.removeNode(err.warning);
+                return true;
+            }
+            return false;
+        });
+        if(this.errors.length === 0){
+            Dom.classlist.remove(this.input, 'error');
+        }
+    }
+
+    removeAll(){
+        _.map(this.errors, (err)=>{
+            Dom.removeNode(err.warning);
+        });
+        this.errors = [];
+        Dom.classlist.remove(this.input, 'error');
+    }
 }
 
 /**
