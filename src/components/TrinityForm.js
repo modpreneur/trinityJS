@@ -20,7 +20,8 @@ const defaultSettings = {
         error: 'trinity-form-error',
         ready: 'trinity-form-ready'
     },
-    successTimeout : 3000
+    successTimeout : 3000,
+    timeoutTimeout : 2000
 };
 
 /**
@@ -311,7 +312,16 @@ function __successHandler(response){
  * @returns {boolean}
  */
 function __errorHandler(error){
-    this.state = 'error';
+    if(error.timeout){
+        this.state = 'timeout';
+        let id = setTimeout(()=>{
+            this.unlock();
+            this.state = 'ready';
+            clearTimeout(id);
+        }, this.settings.timeoutTimeout)
+    } else {
+        this.state = 'error';
+    }
     this.emit('error', error);
 }
 

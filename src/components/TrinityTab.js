@@ -4,6 +4,7 @@ import events from '../utils/closureEvents';
 import {EventEmitter} from 'fbemitter';
 import Gateway from '../Gateway';
 
+const MAX_TRY = 3;
 
 /**
  * Trinity Tab
@@ -214,7 +215,7 @@ export class Tab {
     }
 }
 
-function __requestWidget(link, tab, callback){
+function __requestWidget(link, tab, timeout_i, callback){
     Gateway.get(link, null, function(data){
         // @NOTE: note sure if this if is necessary
         if(typeof data === 'object'){
@@ -259,8 +260,22 @@ function __requestWidget(link, tab, callback){
             callback.call(tab, this.bodyElement);
         }
     }, function(error){
-        //TODO: Refresh button and Error somehow
-        console.error(error);
+        if(error.timeout){
+            if(timeout_i && timeout_i === MAX_TRY){
+                // TODO: Logger service?
+                console.error('Call for maintenance');
+                tab.parent.emit('error', {message: 'REQUEST TIMED OUT', timeout:true});
+            } else {
+                console.warn('Request timed out, trying again in 2 sec');
+                let id = setTimeout(()=>{
+                    __requestWidget(link, tab, timeout_i || 1);
+                    clearTimeout(id);
+                }, 2000);
+            }
+        } else {
+            console.error(error);
+            tab.parent.emit('error', error);
+        }
     });
 }
 
