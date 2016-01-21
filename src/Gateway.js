@@ -160,6 +160,7 @@ function _createRequest(url, method, sC, eC){
     xhr.setTimeoutInterval(Gateway.settings.timeout);
     xhr.onTimeout(function(){
         console.error('AJAX REQUEST TIMED OUT!');
+        eC({timeout:true});
     });
     xhr.onComplete(function(){
         if(this.getResponseHeader('Content-Type').indexOf('text/html') === -1){
@@ -205,6 +206,7 @@ function _createJSONRequest(url, method, sC, eC){
     xhr.setTimeoutInterval(Gateway.settings.timeout);
     xhr.onTimeout(function(){
         console.error('AJAX REQUEST TIMED OUT!');
+        eC({timeout:true});
     });
     xhr.onComplete(function(){
         if(this.getResponseHeader('Content-Type') !== 'application/json'){
