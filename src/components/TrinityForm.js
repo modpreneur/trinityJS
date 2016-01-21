@@ -17,6 +17,7 @@ const defaultSettings = {
     button : { // Defines which classes add to active button in which state
         loading: 'trinity-form-loading',
         success: 'trinity-form-success',
+        timeout: 'trinity-form-timeout',
         error: 'trinity-form-error',
         ready: 'trinity-form-ready'
     },
