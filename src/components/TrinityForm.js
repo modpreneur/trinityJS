@@ -297,13 +297,13 @@ function __successHandler(response){
     this.emit('success', response);
 
     // Edit type behaviour
-    if(this.type === 'edit'){
+    //if(this.type === 'edit'){
         this.unlock();
         let id = setTimeout((e)=>{
             this.state = 'ready';
             clearTimeout(id);
         }, this.settings.successTimeout);
-    }
+    //}
 }
 
 /**
