@@ -4,13 +4,17 @@
   "license": "MIT",
   "directories": {
     "lib": "src",
-    "bin":"lib"
+    "bin": "lib"
   },
-  "main":"index.js",
+  "main": "index.js",
   "format": "es6",
   "repository": {
     "type": "git",
     "url": "https://github.com/modpreneur/trinityJS.git"
+  },
+  "scripts": {
+    "start": "/usr/bin/node test/app.js",
+    "build": "babel src/ -d lib/"
   },
   "dependencies": {
     "fbemitter": "^2.0.0",
@@ -21,12 +25,20 @@
     "babel-cli": "^6.3.17",
     "babel-preset-es2015": "^6.3.13",
     "babel-runtime": "babel-runtime@^5.8.24",
-    "core-js": "core-js@^1.1.4"
+    "body-parser": "^1.15.0",
+    "colors": "^1.1.2",
+    "core-js": "core-js@^1.1.4",
+    "express": "^4.13.4",
+    "jade": "^1.11.0",
+    "multer": "^1.1.0"
   },
   "jspm": {
     "main": "trinity.js",
     "directories": {
       "lib": "src"
+    },
+    "map": {
+      "trinity": "."
     },
     "dependencies": {
       "fbemitter": "npm:fbemitter@^2.0.0",
@@ -34,13 +46,8 @@
     },
     "devDependencies": {
       "babel": "npm:babel-core@^5.8.24",
-      "babel-cli": "^6.3.17",
-      "babel-preset-es2015": "^6.3.13",
       "babel-runtime": "npm:babel-runtime@^5.8.24",
       "core-js": "npm:core-js@^1.1.4"
-    },
-    "map": {
-      "trinity": "."
     }
   }
 }
