@@ -169,7 +169,7 @@ function _sendFile(url, method, file, fieldName, successCallback, errorCallback,
     url = url.trim();
 
     let formData = new FormData();
-    if(Array.isArray(file)){
+    if(Array.isArray(file) || file['length'] !== undefined){
         let fLength = file.length;
         for(let i=0; i < fLength; i++){
             formData.append(fieldName || file[i].name, file[i]);

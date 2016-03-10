@@ -31,7 +31,7 @@ app.get('/', (req, res)=>{
     res.render('index');
 });
 
-let fileUpload = upload.fields([{name: 'photos', maxCount: 1}]);
+let fileUpload = upload.fields([{name: 'photos', maxCount: 2}]);
 app.post('/process-file', fileUpload, (req, res)=>{
     console.log('###### HEADERS');
     console.log(req.headers);

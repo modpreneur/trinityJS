@@ -2,7 +2,7 @@ extends layout.jade
 block content
     h2 File test
     label(for="file-input") Test File: &nbsp;
-    input(id="file-input" type="file")
+    input(id="file-input" type="file" multiple)
     button(id="file-submit") Send
     div(style="width: 200px; height:20px; border: solid 1px black; margin-top: 10px;")
         div(id="file-progress" class="progress-bar")

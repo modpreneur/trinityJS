@@ -13,14 +13,12 @@ let progressBar = q.id('file-progress');
 
 button.addEventListener('click', (e)=>{
     console.log('WORKS');
-    let file = fileInput.files[0];
-    if(file){
-        let fData = new FormData();
-        fData.append(file.name, file);
+    let files = fileInput.files;
+    if(files.length !== 0){
         Gateway.sendFile(
             '/process-file',
             'POST',
-            file,
+            files,
             'photos',
             (resp)=>{
                 console.log(resp);
