@@ -122,7 +122,13 @@ function _initialize(){
         activeHead.setAttribute('checked', 'checked');
     } else {
         activeHead = _.find(this.heads, (tab)=>{
-            return !_.isNull(tab.getAttribute('checked'));
+            let checked = false;
+            if(_.isUndefined(tab.checked)){
+                checked = !_.isNull(tab.getAttribute('checked'));
+            } else {
+                checked = tab.checked;
+            }
+            return checked;
         });
         if(!activeHead){
             activeHead = this.heads[0];

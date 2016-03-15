@@ -191,7 +191,6 @@ function _sendFile(url, method, file, fieldName, successCallback, errorCallback,
         if(this.getResponseHeader('Content-Type').indexOf('application/json') === -1){
             if(Gateway.settings.debug){
                 console.log('HEADERS', this.getResponseHeaders());
-                //TODO:  Test if ladyBug
                 _dumpOnScreen(this.getResponse());
             }
             console.error('Content-Type application/json expected! got:', this.getResponse());
@@ -321,6 +320,7 @@ function _createJSONRequest(url, method, sC, eC){
             window.location.assign(redirectTo);
         } else {
             console.error('RESPONSE:', this.getResponseJson());
+            // TODO: It would be correct to return only response, not parse error!!!
             eC(this.getResponseJson().error);
         }
     });
