@@ -12,6 +12,7 @@ let colors = require('colors'),
 let app = express();
 
 app.set('view engine', 'jade');
+app.set('views', path.join(__dirname, './views'));
 // Normal static
 app.use(express.static(path.join(__dirname, 'public')));
 // Trinity js
@@ -28,7 +29,11 @@ app.use(bodyParser.json());
 
 // ROUTES
 app.get('/', (req, res)=>{
-    res.render('index');
+    res.render('jspm/index');
+});
+
+app.get('/webpack', (req, res)=>{
+    res.render('webpack/index');
 });
 
 let fileUpload = upload.fields([{name: 'photos', maxCount: 2}]);

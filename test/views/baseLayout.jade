@@ -7,11 +7,12 @@ html(lang="en")
         script(src="js/abbreviations.js" type="application/javascript")
 
     body
+        nav
+            ul
+                li
+                    a(href="/") Home
+                li
+                    a(href="/webpack") Webpack
         block content
 
         block js-assets
-            script(src="jspm_packages/system.js")
-            script(src="jspm-config")
-            script.
-                System.import('js/main.js');
-
