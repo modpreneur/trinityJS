@@ -1,26 +1,19 @@
 {
-  "name": "trinityJS-test",
+  "name": "test",
   "version": "0.0.1",
   "license": "MIT",
-  "directories": {
-    "lib": "src",
-    "bin": "lib"
-  },
-  "files": [
-    "lib",
-    "src"
-  ],
-  "main": "app.js",
+  "main": "./app.js",
   "format": "es6",
   "scripts": {
-    "start": "npm run webpack-hot & /usr/bin/node app.js",
-    "webpack": "webpack -w",
+    "start": "npm run webpack-hot & /usr/bin/node ./app.js",
+    "webpack": "webpack.js -w",
     "webpack-hot": "webpack-dev-server --port 3001 --inline --hot"
   },
   "dependencies": {
     "body-parser": "^1.15.0",
     "colors": "^1.1.2",
     "express": "^4.13.4",
+    "jade": "^1.11.0",
     "lodash": "^3.10.1",
     "multer": "^1.1.0",
     "trinity": "file:../"
