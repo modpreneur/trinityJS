@@ -13,7 +13,7 @@
   "main": "app.js",
   "format": "es6",
   "scripts": {
-    "start": "/usr/bin/node app.js",
+    "start": "npm run webpack-hot & /usr/bin/node app.js",
     "webpack": "webpack -w",
     "webpack-hot": "webpack-dev-server --port 3001 --inline --hot"
   },
@@ -32,6 +32,7 @@
     "babel-preset-react": "^6.5.0",
     "css-loader": "^0.23.1",
     "style-loader": "^0.13.0",
-    "webpack": "^1.12.14"
+    "webpack": "^1.12.14",
+    "webpack-dev-server": "^1.14.1"
   }
 }
