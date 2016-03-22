@@ -1,7 +1,11 @@
+'use strict';
+let path = require('path');
+
 module.exports = {
-    entry: './src/entry.jsx',
+    entry: './web/main.jsx',
     output: {
-        filename: 'public/js/webpack.bundle.js'
+        path: path.join(__dirname, './dist'),
+        filename: 'webpack.bundle.js'
     },
     devtool: 'source-map',
     module: {

@@ -12,27 +12,16 @@ let colors = require('colors'),
 let app = express();
 
 app.set('view engine', 'jade');
-app.set('views', path.join(__dirname, './views'));
+app.set('views', path.join(__dirname, 'app/views'));
+
 // Normal static
-app.use(express.static(path.join(__dirname, 'public')));
-// Trinity js
-app.use('/trinity', express.static(path.join(__dirname, '../src')));
-// Node Modules
-app.use('/node_modules', express.static(path.join(__dirname, '../node_modules')));
-// jspm packages
-app.use('/jspm_packages', express.static(path.join(__dirname, '../jspm_packages')));
-// config file
-app.use('/jspm-config', express.static(path.join(__dirname, '../config.js')));
+app.use(express.static(path.join(__dirname, 'app/public')));
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
 // ROUTES
 app.get('/', (req, res)=>{
-    res.render('jspm/index');
-});
-
-app.get('/webpack', (req, res)=>{
     res.render('webpack/index');
 });
 
