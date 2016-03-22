@@ -1,6 +1,5 @@
 'use strict';
 
-//import './style.css';
-require('./style.css');
+import './style.css';
 
 console.log('Hello world');
