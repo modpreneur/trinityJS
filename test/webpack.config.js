@@ -4,7 +4,7 @@ let path = require('path');
 module.exports = {
     entry: './web/main.jsx',
     output: {
-        path: path.join(__dirname, './dist'),
+        path: path.join(__dirname, './app/public'),
         filename: 'webpack.bundle.js'
     },
     devtool: 'source-map',

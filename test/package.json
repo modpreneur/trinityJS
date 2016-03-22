@@ -6,7 +6,7 @@
   "format": "es6",
   "scripts": {
     "start": "npm run webpack-hot & /usr/bin/node ./app.js",
-    "webpack": "webpack.js -w",
+    "webpack-watch": "webpack -w",
     "webpack-hot": "webpack-dev-server --port 3001 --inline --hot"
   },
   "dependencies": {
