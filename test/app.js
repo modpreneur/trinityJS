@@ -25,6 +25,10 @@ app.get('/', (req, res)=>{
     res.render('webpack/index');
 });
 
+app.get('/static', (req, res)=>{
+    res.render('webpack/index', {useStatic: true});
+});
+
 let fileUpload = upload.fields([{name: 'photos', maxCount: 2}]);
 app.post('/process-file', fileUpload, (req, res)=>{
     console.log('###### HEADERS');

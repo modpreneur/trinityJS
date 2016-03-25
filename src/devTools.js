@@ -9,10 +9,9 @@
  * TODO: This is just try (prove of concept), all needs to be more deeply considered.
  */
 
-import Gateway from './Gateway.js';
-import TrinityFrom from './TrinityForm.js';
-import Router from './Router.js';
+import Debug from './Debug';
 
-Router.settings.debug = true;
-Gateway.settings.debug = true;
-TrinityFrom.settings.debug = true;
+Debug.env = 'dev';
+Debug.dump = ()=>{
+    window.document.documentElement.innerHTML = arguments.join('<br><br>');
+};

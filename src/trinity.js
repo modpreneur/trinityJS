@@ -1,16 +1,16 @@
 /**
  * Created by fisa on 11/9/15.
  */
-import App from './App.js';
-import Controller from './Controller.js';
-import Router from './Router.js';
-import * as Services from './Services.js';
-import Gateway from './Gateway.js';
-import Store from './Store.js';
-import TrinityForm from './TrinityForm.js';
-import TrinityTab from './TrinityTab.js'
-import Collection from './Collection.js';
-import components from './components.js';
+import App from './App';
+import AppNew from './App.new';
+import Controller from './Controller';
+import Router from './Router';
+import Debug from './Debug';
+import * as Services from './Services';
+import Gateway from './Gateway';
+import Store from './Store';
+import Collection from './Collection';
+import components from './components';
 
 /**
  * Just export all from trinity
@@ -18,8 +18,10 @@ import components from './components.js';
 export default {
     // Core
     App,
+    AppNew,
     Controller,
     Router,
+    Debug,
 
     // standalone utils
     Gateway,
@@ -28,7 +30,5 @@ export default {
     Collection,
 
     // depends on Gateway, Store and Services
-    TrinityForm, // deprecated
-    TrinityTab,
     components
 };

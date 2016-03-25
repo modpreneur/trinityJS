@@ -288,17 +288,6 @@ export default class TrinityForm extends EventEmitter {
  */
 TrinityForm.formType = formType;
 
-/**
- * Static default settings property
- * @static
- */
-TrinityForm.settings = {
-    debug: false
-};
-
-
-
-
 
 /**** PRIVATE METHODS ****/
 /** RESPONSE HANDLERS ************************************************************/
