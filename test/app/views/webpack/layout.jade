@@ -4,7 +4,10 @@ block content
 
 block js-assets
     if(useStatic)
-        script(src="webpack.bundle.js")
+        link(rel="stylesheet" type="text/css" href="styles.css")
+        script(src="app.bundle.js")
     else
-        script(src="http://localhost:3001/webpack.bundle.js")
+        link(rel="stylesheet" type="text/css" href="http://localhost:3001/styles.css")
+        script(src="http://localhost:3001/node_modules/lodash/index.js")
+        script(src="http://localhost:3001/app.bundle.js")
     //script(src="webpack.bundle.js")
