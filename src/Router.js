@@ -2,6 +2,7 @@
  * Created by fisa on 7/23/15.
  */
 import _ from 'lodash';
+import Debug from './Debug';
 
 /**
  * Private help RegExpressions
@@ -25,17 +26,17 @@ function Router(routes) {
     }, this);
 
     /** Adds prefix to regular expressions **/
-    if(Router.settings.debug){
+    if(Debug.isDev()){
         this.routes = this.routes.map(function(route){
+            let path = route['path'];
+            if(path.indexOf('/') > 1){
+                console.warn('Route should start with "/" char. Or should be index page "(/)". It can cause unexpected behaviour!', route);
+            }
             route.regx = _modifyRouteRegx(route.regx);
             return route;
         }, this);
     }
 }
-
-Router.settings ={
-    debug: false
-};
 
 /**
  * Regular expression template to modify regular expressions of routes
@@ -136,32 +137,6 @@ function _getQueryObj(str){
     }
     return query;
 }
-
-/**
- * Attach scope object on defined path, If path is not defined, create global scope object
- * @param object
- * @param path
- * @private
- */
-function _setScope(object, path){
-    if(!path || path.length < 1){
-        window['scope'] = object;
-        return;
-    }
-
-    var parsed = settings.scope.split('.'),
-        last = parsed.length-1,
-        ref = window;
-
-    for(var i=0; i<last;i++){
-        if(!ref.hasOwnProperty(parsed[i])){
-            ref[parsed[i]] = {};
-        }
-        ref = ref[parsed[i]];
-    }
-    ref[parsed[last]] = object;
-}
-
 
 
 /**

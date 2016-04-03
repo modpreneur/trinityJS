@@ -3,6 +3,7 @@
  */
 
 import Xhr from './utils/Xhr.js';
+import Debug from './Debug';
 
 
 var Gateway = {
@@ -87,6 +88,20 @@ var Gateway = {
      */
     sendJSON: _sendJSON,
 
+
+    /**
+     * File send
+     * @param url
+     * @param method
+     * @param file
+     * @param fieldName
+     * @param successCallback
+     * @param errorCallback
+     * @param progressCallback
+     * @private
+     */
+    sendFile: _sendFile,
+
     /**
      * settings for gateway
      * TODO: consider how to globally get settings ?
@@ -141,6 +156,76 @@ function _sendJSON(url, method, data, successCallback, errorCallback){
 }
 
 /**
+ * File send
+ * @param url
+ * @param method
+ * @param file
+ * @param fieldName
+ * @param successCallback
+ * @param errorCallback
+ * @param progressCallback
+ * @private
+ */
+function _sendFile(url, method, file, fieldName, successCallback, errorCallback, progressCallback){
+    url = url.trim();
+
+    let formData = new FormData();
+    if(Array.isArray(file) || file['length'] !== undefined){
+        let fLength = file.length;
+        for(let i=0; i < fLength; i++){
+            formData.append(fieldName || file[i].name, file[i]);
+        }
+    } else {
+        formData.append(fieldName || file.name, file);
+    }
+
+    let xhr = new Xhr(url, method, {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+    });
+    xhr.setTimeoutInterval(Gateway.settings.timeout);
+    xhr.onTimeout(function(){
+        Debug.error('AJAX REQUEST TIMED OUT!');
+        errorCallback({timeout:true});
+    });
+    xhr.onComplete(function(){
+        if(this.getResponseHeader('Content-Type').indexOf('application/json') === -1){
+            if(Debug.isDev()){
+                Debug.log('HEADERS', this.getResponseHeaders());
+                _dumpOnScreen(this.getResponse());
+            }
+            Debug.error('Content-Type application/json expected! got:', this.getResponse());
+            return false;
+        }
+        if(this.isSuccess()){
+            successCallback(this.getResponseJson());
+        } else if(302 === this.getStatus()){
+            var resp = this.getResponseJson(),
+                redirectTo = resp.location;
+            // Do callback and then redirect
+            if(successCallback(resp) === false){
+                return false;
+            }
+            // Redirect
+            if(!redirectTo){
+                return errorCallback({Error: 'Missing "location" attribute!'});
+            }
+            window.location.assign(redirectTo);
+        } else {
+            Debug.error('RESPONSE:', this.getResponseJson());
+            errorCallback(this.getResponseJson().error);
+        }
+    });
+
+    if(progressCallback){
+        xhr.request.upload.onprogress = progressCallback;
+    }
+
+    xhr.send(formData);
+    return xhr;
+}
+
+/**
  * Create normal request not expecting json response
  * @param url
  * @param method
@@ -153,30 +238,31 @@ function _createRequest(url, method, sC, eC){
         throw new Error('Not all arguments defined!');
     }
     var xhr = new Xhr(url, method, {
-        'Content-type':'text/html',
+        'Content-type':'application/x-www-form-urlencoded',
+        'Accept': 'text/html',
         'X-Requested-With': 'XMLHttpRequest'
     });
 
     xhr.setTimeoutInterval(Gateway.settings.timeout);
     xhr.onTimeout(function(){
-        console.error('AJAX REQUEST TIMED OUT!');
+        Debug.error('AJAX REQUEST TIMED OUT!');
         eC({timeout:true});
     });
     xhr.onComplete(function(){
         if(this.getResponseHeader('Content-Type').indexOf('text/html') === -1){
-            if(Gateway.settings.debug){
-                console.log('HEADERS', this.getResponseHeaders());
+            if(Debug.isDev()){
+                Debug.log('HEADERS', this.getResponseHeaders());
                 //TODO:  Test if ladyBug
                 _dumpOnScreen(this.getResponse());
             }
-            console.error('Content-Type text/html expected! got:', this.getResponse());
+            Debug.error('Content-Type text/html expected! got:', this.getResponse());
             return false;
         }
         if(this.isSuccess()){
             sC(this.getResponse());
         } else {
-            if(Gateway.settings.debug){
-                console.error('RESPONSE:', this.getResponse());
+            if(Debug.isDev()){
+                Debug.error('RESPONSE:', this.getResponse());
                 _dumpOnScreen(this.getResponse())
             }
 
@@ -200,22 +286,23 @@ function _createJSONRequest(url, method, sC, eC){
     }
     var xhr = new Xhr(url, method, {
         'Content-type': 'application/json',
+        'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest'
     });
 
     xhr.setTimeoutInterval(Gateway.settings.timeout);
     xhr.onTimeout(function(){
-        console.error('AJAX REQUEST TIMED OUT!');
+        Debug.error('AJAX REQUEST TIMED OUT!');
         eC({timeout:true});
     });
     xhr.onComplete(function(){
         if(this.getResponseHeader('Content-Type') !== 'application/json'){
-            if(Gateway.settings.debug){
-                console.log('HEADERS', this.getResponseHeaders());
+            if(Debug.isDev()){
+                Debug.log('HEADERS', this.getResponseHeaders());
                 //TODO:  Test if ladyBug
                 _dumpOnScreen(this.getResponse());
             }
-            console.error('Content-Type JSON expected! got:', this.getResponse());
+            Debug.error('Content-Type JSON expected! got:', this.getResponse());
             return false;
         }
         if(this.isSuccess()){
@@ -233,7 +320,8 @@ function _createJSONRequest(url, method, sC, eC){
             }
             window.location.assign(redirectTo);
         } else {
-            console.error('RESPONSE:', this.getResponseJson());
+            Debug.error('RESPONSE:', this.getResponseJson());
+            // TODO: It would be correct to return only response, not parse error!!!
             eC(this.getResponseJson().error);
         }
     });
@@ -263,5 +351,5 @@ function _createQuery(data){
  * @private
  */
 function _dumpOnScreen(response){
-    window.document.documentElement.innerHTML = response;
+    Debug.dump(response);
 }

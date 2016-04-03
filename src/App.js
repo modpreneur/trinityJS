@@ -2,23 +2,29 @@
  * Created by fisa on 11/1/15.
  */
 import _ from 'lodash';
-import Router from './Router.js';
+import Router from './Router';
 import Controller from './Controller.js';
+import Debug from './Debug';
 
 const defaultSettings = {
-    environment: 'production',
+    env: 'production',
     controllersPath: '/'
 };
 
 /**
  * Represents application, provides main control over running js
+ * @deprecated
  */
 export default class App {
     constructor(routes, controllers, settings){
         //Settings FIRST !
-        this.settings = _.extend(_.extend({}, defaultSettings), settings);
-        if(this.isDevEnvironment()){
-            Router.settings.debug = true;
+        this.settings = _.defaultsDeep(settings || {}, defaultSettings);
+        // Removed in new version
+        if(settings.environment){
+            this.settings.env = settings.environment;
+        }
+        if(this.settings.env === 'dev' || this.settings.env === 'development'){
+            Debug.env = 'dev';
             System.import('trinity/devTools');
         }
 
@@ -171,10 +177,10 @@ export default class App {
      * @returns {string|*|string}
      */
     get environment(){
-        return this.settings.environment;
+        return this.settings.env;
     }
 
     isDevEnvironment(){
-        return this.environment === 'dev' || this.environment === 'development';
+        return Debug.isDev();
     }
 }

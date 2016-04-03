@@ -3,6 +3,7 @@ import Dom from '../utils/Dom';
 import events from '../utils/closureEvents';
 import {EventEmitter} from 'fbemitter';
 import Gateway from '../Gateway';
+import Debug from '../Debug';
 
 const MAX_TRY = 3;
 
@@ -34,7 +35,7 @@ export default class TrinityTab extends EventEmitter {
      */
     setActiveTab(tabID){
         if(!this.tabs.hasOwnProperty(tabID)){
-            if(TrinityTab.settings.debug){
+            if(Debug.isDev()){
                 throw new Error('Tab with id: '+ tabID + ' does not exist!');
             }
             return;
@@ -106,8 +107,6 @@ export default class TrinityTab extends EventEmitter {
 
 }
 
-TrinityTab.settings = {debug : false};
-
 /**
  * Initialize TrinityTab wrapper
  * @private
@@ -122,7 +121,13 @@ function _initialize(){
         activeHead.setAttribute('checked', 'checked');
     } else {
         activeHead = _.find(this.heads, (tab)=>{
-            return !_.isNull(tab.getAttribute('checked'));
+            let checked = false;
+            if(_.isUndefined(tab.checked)){
+                checked = !_.isNull(tab.getAttribute('checked'));
+            } else {
+                checked = tab.checked;
+            }
+            return checked;
         });
         if(!activeHead){
             activeHead = this.heads[0];

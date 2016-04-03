@@ -56,8 +56,16 @@ export default class TrinityForm extends EventEmitter {
         this.settings = _.defaultsDeep(settings || {}, defaultSettings);
         this.__errors = [];
         this.__state = 'ready';
-        //Main init
-        _initialize.call(this, formElement);
+
+        //Main initialize
+        // Add ready class to all buttons
+        let btnReadyClass = this.settings.button['ready'].split(' ');
+        _.each(this.buttons, (btn)=>{
+            Dom.classlist.addAll(btn, btnReadyClass);
+        });
+
+        // Add listener to form element
+        events.listen(formElement, 'submit', this.submit, false, this);
     }
 
     /**
@@ -196,6 +204,45 @@ export default class TrinityForm extends EventEmitter {
     }
 
     /**
+     * Submit event listener
+     * - can be also forced
+     * @Note - no event is triggered
+     * @param e
+     */
+    submit(e){
+        /** catch button with focus first **/
+        this.activeBtn = document.activeElement.type === 'button' ? document.activeElement : this.buttons[0];
+        /** Continue **/
+        if(e){
+            e.preventDefault();
+        }
+        /** Lock and Load **/
+        this.lock();
+        this.state = 'loading';
+        //this.toggleLoading();
+
+        /** Parse and send Data **/
+        let data = __parseSymfonyForm(this.element, this.activeBtn);
+        let method = data.hasOwnProperty('_method')? data['_method'] : this.element.method;
+
+        /** Discover type **/
+        if(_.isNull(this.type)){
+            switch(method){
+                case 'POST' : this.type = formType.NEW; break;
+                case 'PUT' : this.type = formType.EDIT; break;
+                default : this.type = formType.DELETE; break;
+            }
+        }
+        Gateway.sendJSON(
+            this.element.action,
+            method,
+            data, //Json object
+            __successHandler.bind(this),
+            __errorHandler.bind(this)
+        );
+    }
+
+    /**
      * Adds 'success' event Listener
      * @param callback {function}
      * @param [context] {Object} - this argument
@@ -216,6 +263,22 @@ export default class TrinityForm extends EventEmitter {
         this.addListener('error', callback, context);
         return this; // for chaining
     }
+
+    /**
+     * Force set submit buttons
+     * @param buttons {Array<HTMLElement>}
+     */
+    setSubmitButtons(buttons){
+        /** Add ready class to all buttons **/
+        let btnReadyClass = this.settings.button['ready'].split(' ');
+        _.each(this.buttons, (btn)=>{
+            Dom.classlist.removeAll(btn, btnReadyClass);
+        });
+        this.buttons = buttons;
+        _.each(this.buttons, (btn)=>{
+            Dom.classlist.addAll(btn, btnReadyClass);
+        });
+    }
 }
 
 /** STATIC CONSTANTS **/
@@ -225,66 +288,8 @@ export default class TrinityForm extends EventEmitter {
  */
 TrinityForm.formType = formType;
 
-/**
- * Static default settings property
- * @static
- */
-TrinityForm.settings = {
-    debug: false
-};
-
-
-
-
 
 /**** PRIVATE METHODS ****/
-
-
-/**
- * Initialize TrinityForm - adds submit event listener
- * @param form {HTMLFormElement}
- * @private
- */
-function _initialize(form){
-    /** Add ready class to all buttons **/
-    let btnReadyClass = this.settings.button['ready'].split(' ');
-    _.each(this.buttons, (btn)=>{
-        Dom.classlist.addAll(btn, btnReadyClass);
-    });
-
-    /** Add listener to form element **/
-    events.listen(form, 'submit', function(e){
-        /** catch button with focus first **/
-        this.activeBtn = document.activeElement.type === 'button' ? document.activeElement : this.buttons[0];
-        /** Continue **/
-        e.preventDefault();
-        /** Lock and Load **/
-        this.lock();
-        this.state = 'loading';
-        //this.toggleLoading();
-
-        /** Parse and send Data **/
-        let data = __parseSymfonyForm(form, this.activeBtn);
-        let method = data.hasOwnProperty('_method')? data['_method'] : form.method;
-
-        /** Discover type **/
-        if(_.isNull(this.type)){
-            switch(method){
-                case 'POST' : this.type = formType.NEW; break;
-                case 'PUT' : this.type = formType.EDIT; break;
-                default : this.type = formType.DELETE; break;
-            }
-        }
-        Gateway.sendJSON(
-            form.action,
-            method,
-            data, //Json object
-            __successHandler.bind(this),
-            __errorHandler.bind(this)
-        );
-    }, false, this);
-}
-
 /** RESPONSE HANDLERS ************************************************************/
 
 /**

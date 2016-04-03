@@ -7,7 +7,8 @@
  * Should be inherited from in every controller
  */
 export default class Controller {
-    constructor(){
+    constructor(name){
+        this.name = name;
         this._app = null;
         this._scope = null;
         this._request = null;
