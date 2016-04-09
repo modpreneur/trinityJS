@@ -33,11 +33,20 @@ export function messageService(message, type){
     ajaxAlert.innerHTML = ajaxAlert.innerHTML.replace('{message}', message);
     ajaxAlert.className = ajaxAlert.className.replace('{type}', type);
 
-    if(type == 'success') { ajaxAlert.innerHTML = ajaxAlert.innerHTML.replace('{icon}', 'tiecons tiecons-check color-green font-20'); }
-    if(type == 'warning') { ajaxAlert.innerHTML = ajaxAlert.innerHTML.replace('{icon}', 'tiecons tiecons-exclamation-mark-triangle color-red font-20'); }
-    if(type == 'info')    { ajaxAlert.innerHTML = ajaxAlert.innerHTML.replace('{icon}', 'tiecons tiecons-info color-blue font-20'); }
+    if (type == 'success') {
+        ajaxAlert.innerHTML = ajaxAlert.innerHTML.replace('{icon}', 'trinity trinity-ok');
+    }
+    if (type == 'warning') {
+        ajaxAlert.innerHTML = ajaxAlert.innerHTML.replace('{icon}', 'trinity trinity-warning');
+    }
+    if (type == 'danger') {
+        ajaxAlert.innerHTML = ajaxAlert.innerHTML.replace('{icon}', 'tiecons tiecons-exclamation-mark-circle');
+    }
+    if (type == 'info') {
+        ajaxAlert.innerHTML = ajaxAlert.innerHTML.replace('{icon}', 'trinity trinity-info');
+    }
 
-    ajaxAlert.innerHTML = ajaxAlert.innerHTML.replace('{icon}', 'tiecons tiecons-info color-blue font-20');
+    ajaxAlert.innerHTML = ajaxAlert.innerHTML.replace('{icon}', 'trinity trinity-info');
 
     Dom.classlist.remove(ajaxInput, 'ajax-checkbox');
     Dom.classlist.remove(ajaxAlert,'ajax-alert');
