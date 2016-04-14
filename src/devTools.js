@@ -3,8 +3,7 @@
  */
 /**
  * DevTools should just extend normal framework components with debugging features.
- * For example Gateway is behaving differently in order to provide as much info as
- * possible when something goes wrong
+ * For example Debug object is extended with some methods and mode is automatically set to 'dev'
  *
  * TODO: This is just try (prove of concept), all needs to be more deeply considered.
  */
@@ -12,6 +11,6 @@
 import Debug from './Debug';
 
 Debug.env = 'dev';
-Debug.dump = ()=>{
-    window.document.documentElement.innerHTML = arguments.join('<br><br>');
+Debug.dump = function(){
+    window.document.documentElement.innerHTML = Array.prototype.join.call(arguments, '<br><br>');
 };
