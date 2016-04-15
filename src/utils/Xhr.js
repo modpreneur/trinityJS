@@ -42,6 +42,7 @@ class Xhr {
             headers['Content-type'] = 'application/x-www-form-urlencoded';
         }
         this.setHeaders(headers);
+        console.log(headers);
     }
 
     /**
