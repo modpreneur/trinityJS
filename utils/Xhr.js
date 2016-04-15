@@ -51,9 +51,9 @@ var Xhr = function () {
         this.request.open(method, url, true);
 
         // Headers - default just add x-www-form-urlencoded
-        //if(!headers['Content-type']){
-        //    headers['Content-type'] = 'application/x-www-form-urlencoded';
-        //}
+        if (!headers['Content-type']) {
+            headers['Content-type'] = 'application/x-www-form-urlencoded';
+        }
         this.setHeaders(headers);
     }
 
