@@ -3,12 +3,10 @@
   "version": "0.0.1",
   "license": "MIT",
   "directories": {
-    "lib": "src",
-    "bin": "lib"
+    "lib": "src"
   },
   "files": [
-    "lib/*",
-    "src"
+    "./*.js"
   ],
   "main": "index.js",
   "format": "es6",
@@ -21,8 +19,8 @@
     "build": "babel --presets es2015 src/ -d ./"
   },
   "dependencies": {
-    "fbemitter": "^2.0.0",
-    "lodash": "^3.10.1"
+    "fbemitter": ">=2.0.0",
+    "lodash": ">=3.10.1"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",
