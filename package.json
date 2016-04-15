@@ -6,8 +6,10 @@
     "lib": "src"
   },
   "files": [
+    "src",
     "*.js",
-    "src"
+    "utils",
+    "components"
   ],
   "main": "index.js",
   "format": "es6",
