@@ -6,7 +6,8 @@
     "lib": "src"
   },
   "files": [
-    "./*.js"
+    "*.js",
+    "src"
   ],
   "main": "index.js",
   "format": "es6",
