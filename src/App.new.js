@@ -40,7 +40,7 @@ export default class App {
      * @returns {boolean}
      */
     start(successCallback, errorCallback){
-        let controller = this.router.findController(this.controllers);
+        let controller = this.router.findController();
         if(_.isNull(controller)) {
             return this.finishCallback(false, successCallback);
         }

@@ -18,7 +18,7 @@
   },
   "scripts": {
     "start": "/usr/bin/node test/app.js",
-    "build": "babel --presets es2015 src/ -d lib/"
+    "build": "babel --presets es2015 src/ -d ./"
   },
   "dependencies": {
     "fbemitter": "^2.0.0",

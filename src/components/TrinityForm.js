@@ -35,6 +35,8 @@ const formType = {
     DELETE : 'delete'
 };
 
+const IS_FORM_DATA = !!window.FormData;
+
 /**
  * Connects to formElement and change it to ajax form
  *
@@ -222,7 +224,13 @@ export default class TrinityForm extends EventEmitter {
         //this.toggleLoading();
 
         /** Parse and send Data **/
-        let data = __parseSymfonyForm(this.element, this.activeBtn);
+        let data = null;
+        if(IS_FORM_DATA){
+            data = new FormData(this.element);
+        } else {
+            data = __parseSymfonyForm(this.element, this.activeBtn);
+        }
+
         let method = data.hasOwnProperty('_method')? data['_method'] : this.element.method;
 
         /** Discover type **/

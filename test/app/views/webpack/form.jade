@@ -1,0 +1,12 @@
+extends layout.jade
+block content
+    h2 Trinity Form
+    form(data-ng-scope="test-form" action="/form" method="post")
+        div
+            label(for="test-form-name") Name:
+            input(id="test-form-name" type="text" name="name")
+        div
+            label(for="test-form-photo") Photo:
+            input(id="test-form-photo" type="file" name="photo")
+        div
+            button(type="submit") Submit

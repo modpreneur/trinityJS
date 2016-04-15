@@ -17,8 +17,10 @@ app.set('views', path.join(__dirname, 'app/views'));
 // Normal static
 app.use(express.static(path.join(__dirname, 'app/public')));
 
-app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+
+//app.use(bodyParser.raw());
 
 // ROUTES
 app.get('/', (req, res)=>{
@@ -27,6 +29,18 @@ app.get('/', (req, res)=>{
 
 app.get('/static', (req, res)=>{
     res.render('webpack/index', {useStatic: true});
+});
+
+app.get('/form', (req, res)=>{
+    res.render('webpack/form');
+});
+
+app.post('/form', upload.array(), (req, res)=>{
+    console.log(req.headers);
+    //console.log(req.headers);
+    console.log(req.body);
+    console.log(req.files);
+    return res.status(200).json({'message': 'OK'});
 });
 
 let fileUpload = upload.fields([{name: 'photos', maxCount: 2}]);
