@@ -35,7 +35,8 @@ const formType = {
     DELETE : 'delete'
 };
 
-const IS_FORM_DATA = !!window.FormData;
+//const IS_FORM_DATA = !!window.FormData;
+const IS_FORM_DATA = false;
 
 /**
  * Connects to formElement and change it to ajax form
