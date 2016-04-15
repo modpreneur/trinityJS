@@ -7,7 +7,7 @@
     "bin": "lib"
   },
   "files": [
-    "lib",
+    "lib/*",
     "src"
   ],
   "main": "index.js",
