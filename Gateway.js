@@ -81,6 +81,16 @@ var Gateway = {
         _sendJSON(url, 'PUT', data, successCallback, errorCallback);
     },
     /**
+     * JSON PUT request
+     * @param url
+     * @param data
+     * @param successCallback
+     * @param errorCallback
+     */
+    deleteJSON: function deleteJSON(url, data, successCallback, errorCallback) {
+        _sendJSON(url, 'DELETE', data, successCallback, errorCallback);
+    },
+    /**
      * Same as others, just allow specify method.
      * @param url
      * @param method
