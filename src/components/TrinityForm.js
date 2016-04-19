@@ -242,6 +242,8 @@ export default class TrinityForm extends EventEmitter {
                 default : this.type = formType.DELETE; break;
             }
         }
+        // Emit TODO: Maybe differently ?
+        this.emit('submit-data', data);
         Gateway.sendJSON(
             this.element.action,
             method,
