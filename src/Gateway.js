@@ -289,8 +289,6 @@ function _createJSONRequest(url, method, sC, eC){
         'X-Requested-With': 'XMLHttpRequest'
     });
 
-    Debug.log(xhr);
-
     xhr.setTimeoutInterval(Gateway.settings.timeout);
     xhr.onTimeout(function(){
         Debug.error('AJAX REQUEST TIMED OUT!');

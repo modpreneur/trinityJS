@@ -272,6 +272,8 @@ var TrinityForm = function (_EventEmitter) {
                         this.type = formType.DELETE;break;
                 }
             }
+            // Emit TODO: Maybe differently ?
+            this.emit('submit-data', data);
             _Gateway2.default.sendJSON(this.element.action, method, data, //Json object
             __successHandler.bind(this), __errorHandler.bind(this));
         }
