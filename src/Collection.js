@@ -13,18 +13,18 @@ import Store from './Store.js';
  */
 var defaultSettings = {
     addButton:
-        `<div class="collection-add display-inline-block">
-            <div class="span-medium-8 span-large-6 span-xlarge-10"></div>
-            <div class="display-inline-block">
-                <a href="#" id="addButton" class="add-collection-item button button-info button-medium button-circle">
-                    <i class="tiecons tiecons-plus-radius-large"></i>
-                </a>
-            </div>
-        </div>`,
+    '       <div class="collection-add display-inline-block">\n' +
+    '            <div class="span-medium-8 span-large-6 span-xlarge-10"></div>\n' +
+    '            <div class="display-inline-block">\n' +
+    '                <a href="#" id="addButton" class="add-collection-item">\n' +
+    '                    <i class="tiecons tiecons-plus-radius-large"></i>\n' +
+    '                </a>\n' +
+    '            </div>\n' +
+    '        </div>',
     deleteButton:
-        `<a title="Remove item" href="#" id="deleteButton" class="delete-collection-item">
-            <span class="trinity trinity-trash circle"></span>
-        </a>`,
+    '       <a title="Remove item" href="#" id="deleteButton" class="delete-collection-item">\n' +
+    '            <span class="trinity trinity-trash circle"></span>\n' +
+    '        </a>',
     onAdd: null,
     onDelete: null,
     label: false,
