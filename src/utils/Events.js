@@ -8,7 +8,6 @@ let Events = {
      * @param callback {function}
      * @param capture [boolean]
      * @returns {function}
-     * @private
      */
     on: __listen,
 
@@ -19,7 +18,6 @@ let Events = {
      * @param callback {function}
      * @param capture [boolean]
      * @returns {function}
-     * @private
      */
     listen: __listen,
 
@@ -30,7 +28,6 @@ let Events = {
      * @param event {string}
      * @param callback {function}
      * @param capture [boolean]
-     * @private
      * @returns {function}
      */
     once: __listenOnce,
@@ -42,7 +39,6 @@ let Events = {
      * @param event {string}
      * @param callback {function}
      * @param capture [boolean]
-     * @private
      * @returns {function}
      */
     listenOnce: __listenOnce,
@@ -54,7 +50,6 @@ let Events = {
      * @param callback {function}
      * @param capture [boolean]
      * @returns {void}
-     * @private
      */
     off: __removeListener,
 
@@ -65,7 +60,6 @@ let Events = {
      * @param callback {function}
      * @param capture [boolean]
      * @returns {void}
-     * @private
      */
     unlisten: __removeListener,
 
@@ -77,7 +71,6 @@ let Events = {
      * @param callback {function}
      * @param capture [boolean]
      * @returns {void}
-     * @private
      */
     removeListener: __removeListener
 };
