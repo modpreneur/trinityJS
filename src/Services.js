@@ -1,6 +1,8 @@
 /**
  * Created by fisa on 10/26/15.
  */
+'use strict';
+
 import Dom from './utils/Dom.js';
 
 

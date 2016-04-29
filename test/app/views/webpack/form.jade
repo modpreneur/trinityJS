@@ -3,10 +3,14 @@ block content
     h2 Trinity Form
     form(data-ng-scope="test-form" action="/form" method="post")
         div
-            label(for="test-form-name") Name:
+            label(for="test-form-name") Name: &nbsp;
             input(id="test-form-name" type="text" name="name")
         div
             label(for="test-form-photo") Photo:
-            input(id="test-form-photo" type="file" name="photo")
+            input(id="test-form-photo" type="file" name="photo" multiple)
         div
             button(type="submit") Submit
+    h2 File test
+    div
+        input(data-ng-scope="testFile" type="file")
+        button(data-ng-scope="sendFileBtn") Send file

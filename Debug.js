@@ -11,7 +11,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var ENV = 'prod';
 var IS_DEV = false;
 
-function Empty() {/*Nothing will happen*/}
+function noop() {/*Nothing will happen*/}
 
 var Debug = function () {
     function Debug() {
@@ -55,4 +55,4 @@ var Debug = function () {
 
 
 exports.default = Debug;
-Debug.dump = Empty;
+Debug.dump = noop;

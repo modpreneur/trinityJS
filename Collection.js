@@ -1,26 +1,27 @@
+/**
+ * Created by fisa on 8/20/15.
+ */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Created by fisa on 8/20/15.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _Dom = require('./utils/Dom.js');
+var _Dom = require('./utils/Dom');
 
 var _Dom2 = _interopRequireDefault(_Dom);
 
-var _closureEvents = require('./utils/closureEvents.js');
+var _Events = require('./utils/Events');
 
-var _closureEvents2 = _interopRequireDefault(_closureEvents);
+var _Events2 = _interopRequireDefault(_Events);
 
-var _Store = require('./Store.js');
+var _Store = require('./Store');
 
 var _Store2 = _interopRequireDefault(_Store);
 
@@ -33,16 +34,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * @type {{addButton: string, deleteButton: string, onAdd: null, onDelete: null, name: string}}
  */
 var defaultSettings = {
-    addButton: 
-    '       <div class="collection-add display-inline-block">\n' +
-    '            <div class="span-medium-8 span-large-6 span-xlarge-10"></div>\n' +
-    '            <div class="display-inline-block">\n' +
-    '                <a href="#" id="addButton" class="add-collection-item">\n' +
-    '                    <i class="tiecons tiecons-plus-radius-large"></i>\n' +
-    '                </a>\n' +
-    '            </div>\n' +
-    '        </div>',
-    deleteButton: '<a title="Remove item" href="#" id="deleteButton" class="delete-collection-item">\n            <span class="trinity trinity-trash circle"></span>\n        </a>',
+    addButton: '       <div class="collection-add display-inline-block">\n' + '            <div class="span-medium-8 span-large-6 span-xlarge-10"></div>\n' + '            <div class="display-inline-block">\n' + '                <a href="#" id="addButton" class="add-collection-item">\n' + '                    <i class="tiecons tiecons-plus-radius-large"></i>\n' + '                </a>\n' + '            </div>\n' + '        </div>',
+    deleteButton: '       <a title="Remove item" href="#" id="deleteButton" class="delete-collection-item">\n' + '            <span class="trinity trinity-trash circle"></span>\n' + '        </a>',
     onAdd: null,
     onDelete: null,
     label: false,
@@ -51,7 +44,6 @@ var defaultSettings = {
 };
 
 /**
- * TODO: Test it
  * Collection class, handles one layer of Collection form
  * @param element {HTMLElement}
  * @param [globalOptions] {Object}
@@ -172,13 +164,15 @@ function _parsePrototypeData(element) {
  * @private
  */
 function _addRemoveBtn(child) {
+    var _this = this;
+
     var settings = this.settings,
         removeButton = settings.deleteButton.cloneNode(true);
 
     // right ID to delete button
     removeButton.setAttribute('id', [removeButton.getAttribute('id'), '_', child.node.getAttribute('id')].join(''));
 
-    _closureEvents2.default.listenOnce(removeButton, 'click', function (e) {
+    _Events2.default.listenOnce(removeButton, 'click', function (e) {
         // prevent the link from creating a "#" on the URL
         e.preventDefault();
 
@@ -189,14 +183,14 @@ function _addRemoveBtn(child) {
         // remove collection child
         child.remove();
         // Update all other children
-        this.children = _lodash2.default.filter(this.children, function (item) {
+        _this.children = _lodash2.default.filter(_this.children, function (item) {
             if (item.id > id) {
                 item.setID(item.id - 1);
                 return true;
             }
             return !(item.id === id);
         });
-    }.bind(this));
+    });
 
     //Append child to right
     child.node.querySelector('.form-right').appendChild(removeButton);
@@ -207,14 +201,16 @@ function _addRemoveBtn(child) {
  * @private
  */
 function _addCreateBtn() {
-    var settings = this.settings;
-    _closureEvents2.default.listen(settings.addButton, 'click', function (e) {
+    var _this2 = this;
+
+    var sett = this.settings;
+    _Events2.default.listen(sett.addButton, 'click', function (e) {
         e.preventDefault();
         // add a new tag form (see next code block)
-        this.add();
-    }.bind(this));
+        _this2.add();
+    });
     //append add button
-    this.collectionHolder.appendChild(settings.addButton);
+    this.collectionHolder.appendChild(sett.addButton);
 }
 
 /**

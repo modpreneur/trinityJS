@@ -1,11 +1,12 @@
 /**
  * Created by fisa on 8/20/15.
  */
+'use strict';
 
 import _ from 'lodash';
-import Dom from './utils/Dom.js';
-import events from './utils/closureEvents.js';
-import Store from './Store.js';
+import Dom from './utils/Dom';
+import Events from './utils/Events';
+import Store from './Store';
 
 /**
  * Default settings of Collection Object
@@ -33,7 +34,6 @@ var defaultSettings = {
 };
 
 /**
- * TODO: Test it
  * Collection class, handles one layer of Collection form
  * @param element {HTMLElement}
  * @param [globalOptions] {Object}
@@ -158,14 +158,14 @@ function _addRemoveBtn(child){
     // right ID to delete button
     removeButton.setAttribute('id', [removeButton.getAttribute('id'), '_', child.node.getAttribute('id')].join(''));
 
-    events.listenOnce(removeButton, 'click', function(e) {
+    Events.listenOnce(removeButton, 'click', (e)=>{
         // prevent the link from creating a "#" on the URL
         e.preventDefault();
 
         if (_.isFunction(settings.onDelete)){
             settings.onDelete(child.node);
         }
-        var id = child.id;
+        let id = child.id;
         // remove collection child
         child.remove();
         // Update all other children
@@ -176,7 +176,7 @@ function _addRemoveBtn(child){
             }
             return !(item.id === id);
         });
-    }.bind(this));
+    });
 
     //Append child to right
     child.node.querySelector('.form-right').appendChild(removeButton);
@@ -187,14 +187,14 @@ function _addRemoveBtn(child){
  * @private
  */
 function _addCreateBtn(){
-    var settings = this.settings;
-    events.listen(settings.addButton, 'click', function(e){
+    let sett = this.settings;
+    Events.listen(sett.addButton, 'click', (e)=>{
         e.preventDefault();
         // add a new tag form (see next code block)
         this.add();
-    }.bind(this));
+    });
     //append add button
-    this.collectionHolder.appendChild(settings.addButton);
+    this.collectionHolder.appendChild(sett.addButton);
 }
 
 /**

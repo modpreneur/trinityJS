@@ -182,9 +182,9 @@ var Xhr = function () {
     }, {
         key: 'getResponseHeaders',
         value: function getResponseHeaders() {
-            var headersString = this.request.getAllResponseHeaders();
-            var headersTemp = headersString.split('\n');
-            var headersLength = headersTemp.length;
+            var headersString = this.request.getAllResponseHeaders(),
+                headersTemp = headersString.split('\n'),
+                headersLength = headersTemp.length;
             if (headersTemp[headersLength - 1].length === 0) {
                 headersLength--;
             }
@@ -195,10 +195,10 @@ var Xhr = function () {
                     var index = headersTemp[i].indexOf(':');
                     header[headersTemp[i].substring(0, index)] = headersTemp[i].substring(index + 2);
                 } else {
-                    var name = '';
-                    var value = '';
-                    var strLength = headersTemp[i].length;
-                    var isNamePart = true;
+                    var name = '',
+                        value = '',
+                        strLength = headersTemp[i].length,
+                        isNamePart = true;
                     for (var j = 0; j < strLength; j++) {
                         if (headersTemp[i][j] === ':') {
                             j++;

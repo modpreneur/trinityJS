@@ -32,18 +32,25 @@ app.get('/static', (req, res)=>{
 });
 
 app.get('/form', (req, res)=>{
+    console.log('BODY', req.body);
     res.render('webpack/form');
 });
 
-app.post('/form', upload.array(), (req, res)=>{
+app.post('/form', upload.fields([{name: 'photo'}]), (req, res)=>{
     console.log(req.headers);
     //console.log(req.headers);
     console.log(req.body);
     console.log(req.files);
-    return res.status(200).json({'message': 'OK'});
+    setTimeout(()=>{
+        console.log('dfsdfdsfds');
+        return res.status(400).send('dsjhfjdsbfhds');
+
+    }, 2000);
+    //return res.status(200).json({'message': 'OK'});
 });
 
-let fileUpload = upload.fields([{name: 'photos', maxCount: 2}]);
+let fileUpload = upload.fields([{name: 'files', maxCount: 2}]);
+//let fileUpload = upload.array();
 app.post('/process-file', fileUpload, (req, res)=>{
     console.log('###### HEADERS');
     console.log(req.headers);

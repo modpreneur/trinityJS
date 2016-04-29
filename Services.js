@@ -1,3 +1,6 @@
+/**
+ * Created by fisa on 10/26/15.
+ */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -72,6 +75,4 @@ function messageService(message, type) {
             }, 2000);
         })();
     }
-} /**
-   * Created by fisa on 10/26/15.
-   */
+}

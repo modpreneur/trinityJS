@@ -1,7 +1,9 @@
+'use strict';
+
 import _ from 'lodash';
-import Gateway from '../Gateway';
+import Request from 'superagent';
 import {EventEmitter} from 'fbemitter';
-import events from '../utils/closureEvents';
+import Events from '../utils/Events';
 import Dom from '../utils/Dom';
 
 /**
@@ -21,8 +23,9 @@ const defaultSettings = {
         error: 'trinity-form-error',
         ready: 'trinity-form-ready'
     },
-    successTimeout : 3000,
-    timeoutTimeout : 2000
+    requestTimeout: 10000,
+    successTimeout: 3000,
+    timeoutTimeout: 2000
 };
 
 /**
@@ -35,8 +38,8 @@ const formType = {
     DELETE : 'delete'
 };
 
-//const IS_FORM_DATA = !!window.FormData;
-const IS_FORM_DATA = false;
+const IS_FORM_DATA = !!window.FormData;
+//const IS_FORM_DATA = false;
 
 /**
  * Connects to formElement and change it to ajax form
@@ -52,7 +55,7 @@ export default class TrinityForm extends EventEmitter {
         if (!formElement) {
             throw new Error('Missing "formElement" parameter!');
         }
-        this.element = formElement;
+        this.form = formElement;
         this.buttons = formElement.querySelectorAll('input[type="submit"], button[type="submit"]');
         this.activeBtn = null;
         this.type = type || null;
@@ -68,7 +71,7 @@ export default class TrinityForm extends EventEmitter {
         });
 
         // Add listener to form element
-        events.listen(formElement, 'submit', this.submit, false, this);
+        Events.listen(formElement, 'submit', this.submit.bind(this));
     }
 
     /**
@@ -131,7 +134,7 @@ export default class TrinityForm extends EventEmitter {
      * @returns {string}
      */
     getName(){
-        return this.element.getAttribute('name');
+        return this.form.getAttribute('name');
     };
 
     /**
@@ -152,7 +155,7 @@ export default class TrinityForm extends EventEmitter {
             this.__errors.push(fieldErr);
         }
         if(!fieldErr.listener){
-            fieldErr.listener = events.listenOnce(inputElement, 'input', function removeError(e){
+            fieldErr.listener = Events.listenOnce(inputElement, 'input', (e)=>{
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -161,7 +164,7 @@ export default class TrinityForm extends EventEmitter {
                 });
                 fieldErr.removeAll();
                 this.validate()
-            }, false, this);
+            });
         }
         return fieldErr.add(message);
     };
@@ -192,7 +195,7 @@ export default class TrinityForm extends EventEmitter {
             })[0]
         );
         fieldError.removeAll();
-        events.unlistenByKey(fieldError.listener);
+        Events.removeListener(fieldError.input, 'input', fieldError.listener);
     };
 
     /**
@@ -227,12 +230,14 @@ export default class TrinityForm extends EventEmitter {
         /** Parse and send Data **/
         let data = null;
         if(IS_FORM_DATA){
-            data = new FormData(this.element);
+            data = new FormData(this.form);
         } else {
-            data = __parseSymfonyForm(this.element, this.activeBtn);
+            data = __parseSymfonyForm(this.form, this.activeBtn);
         }
 
-        let method = data.hasOwnProperty('_method')? data['_method'] : this.element.method;
+        let url = this.form.action.trim();
+        let method = (data.hasOwnProperty('_method')? data['_method'] : this.form.method).toUpperCase();
+
 
         /** Discover type **/
         if(_.isNull(this.type)){
@@ -242,15 +247,30 @@ export default class TrinityForm extends EventEmitter {
                 default : this.type = formType.DELETE; break;
             }
         }
-        // Emit TODO: Maybe differently ?
-        this.emit('submit-data', data);
-        Gateway.sendJSON(
-            this.element.action,
+
+        this.emit('submit-data', {
+            url,
             method,
-            data, //Json object
-            __successHandler.bind(this),
-            __errorHandler.bind(this)
-        );
+            data
+        });
+
+        Request(method, url)
+            .set({
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            })
+            .timeout(this.settings.requestTimeout)
+            .send(data)
+            .on('progress', (e)=>{
+                this.emit('progress', e);
+            })
+            .end((err, response)=>{
+                if(err){
+                    __errorHandler.call(this, response);
+                } else {
+                    __successHandler.call(this, response);
+                }
+            });
     }
 
     /**
@@ -273,6 +293,17 @@ export default class TrinityForm extends EventEmitter {
     error(callback, context){
         this.addListener('error', callback, context);
         return this; // for chaining
+    }
+
+    /**
+     * Abbreviation for addListener
+     * @param eventName
+     * @param callback
+     * @param context
+     * @returns {TrinityForm}
+     */
+    on(eventName, callback, context){
+        this.addListener.apply(this, arguments);
     }
 
     /**

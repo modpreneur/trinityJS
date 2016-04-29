@@ -1,11 +1,15 @@
 /**
  * Created by fisa on 7/27/15.
  */
-
+/**
+ * @deprecated
+ */
 import Xhr from './utils/Xhr.js';
 import Debug from './Debug';
 
-
+/**
+ * @deprecated
+ */
 var Gateway = {
     /**
      *  normal GET request to defined URL
@@ -111,7 +115,9 @@ var Gateway = {
         timeout: 10000
     }
 };
-
+/**
+ * @deprecated
+ */
 export default Gateway;
 
 /** PRIVATE METHODS **/

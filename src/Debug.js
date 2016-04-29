@@ -1,8 +1,9 @@
+'use strict';
 
 let ENV = 'prod';
 let IS_DEV = false;
 
-function Empty(){/*Nothing will happen*/}
+function noop(){/*Nothing will happen*/}
 
 export default class Debug {
 
@@ -33,4 +34,4 @@ export default class Debug {
 }
 
 /** Class Extensions - default just empty function **/
-Debug.dump = Empty;
+Debug.dump = noop;

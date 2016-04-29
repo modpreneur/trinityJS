@@ -15,9 +15,14 @@ var _Debug2 = _interopRequireDefault(_Debug);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
+ * @deprecated
+ */
+/**
  * Created by fisa on 7/27/15.
  */
-
+/**
+ * @deprecated
+ */
 var Gateway = {
     /**
      *  normal GET request to defined URL
@@ -81,16 +86,6 @@ var Gateway = {
         _sendJSON(url, 'PUT', data, successCallback, errorCallback);
     },
     /**
-     * JSON PUT request
-     * @param url
-     * @param data
-     * @param successCallback
-     * @param errorCallback
-     */
-    deleteJSON: function deleteJSON(url, data, successCallback, errorCallback) {
-        _sendJSON(url, 'DELETE', data, successCallback, errorCallback);
-    },
-    /**
      * Same as others, just allow specify method.
      * @param url
      * @param method
@@ -132,7 +127,9 @@ var Gateway = {
         timeout: 10000
     }
 };
-
+/**
+ * @deprecated
+ */
 exports.default = Gateway;
 
 /** PRIVATE METHODS **/

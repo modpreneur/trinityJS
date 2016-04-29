@@ -1,6 +1,7 @@
 /**
  * Created by fisa on 11/2/15.
  */
+'use strict';
 
 /**
  * Abstract Controller class, provides connection between app and activeController itself

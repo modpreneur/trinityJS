@@ -10,15 +10,15 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _Gateway = require('../Gateway');
+var _superagent = require('superagent');
 
-var _Gateway2 = _interopRequireDefault(_Gateway);
+var _superagent2 = _interopRequireDefault(_superagent);
 
 var _fbemitter = require('fbemitter');
 
-var _closureEvents = require('../utils/closureEvents');
+var _Events = require('../utils/Events');
 
-var _closureEvents2 = _interopRequireDefault(_closureEvents);
+var _Events2 = _interopRequireDefault(_Events);
 
 var _Dom = require('../utils/Dom');
 
@@ -49,6 +49,7 @@ var defaultSettings = {
         error: 'trinity-form-error',
         ready: 'trinity-form-ready'
     },
+    requestTimeout: 10000,
     successTimeout: 3000,
     timeoutTimeout: 2000
 };
@@ -63,8 +64,8 @@ var formType = {
     DELETE: 'delete'
 };
 
-//const IS_FORM_DATA = !!window.FormData;
-var IS_FORM_DATA = false;
+var IS_FORM_DATA = !!window.FormData;
+//const IS_FORM_DATA = false;
 
 /**
  * Connects to formElement and change it to ajax form
@@ -86,7 +87,7 @@ var TrinityForm = function (_EventEmitter) {
         if (!formElement) {
             throw new Error('Missing "formElement" parameter!');
         }
-        _this.element = formElement;
+        _this.form = formElement;
         _this.buttons = formElement.querySelectorAll('input[type="submit"], button[type="submit"]');
         _this.activeBtn = null;
         _this.type = type || null;
@@ -102,7 +103,7 @@ var TrinityForm = function (_EventEmitter) {
         });
 
         // Add listener to form element
-        _closureEvents2.default.listen(formElement, 'submit', _this.submit, false, _this);
+        _Events2.default.listen(formElement, 'submit', _this.submit.bind(_this));
         return _this;
     }
 
@@ -145,7 +146,7 @@ var TrinityForm = function (_EventEmitter) {
     }, {
         key: 'getName',
         value: function getName() {
-            return this.element.getAttribute('name');
+            return this.form.getAttribute('name');
         }
     }, {
         key: 'addError',
@@ -159,6 +160,8 @@ var TrinityForm = function (_EventEmitter) {
          * @public
          */
         value: function addError(key, message, inputElement) {
+            var _this2 = this;
+
             this.state = 'error';
             // Add error to Form errors and get its index
             var fieldErr = _lodash2.default.find(this.__errors, function (err) {
@@ -169,16 +172,16 @@ var TrinityForm = function (_EventEmitter) {
                 this.__errors.push(fieldErr);
             }
             if (!fieldErr.listener) {
-                fieldErr.listener = _closureEvents2.default.listenOnce(inputElement, 'input', function removeError(e) {
+                fieldErr.listener = _Events2.default.listenOnce(inputElement, 'input', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    _lodash2.default.remove(this.__errors, function (err) {
+                    _lodash2.default.remove(_this2.__errors, function (err) {
                         return err.key === fieldErr.key;
                     });
                     fieldErr.removeAll();
-                    this.validate();
-                }, false, this);
+                    _this2.validate();
+                });
             }
             return fieldErr.add(message);
         }
@@ -213,7 +216,7 @@ var TrinityForm = function (_EventEmitter) {
                 return err.input === input;
             })[0];
             fieldError.removeAll();
-            _closureEvents2.default.unlistenByKey(fieldError.listener);
+            _Events2.default.removeListener(fieldError.input, 'input', fieldError.listener);
         }
     }, {
         key: 'validate',
@@ -240,6 +243,8 @@ var TrinityForm = function (_EventEmitter) {
     }, {
         key: 'submit',
         value: function submit(e) {
+            var _this3 = this;
+
             /** catch button with focus first **/
             this.activeBtn = document.activeElement.type === 'button' ? document.activeElement : this.buttons[0];
             /** Continue **/
@@ -254,12 +259,13 @@ var TrinityForm = function (_EventEmitter) {
             /** Parse and send Data **/
             var data = null;
             if (IS_FORM_DATA) {
-                data = new FormData(this.element);
+                data = new FormData(this.form);
             } else {
-                data = __parseSymfonyForm(this.element, this.activeBtn);
+                data = __parseSymfonyForm(this.form, this.activeBtn);
             }
 
-            var method = data.hasOwnProperty('_method') ? data['_method'] : this.element.method;
+            var url = this.form.action.trim();
+            var method = (data.hasOwnProperty('_method') ? data['_method'] : this.form.method).toUpperCase();
 
             /** Discover type **/
             if (_lodash2.default.isNull(this.type)) {
@@ -272,10 +278,25 @@ var TrinityForm = function (_EventEmitter) {
                         this.type = formType.DELETE;break;
                 }
             }
-            // Emit TODO: Maybe differently ?
-            this.emit('submit-data', data);
-            _Gateway2.default.sendJSON(this.element.action, method, data, //Json object
-            __successHandler.bind(this), __errorHandler.bind(this));
+
+            this.emit('submit-data', {
+                url: url,
+                method: method,
+                data: data
+            });
+
+            (0, _superagent2.default)(method, url).set({
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }).timeout(this.settings.requestTimeout).send(data).on('progress', function (e) {
+                _this3.emit('progress', e);
+            }).end(function (err, response) {
+                if (err) {
+                    __errorHandler.call(_this3, response);
+                } else {
+                    __successHandler.call(_this3, response);
+                }
+            });
         }
 
         /**
@@ -307,6 +328,20 @@ var TrinityForm = function (_EventEmitter) {
         }
 
         /**
+         * Abbreviation for addListener
+         * @param eventName
+         * @param callback
+         * @param context
+         * @returns {TrinityForm}
+         */
+
+    }, {
+        key: 'on',
+        value: function on(eventName, callback, context) {
+            this.addListener.apply(this, arguments);
+        }
+
+        /**
          * Force set submit buttons
          * @param buttons {Array<HTMLElement>}
          */
@@ -327,7 +362,7 @@ var TrinityForm = function (_EventEmitter) {
     }, {
         key: 'state',
         set: function set(newState) {
-            var _this2 = this;
+            var _this4 = this;
 
             if (newState === this.__state) {
                 return;
@@ -338,8 +373,8 @@ var TrinityForm = function (_EventEmitter) {
             if (newState === 'error' || newState === 'ready') {
                 // For all btns
                 _lodash2.default.each(this.buttons, function (btn) {
-                    _Dom2.default.classlist.removeAll(btn, _this2.settings.button[oldState].split(' '));
-                    _Dom2.default.classlist.addAll(btn, _this2.settings.button[newState].split(' '));
+                    _Dom2.default.classlist.removeAll(btn, _this4.settings.button[oldState].split(' '));
+                    _Dom2.default.classlist.addAll(btn, _this4.settings.button[newState].split(' '));
                 });
             } else {
                 //Switch classes for active
@@ -385,7 +420,7 @@ TrinityForm.formType = formType;
  * @private
  */
 function __successHandler(response) {
-    var _this3 = this;
+    var _this5 = this;
 
     this.state = 'success';
     this.emit('success', response);
@@ -394,7 +429,7 @@ function __successHandler(response) {
     //if(this.type === 'edit'){
     this.unlock();
     var id = setTimeout(function (e) {
-        _this3.state = 'ready';
+        _this5.state = 'ready';
         clearTimeout(id);
     }, this.settings.successTimeout);
     //}
@@ -407,16 +442,16 @@ function __successHandler(response) {
  * @returns {boolean}
  */
 function __errorHandler(error) {
-    var _this4 = this;
+    var _this6 = this;
 
     if (error.timeout) {
         (function () {
-            _this4.state = 'timeout';
+            _this6.state = 'timeout';
             var id = setTimeout(function () {
-                _this4.unlock();
-                _this4.state = 'ready';
+                _this6.unlock();
+                _this6.state = 'ready';
                 clearTimeout(id);
-            }, _this4.settings.timeoutTimeout);
+            }, _this6.settings.timeoutTimeout);
         })();
     } else {
         this.state = 'error';

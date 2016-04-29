@@ -1,6 +1,8 @@
 /**
  * Created by fisa on 8/20/15.
  */
+'use strict';
+
 import _ from 'lodash';
 
 /**

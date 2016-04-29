@@ -1,3 +1,6 @@
+/**
+ * Created by fisa on 7/23/15.
+ */
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -17,9 +20,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 /**
  * Private help RegExpressions
  * @type {RegExp}
- */
-/**
- * Created by fisa on 7/23/15.
  */
 var optionalParam = /\((.*?)\)/g;
 var namedParam = /(\(\?)?:\w+/g;

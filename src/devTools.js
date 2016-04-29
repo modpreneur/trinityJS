@@ -1,6 +1,7 @@
 /**
  * Created by fisa on 11/11/15.
  */
+'use strict';
 /**
  * DevTools should just extend normal framework components with debugging features.
  * For example Debug object is extended with some methods and mode is automatically set to 'dev'

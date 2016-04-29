@@ -1,6 +1,8 @@
 /**
  * Created by fisa on 11/9/15.
  */
+'use strict';
+
 import App from './App';
 import AppNew from './App.new';
 import Controller from './Controller';
@@ -10,7 +12,8 @@ import * as Services from './Services';
 import Gateway from './Gateway';
 import Store from './Store';
 import Collection from './Collection';
-import components from './components';
+import TrinityForm from './components/TrinityForm';
+import TrinityTab from './components/TrinityTab';
 
 /**
  * Just export all from trinity
@@ -28,7 +31,6 @@ export default {
     Store,
     Services,
     Collection,
-
-    // depends on Gateway, Store and Services
-    components
+    TrinityForm,
+    TrinityTab
 };

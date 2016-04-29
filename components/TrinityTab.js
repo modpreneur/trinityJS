@@ -5,8 +5,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.Tab = undefined;
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _lodash = require('lodash');
@@ -17,13 +15,9 @@ var _Dom = require('../utils/Dom');
 
 var _Dom2 = _interopRequireDefault(_Dom);
 
-var _closureEvents = require('../utils/closureEvents');
-
-var _closureEvents2 = _interopRequireDefault(_closureEvents);
-
 var _fbemitter = require('fbemitter');
 
-var _Gateway = require('../Gateway');
+var _Gateway = require('../Gateway.new');
 
 var _Gateway2 = _interopRequireDefault(_Gateway);
 
@@ -206,11 +200,11 @@ function _initialize() {
 
     /** Attach click event Listeners to other heads **/
     _lodash2.default.map(this.heads, function (head) {
-        _closureEvents2.default.listen(head, 'click', __handleTabClick.bind(_this2, head));
+        head.addEventListener('click', __handleTabClick.bind(_this2, head));
     });
 
     // Navigation
-    _closureEvents2.default.listen(window, 'popstate', __handleNavigation, false, this);
+    window.addEventListener('popstate', __handleNavigation.bind(this));
 }
 
 /**
@@ -292,15 +286,11 @@ var Tab = exports.Tab = function () {
 }();
 
 function __requestWidget(link, tab, timeout_i, callback) {
-    _Gateway2.default.get(link, null, function (data) {
-        // @NOTE: note sure if this if is necessary
-        if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) === 'object') {
-            if (data.go != undefined) {
-                __requestWidget(data.go, tab, callback);
-                return;
-            }
-            throw new Error('Unexpected response: ', data);
+    _Gateway2.default.get(link, null, function (res) {
+        if (res.type !== 'text/html') {
+            throw new Error('Unexpected response!: ', res);
         }
+        var data = res.text;
 
         var tmpDiv = _Dom2.default.createDom('div', null, data.trim());
         tab.root = tmpDiv.children.length === 1 ? tmpDiv.children[0] : tmpDiv;

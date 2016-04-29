@@ -1,6 +1,8 @@
 /**
  * Created by fisa on 11/1/15.
  */
+'use strict';
+
 import _ from 'lodash';
 import Router from './Router';
 import Controller from './Controller.js';

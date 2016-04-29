@@ -6,6 +6,9 @@ Object.defineProperty(exports, "__esModule", {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
+/**
+ * @deprecated
+ */
 var COMPILED = !0,
     goog = goog || {};goog.global = window;goog.isDef = function (a) {
     return void 0 !== a;
@@ -1498,4 +1501,7 @@ goog.events.EventTarget.dispatchEventInternal_ = function (a, b, c) {
     }return e;
 };var closureEvents = goog.events;
 
+/**
+ * @deprecated
+ */
 exports.default = closureEvents;

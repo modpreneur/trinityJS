@@ -1,8 +1,9 @@
+'use strict';
+
 import _ from 'lodash';
 import Dom from '../utils/Dom';
-import events from '../utils/closureEvents';
 import {EventEmitter} from 'fbemitter';
-import Gateway from '../Gateway';
+import Gateway from '../Gateway.new';
 import Debug from '../Debug';
 
 const MAX_TRY = 3;
@@ -142,11 +143,11 @@ function _initialize(){
 
     /** Attach click event Listeners to other heads **/
     _.map(this.heads, (head)=>{
-        events.listen(head, 'click', __handleTabClick.bind(this, head));
+        head.addEventListener('click', __handleTabClick.bind(this, head));
     });
 
     // Navigation
-    events.listen(window, 'popstate', __handleNavigation, false, this);
+    window.addEventListener('popstate', __handleNavigation.bind(this));
 }
 
 /**
@@ -221,15 +222,11 @@ export class Tab {
 }
 
 function __requestWidget(link, tab, timeout_i, callback){
-    Gateway.get(link, null, function(data){
-        // @NOTE: note sure if this if is necessary
-        if(typeof data === 'object'){
-            if(data.go != undefined){
-                __requestWidget(data.go, tab, callback);
-                return;
-            }
-            throw new Error('Unexpected response: ', data);
+    Gateway.get(link, null, function(res){
+        if(res.type !== 'text/html'){
+            throw new Error('Unexpected response!: ', res);
         }
+        let data = res.text;
 
         let tmpDiv =  Dom.createDom('div', null, data.trim());
         tab.root = tmpDiv.children.length === 1 ? tmpDiv.children[0] : tmpDiv;
