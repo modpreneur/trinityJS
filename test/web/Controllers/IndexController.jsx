@@ -16,6 +16,7 @@ export default class IndexController extends Controller {
             console.log(res);
         });
         tt.error(function(err){
+            console.log('ERROR');
             console.log(err);
         });
         tt.addListener('submit-data', (e)=>{

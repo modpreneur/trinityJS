@@ -288,14 +288,31 @@ var TrinityForm = function (_EventEmitter) {
             (0, _superagent2.default)(method, url).set({
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
-            }).timeout(this.settings.requestTimeout).send(data).on('progress', function (e) {
+            }).timeout(this.settings.requestTimeout)
+            //.timeout(1)
+            .send(data).on('progress', function (e) {
                 _this3.emit('progress', e);
             }).end(function (err, response) {
-                if (err) {
-                    __errorHandler.call(_this3, response);
-                } else {
-                    __successHandler.call(_this3, response);
+                // Redirect ?
+                if (response && response.status === 302) {
+                    var redirectTo = response.body.location;
+                    // Do callback and then redirect
+                    if (__successHandler.call(_this3, response) === false) {
+                        return false;
+                    }
+                    // Redirect
+                    if (!redirectTo && Debug.isDev()) {
+                        throw new Error('Missing "location" attribute!');
+                    }
+                    window.location.assign(redirectTo);
+                    return;
                 }
+                // Error ?
+                if (err) {
+                    return __errorHandler.call(_this3, err);
+                }
+
+                __successHandler.call(_this3, response);
             });
         }
 

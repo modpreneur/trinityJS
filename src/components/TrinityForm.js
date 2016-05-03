@@ -260,16 +260,32 @@ export default class TrinityForm extends EventEmitter {
                 'X-Requested-With': 'XMLHttpRequest'
             })
             .timeout(this.settings.requestTimeout)
+            //.timeout(1)
             .send(data)
             .on('progress', (e)=>{
                 this.emit('progress', e);
             })
             .end((err, response)=>{
-                if(err){
-                    __errorHandler.call(this, response);
-                } else {
-                    __successHandler.call(this, response);
+                // Redirect ?
+                if(response && response.status === 302) {
+                    let redirectTo = response.body.location;
+                    // Do callback and then redirect
+                    if(__successHandler.call(this, response) === false){
+                        return false;
+                    }
+                    // Redirect
+                    if(!redirectTo && Debug.isDev()){
+                        throw new Error('Missing "location" attribute!');
+                    }
+                    window.location.assign(redirectTo);
+                    return;
                 }
+                // Error ?
+                if(err){
+                    return __errorHandler.call(this, err);
+                }
+
+                __successHandler.call(this, response);
             });
     }
 

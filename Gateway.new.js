@@ -13,6 +13,10 @@ var _superagent = require('superagent');
 
 var _superagent2 = _interopRequireDefault(_superagent);
 
+var _Debug = require('./Debug');
+
+var _Debug2 = _interopRequireDefault(_Debug);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Global configuration
@@ -157,13 +161,7 @@ function __send(url, method, data, successCallback, errorCallback) {
         }
     }
 
-    r.end(function (err, response) {
-        if (err) {
-            errorCallback(err);
-        } else {
-            successCallback(response);
-        }
-    });
+    r.end(__responseHandler(successCallback, errorCallback));
 }
 
 /**
@@ -192,13 +190,7 @@ function __sendJSON(url, method, data, successCallback, errorCallback) {
         }
     }
 
-    r.end(function (err, response) {
-        if (err) {
-            errorCallback(err);
-        } else {
-            successCallback(response);
-        }
-    });
+    r.end(__responseHandler(successCallback, errorCallback));
 }
 
 /**
@@ -230,13 +222,29 @@ function __sendFile(url, method, file, fieldName, successCallback, errorCallback
     if (progressCallback) {
         r.on('progress', progressCallback);
     }
-    r.end(function (err, response) {
-        if (err) {
-            errorCallback(err);
-        } else {
-            successCallback(response);
+    r.end(__responseHandler(successCallback, errorCallback));
+}
+
+function __responseHandler(successCallback, errorCallback) {
+    return function __abstractHandler(err, response) {
+        if (response && response.status === 302) {
+            var redirectTo = response.body.location;
+            // Do callback and then redirect
+            if (successCallback(response) === false) {
+                return false;
+            }
+            // Redirect
+            if (!redirectTo && _Debug2.default.isDev()) {
+                throw new Error('Missing "location" attribute!');
+            }
+            window.location.assign(redirectTo);
+            return;
         }
-    });
+        if (err) {
+            return errorCallback(err);
+        }
+        successCallback(response);
+    };
 }
 
 /**
@@ -245,7 +253,7 @@ function __sendFile(url, method, file, fieldName, successCallback, errorCallback
  * @private
  */
 function _dumpOnScreen(response) {
-    Debug.dump(response);
+    _Debug2.default.dump(response);
 }
 
 /**

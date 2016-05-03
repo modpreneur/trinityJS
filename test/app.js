@@ -43,7 +43,7 @@ app.post('/form', upload.fields([{name: 'photo'}]), (req, res)=>{
     console.log(req.files);
     setTimeout(()=>{
         console.log('dfsdfdsfds');
-        return res.status(400).send('dsjhfjdsbfhds');
+        return res.status(302).json({'location': '/'});
 
     }, 2000);
     //return res.status(200).json({'message': 'OK'});

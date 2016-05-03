@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 import Request from 'superagent';
+import Debug from './Debug';
 
 // Global configuration
 let config = {
@@ -148,13 +149,7 @@ function __send(url, method, data, successCallback, errorCallback){
         }
     }
 
-    r.end(function(err, response){
-        if(err){
-            errorCallback(err);
-        } else {
-            successCallback(response);
-        }
-    });
+    r.end(__responseHandler(successCallback, errorCallback));
 }
 
 /**
@@ -185,13 +180,7 @@ function __sendJSON(url, method, data, successCallback, errorCallback){
         }
     }
 
-    r.end(function(err, response){
-        if(err){
-            errorCallback(err);
-        } else {
-            successCallback(response);
-        }
-    });
+    r.end(__responseHandler(successCallback, errorCallback));
 }
 
 /**
@@ -225,13 +214,29 @@ function __sendFile(url, method, file, fieldName, successCallback, errorCallback
     if(progressCallback){
         r.on('progress', progressCallback)
     }
-    r.end(function(err, response){
-        if(err){
-            errorCallback(err);
-        } else {
-            successCallback(response);
+    r.end(__responseHandler(successCallback, errorCallback));
+}
+
+function __responseHandler(successCallback, errorCallback){
+    return function __abstractHandler(err, response){
+        if(response && response.status === 302) {
+            let redirectTo = response.body.location;
+            // Do callback and then redirect
+            if(successCallback(response) === false){
+                return false;
+            }
+            // Redirect
+            if(!redirectTo && Debug.isDev()){
+                throw new Error('Missing "location" attribute!');
+            }
+            window.location.assign(redirectTo);
+            return;
         }
-    });
+        if(err){
+            return errorCallback(err);
+        }
+        successCallback(response);
+    }
 }
 
 
