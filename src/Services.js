@@ -28,13 +28,7 @@ export function messageService(message, type){
     ajaxInput = ajaxInput.cloneNode(true);
     ajaxAlert = ajaxAlert.cloneNode(true);
 
-    let id = Math.floor( Math.random() * (9999 - 10) );
 
-    ajaxInput.setAttribute('id', 'close-alert-' + type + '-' + id);
-    let alertHTMLString = ajaxAlert.innerHTML
-        .replace('{id}', id.toString())
-        .replace('{type}', type)
-        .replace('{message}', message);
 
     let iconClass = '';
     switch(type){
@@ -53,7 +47,13 @@ export function messageService(message, type){
             iconClass = 'trinity trinity-info';
         } break;
     }
-    ajaxAlert.innerHTML = alertHTMLString
+
+    // Assign new values
+    let id = Math.floor( Math.random() * (9999 - 10) );
+    ajaxInput.setAttribute('id', 'close-alert-' + type + '-' + id);
+    ajaxAlert.innerHTML = ajaxAlert.innerHTML
+        .replace('{id}', id.toString())
+        .replace('{message}', message)
         .replace('{icon}', iconClass)
         .replace('{type}', type);
 
