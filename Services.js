@@ -39,7 +39,7 @@ function messageService(message, type) {
     var id = Math.floor(Math.random() * (9999 - 10));
 
     ajaxInput.setAttribute('id', 'close-alert-' + type + '-' + id);
-    var alertHTMLString = ajaxAlert.innerHTML.replace('{id}', id.toString()).replace('{type}', type).replace('{message}', message).replace('{type}', type);
+    var alertHTMLString = ajaxAlert.innerHTML.replace('{id}', id.toString()).replace('{type}', type).replace('{message}', message);
 
     var iconClass = '';
     switch (type) {
@@ -54,12 +54,15 @@ function messageService(message, type) {
         case 'error':
         case 'danger':
             {
+                type = 'danger';
                 iconClass = 'tiecons tiecons-exclamation-mark-circle';
             }break;
         default:
-            iconClass = 'trinity trinity-info';break;
+            {
+                iconClass = 'trinity trinity-info';
+            }break;
     }
-    ajaxAlert.innerHTML = alertHTMLString.replace('{icon}', iconClass);
+    ajaxAlert.innerHTML = alertHTMLString.replace('{icon}', iconClass).replace('{type}', type);
 
     _Dom2.default.classlist.remove(ajaxInput, 'ajax-checkbox');
     _Dom2.default.classlist.remove(ajaxAlert, 'ajax-alert');

@@ -34,8 +34,7 @@ export function messageService(message, type){
     let alertHTMLString = ajaxAlert.innerHTML
         .replace('{id}', id.toString())
         .replace('{type}', type)
-        .replace('{message}', message)
-        .replace('{type}', type);
+        .replace('{message}', message);
 
     let iconClass = '';
     switch(type){
@@ -47,11 +46,16 @@ export function messageService(message, type){
         } break;
         case 'error':
         case 'danger': {
+            type = 'danger';
             iconClass = 'tiecons tiecons-exclamation-mark-circle';
         } break;
-        default : iconClass = 'trinity trinity-info'; break;
+        default : {
+            iconClass = 'trinity trinity-info';
+        } break;
     }
-    ajaxAlert.innerHTML = alertHTMLString.replace('{icon}', iconClass);
+    ajaxAlert.innerHTML = alertHTMLString
+        .replace('{icon}', iconClass)
+        .replace('{type}', type);
 
     Dom.classlist.remove(ajaxInput, 'ajax-checkbox');
     Dom.classlist.remove(ajaxAlert,'ajax-alert');
