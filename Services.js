@@ -62,6 +62,7 @@ function messageService(message, type) {
     var id = Math.floor(Math.random() * (9999 - 10));
     ajaxInput.setAttribute('id', 'close-alert-' + type + '-' + id);
     ajaxAlert.innerHTML = ajaxAlert.innerHTML.replace('{id}', id.toString()).replace('{message}', message).replace('{icon}', iconClass).replace('{type}', type);
+    ajaxAlert.className = ajaxAlert.className.replace('{type}', type);
 
     _Dom2.default.classlist.remove(ajaxInput, 'ajax-checkbox');
     _Dom2.default.classlist.remove(ajaxAlert, 'ajax-alert');

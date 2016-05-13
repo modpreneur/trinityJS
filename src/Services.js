@@ -56,6 +56,7 @@ export function messageService(message, type){
         .replace('{message}', message)
         .replace('{icon}', iconClass)
         .replace('{type}', type);
+    ajaxAlert.className = ajaxAlert.className.replace('{type}', type);
 
     Dom.classlist.remove(ajaxInput, 'ajax-checkbox');
     Dom.classlist.remove(ajaxAlert,'ajax-alert');
