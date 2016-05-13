@@ -36,11 +36,6 @@ function messageService(message, type) {
     ajaxInput = ajaxInput.cloneNode(true);
     ajaxAlert = ajaxAlert.cloneNode(true);
 
-    var id = Math.floor(Math.random() * (9999 - 10));
-
-    ajaxInput.setAttribute('id', 'close-alert-' + type + '-' + id);
-    var alertHTMLString = ajaxAlert.innerHTML.replace('{id}', id.toString()).replace('{type}', type).replace('{message}', message);
-
     var iconClass = '';
     switch (type) {
         case 'success':
@@ -62,7 +57,11 @@ function messageService(message, type) {
                 iconClass = 'trinity trinity-info';
             }break;
     }
-    ajaxAlert.innerHTML = alertHTMLString.replace('{icon}', iconClass).replace('{type}', type);
+
+    // Assign new values
+    var id = Math.floor(Math.random() * (9999 - 10));
+    ajaxInput.setAttribute('id', 'close-alert-' + type + '-' + id);
+    ajaxAlert.innerHTML = ajaxAlert.innerHTML.replace('{id}', id.toString()).replace('{message}', message).replace('{icon}', iconClass).replace('{type}', type);
 
     _Dom2.default.classlist.remove(ajaxInput, 'ajax-checkbox');
     _Dom2.default.classlist.remove(ajaxAlert, 'ajax-alert');
