@@ -77,7 +77,7 @@ export default class TrinityTab extends EventEmitter {
      * @param tabID {string || Array<string>}
      */
     reload(tabID){
-        if(_.isArray(tabID)){
+        if(!_.isArray(tabID)){
             let tab = _.find(this.tabs, (t)=>{
                 return t.id === tabID;
             });
@@ -85,7 +85,7 @@ export default class TrinityTab extends EventEmitter {
                 tab.reloadContent();
             }
         } else {
-            _.map(this.tabs, (t)=>{
+            _.each(this.tabs, (t)=>{
                 if(tabID.indexOf(t.id) !== -1){
                     t.reloadContent();
                 }
@@ -97,9 +97,9 @@ export default class TrinityTab extends EventEmitter {
      * Reload content of all tabs
      */
     reloadAll(){
-        _.map(this.tabs, (t)=>{
+        _.each(this.tabs, (t)=>{
             t.reloadContent();
-        })
+        });
     }
 
     onLoad(tabID, callback, context){
@@ -216,6 +216,11 @@ export class Tab {
 
     reloadContent(){
         __showLoading(this.bodyElement);
+        this.parent.emit('tab-unload', {
+            id: this.id,
+            tab: this,
+            element: this.bodyElement
+        });
         Dom.removeNode(this.root);
         __requestWidget(this.dataSource, this, null);
     }

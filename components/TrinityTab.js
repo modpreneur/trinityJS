@@ -123,7 +123,7 @@ var TrinityTab = function (_EventEmitter) {
     }, {
         key: 'reload',
         value: function reload(tabID) {
-            if (_lodash2.default.isArray(tabID)) {
+            if (!_lodash2.default.isArray(tabID)) {
                 var tab = _lodash2.default.find(this.tabs, function (t) {
                     return t.id === tabID;
                 });
@@ -131,7 +131,7 @@ var TrinityTab = function (_EventEmitter) {
                     tab.reloadContent();
                 }
             } else {
-                _lodash2.default.map(this.tabs, function (t) {
+                _lodash2.default.each(this.tabs, function (t) {
                     if (tabID.indexOf(t.id) !== -1) {
                         t.reloadContent();
                     }
@@ -146,7 +146,7 @@ var TrinityTab = function (_EventEmitter) {
     }, {
         key: 'reloadAll',
         value: function reloadAll() {
-            _lodash2.default.map(this.tabs, function (t) {
+            _lodash2.default.each(this.tabs, function (t) {
                 t.reloadContent();
             });
         }
@@ -277,6 +277,11 @@ var Tab = exports.Tab = function () {
         key: 'reloadContent',
         value: function reloadContent() {
             __showLoading(this.bodyElement);
+            this.parent.emit('tab-unload', {
+                id: this.id,
+                tab: this,
+                element: this.bodyElement
+            });
             _Dom2.default.removeNode(this.root);
             __requestWidget(this.dataSource, this, null);
         }
