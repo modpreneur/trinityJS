@@ -103,7 +103,7 @@ var TrinityForm = function (_EventEmitter) {
         });
 
         // Add listener to form element
-        _Events2.default.listen(formElement, 'submit', _this.submit.bind(_this));
+        _this.unlistenSubmit = _Events2.default.listen(formElement, 'submit', _this.submit.bind(_this));
         return _this;
     }
 
@@ -375,6 +375,20 @@ var TrinityForm = function (_EventEmitter) {
             _lodash2.default.each(this.buttons, function (btn) {
                 _Dom2.default.classlist.addAll(btn, btnReadyClass);
             });
+        }
+    }, {
+        key: 'detach',
+        value: function detach() {
+            // Main listener
+            this.unlistenSubmit();
+            // Errors if any
+            if (this.__errors.length > 0) {
+                _lodash2.default.each(this.__errors, function (err) {
+                    err.removeAll();
+                    _Events2.default.removeListener(err.input, 'input', err.listener);
+                });
+            }
+            this.element = null;
         }
     }, {
         key: 'state',

@@ -71,7 +71,7 @@ export default class TrinityForm extends EventEmitter {
         });
 
         // Add listener to form element
-        Events.listen(formElement, 'submit', this.submit.bind(this));
+        this.unlistenSubmit = Events.listen(formElement, 'submit', this.submit.bind(this));
     }
 
     /**
@@ -336,6 +336,19 @@ export default class TrinityForm extends EventEmitter {
         _.each(this.buttons, (btn)=>{
             Dom.classlist.addAll(btn, btnReadyClass);
         });
+    }
+
+    detach(){
+        // Main listener
+        this.unlistenSubmit();
+        // Errors if any
+        if(this.__errors.length > 0){
+            _.each(this.__errors, (err)=>{
+                err.removeAll();
+                Events.removeListener(err.input, 'input', err.listener);
+            });
+        }
+        this.element = null;
     }
 }
 
