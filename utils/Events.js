@@ -89,7 +89,7 @@ var Events = {
 function __listen(target, event, callback, capture) {
   capture = capture || false;
   target.addEventListener(event, callback, capture);
-  return callback;
+  return Events.unlisten.bind(target, event, callback, capture);
 }
 
 /**
