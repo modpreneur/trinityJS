@@ -205,6 +205,7 @@ function __addRemoveBtn(child) {
         var id = child.id;
         // remove collection child
         child.remove();
+        child.unlistenRemoveButton = null;
         // Update all other children
         _this2.children = _lodash2.default.filter(_this2.children, function (item) {
             if (item.id > id) {

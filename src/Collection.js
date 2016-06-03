@@ -177,6 +177,7 @@ function __addRemoveBtn(child){
         let id = child.id;
         // remove collection child
         child.remove();
+        child.unlistenRemoveButton = null;
         // Update all other children
         this.children = _.filter(this.children, function(item){
             if(item.id > id){
