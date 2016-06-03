@@ -89,7 +89,7 @@ var Events = {
 function __listen(target, event, callback, capture) {
   capture = capture || false;
   target.addEventListener(event, callback, capture);
-  return Events.unlisten.bind(target, event, callback, capture);
+  return __removeListener.bind(target, event, callback, capture);
 }
 
 /**
@@ -111,7 +111,7 @@ function __listenOnce(target, event, callback, capture) {
     };
   }();
   target.addEventListener(event, wrapper, capture);
-  return wrapper;
+  return __removeListener.bind(target, event, wrapper, capture);
 }
 
 /**

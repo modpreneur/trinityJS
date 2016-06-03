@@ -53,7 +53,11 @@ var defaultSettings = {
  */
 
 var Collection = function () {
-    function Collection(element, globalOptions, prototypeData, layer) {
+    function Collection(element) {
+        var globalOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+        var prototypeData = arguments[2];
+        var layer = arguments[3];
+
         _classCallCheck(this, Collection);
 
         this.collectionHolder = element;
@@ -62,16 +66,20 @@ var Collection = function () {
         this.children = [];
         this.globalOptions = globalOptions;
         this.layer = layer || 0;
+        // Listeners
+        this.unlistenAddButton = null;
 
         if (!prototypeData) {
-            prototypeData = _parsePrototypeData(element);
+            prototypeData = __parsePrototypeData(element);
             _Store2.default.setValue(element, 'collection', this);
         }
-        this.settings = _lodash2.default.extend(_lodash2.default.clone(defaultSettings), globalOptions ? _lodash2.default.extend(prototypeData.options, globalOptions) : prototypeData.options);
+        this.settings = _lodash2.default.defaultsDeep(globalOptions, prototypeData.options, defaultSettings);
+        //this.settings = _.extend(_.clone(defaultSettings), (globalOptions ? _.extend(prototypeData.options, globalOptions) : prototypeData.options));
         this.settings.addButton = _Dom2.default.htmlToDocumentFragment(this.settings.addButton.trim());
         this.settings.deleteButton = _Dom2.default.htmlToDocumentFragment(this.settings.deleteButton.trim());
+
         /** Make it live **/
-        _initialize.call(this, prototypeData);
+        __initialize.call(this, prototypeData);
     }
 
     /**
@@ -85,17 +93,21 @@ var Collection = function () {
             var settings = this.settings,
                 addButton = settings.addButton,
                 prototype = this.prototype,
-                prototypeChildren = this.protoChildren;
+                prototypeChildren = this.protoChildren,
 
-            var childrenCount = _lodash2.default.filter(this.collectionHolder.children, function (node) {
+            // children count?
+            childrenCount = _lodash2.default.filter(this.collectionHolder.children, function (node) {
                 return _Dom2.default.classlist.contains(node, 'collection-child');
-            });
+            }),
 
-            var newChildStr = _fillPlaceholders(settings['prototype_name'], settings.name, childrenCount.length, prototype);
-            var newChildNode = _Dom2.default.htmlToDocumentFragment(newChildStr.trim());
-            var child = new CollectionChild(newChildNode, childrenCount.length, this, prototypeChildren);
+            // Placeholders
+            newChildStr = __fillPlaceholders(settings['prototype_name'], settings.name, childrenCount.length, prototype);
+
+            var newChildNode = _Dom2.default.htmlToDocumentFragment(newChildStr.trim()),
+                child = new CollectionChild(newChildNode, childrenCount.length, this, prototypeChildren);
+
             this.children.push(child);
-            _addRemoveBtn.call(this, child);
+            __addRemoveBtn.call(this, child);
 
             //Insert new Child
             addButton.parentNode.insertBefore(newChildNode, addButton);
@@ -103,6 +115,14 @@ var Collection = function () {
             if (_lodash2.default.isFunction(settings.onAdd)) {
                 settings.onAdd(newChildNode);
             }
+        }
+    }, {
+        key: 'detach',
+        value: function detach() {
+            _lodash2.default.each(this.children, function (child) {
+                return child.detach();
+            });
+            this.unlistenAddButton();
         }
     }]);
 
@@ -117,28 +137,31 @@ var Collection = function () {
 
 
 exports.default = Collection;
-function _initialize(data) {
+function __initialize(data) {
+    var _this = this;
+
     // init
-    var prototypeDom = _Dom2.default.htmlToDocumentFragment(data.prototype);
-    var protoChildren = _lodash2.default.map(prototypeDom.querySelectorAll('[data-prototype]'), function (node) {
-        return _parsePrototypeData(node);
+    var prototypeDom = _Dom2.default.htmlToDocumentFragment(data.prototype),
+        children = prototypeDom.querySelectorAll('[data-prototype]'),
+        protoChildren = _lodash2.default.map(children, function (node) {
+        return __parsePrototypeData(node);
     });
 
-    this.prototype = _getHtmlString(prototypeDom);
+    this.prototype = __getHtmlString(prototypeDom);
     this.protoChildren = protoChildren;
-    _addCreateBtn.call(this);
+    __addCreateBtn.call(this);
 
     // Add class and delete button to children
-    var children = _lodash2.default.filter(this.collectionHolder.children, function (node) {
+    this.children = (0, _lodash2.default)(this.collectionHolder.children).filter(function (node) {
         return _Dom2.default.classlist.contains(node, 'row');
-    });
-    this.children = _lodash2.default.each(children, function (child, index, coll) {
-        var newChild = new CollectionChild(child, index, this);
-        _addRemoveBtn.call(this, newChild);
-        coll[index] = newChild;
-    }, this);
+    }).map(function (child, index) {
+        var newChild = new CollectionChild(child, index, _this);
+        __addRemoveBtn.call(_this, newChild);
+        return newChild;
+    }).value();
+
     //Add first?
-    if (children.length === 0 && this.settings.addFirst) {
+    if (this.children.length === 0 && this.settings.addFirst) {
         this.add();
     }
 }
@@ -150,7 +173,7 @@ function _initialize(data) {
  * @returns {PrototypeData}
  * @private
  */
-function _parsePrototypeData(element) {
+function __parsePrototypeData(element) {
     var data = new PrototypeData(element.getAttribute('data-prototype'), JSON.parse(element.getAttribute('data-options')));
     //clean up
     element.removeAttribute('data-options');
@@ -163,16 +186,16 @@ function _parsePrototypeData(element) {
  * @param child {CollectionChild}
  * @private
  */
-function _addRemoveBtn(child) {
-    var _this = this;
+function __addRemoveBtn(child) {
+    var _this2 = this;
 
     var settings = this.settings,
         removeButton = settings.deleteButton.cloneNode(true);
 
     // right ID to delete button
-    removeButton.setAttribute('id', [removeButton.getAttribute('id'), '_', child.node.getAttribute('id')].join(''));
+    removeButton.setAttribute('id', [removeButton.getAttribute('id'), child.node.getAttribute('id')].join('_'));
 
-    _Events2.default.listenOnce(removeButton, 'click', function (e) {
+    child.unlistenRemoveButton = _Events2.default.listenOnce(removeButton, 'click', function (e) {
         // prevent the link from creating a "#" on the URL
         e.preventDefault();
 
@@ -183,7 +206,7 @@ function _addRemoveBtn(child) {
         // remove collection child
         child.remove();
         // Update all other children
-        _this.children = _lodash2.default.filter(_this.children, function (item) {
+        _this2.children = _lodash2.default.filter(_this2.children, function (item) {
             if (item.id > id) {
                 item.setID(item.id - 1);
                 return true;
@@ -200,14 +223,14 @@ function _addRemoveBtn(child) {
  * Add Add button to collection
  * @private
  */
-function _addCreateBtn() {
-    var _this2 = this;
+function __addCreateBtn() {
+    var _this3 = this;
 
     var sett = this.settings;
-    _Events2.default.listen(sett.addButton, 'click', function (e) {
+    this.unlistenAddButton = _Events2.default.listen(sett.addButton, 'click', function (e) {
         e.preventDefault();
         // add a new tag form (see next code block)
-        _this2.add();
+        _this3.add();
     });
     //append add button
     this.collectionHolder.appendChild(sett.addButton);
@@ -222,7 +245,7 @@ function _addCreateBtn() {
  * @returns {XML|string}
  * @private
  */
-function _fillPlaceholders(key, name, number, prototype) {
+function __fillPlaceholders(key, name, number, prototype) {
     var labelRegx = new RegExp(key + 'label__', 'g'),
         nameRegx = new RegExp(key, 'g');
     return prototype.replace(labelRegx, name + number).replace(nameRegx, '' + number);
@@ -234,7 +257,7 @@ function _fillPlaceholders(key, name, number, prototype) {
  * @returns {string}
  * @private
  */
-function _getHtmlString(element) {
+function __getHtmlString(element) {
     var wrap = document.createElement('div');
     wrap.appendChild(element);
     return wrap.innerHTML;
@@ -267,6 +290,12 @@ var PrototypeData = function PrototypeData(proto, options) {
     this.options = options;
 };
 
+var SELECT_MAP = {
+    id: '[id]',
+    name: '[name]',
+    'for': 'label[for]'
+};
+
 /**
  * Class representing child of collection
  * @class CollectionChild
@@ -277,7 +306,6 @@ var PrototypeData = function PrototypeData(proto, options) {
  * @constructor
  */
 
-
 var CollectionChild = function () {
     function CollectionChild(node, id, parent, prototypeData) {
         _classCallCheck(this, CollectionChild);
@@ -285,6 +313,7 @@ var CollectionChild = function () {
         this.id = id;
         this.node = node;
         this.parent = parent;
+        this.unlistenRemoveButton = null;
 
         _Dom2.default.classlist.add(node, 'collection-child');
         //Label?
@@ -294,7 +323,7 @@ var CollectionChild = function () {
 
         var prototypeElements = node.querySelectorAll('[data-prototype]');
         if (prototypeElements.length > 0) {
-            this.collections = _initializeCollections.call(this, prototypeElements, prototypeData);
+            this.collections = __initializeCollections.call(this, prototypeElements, prototypeData);
         }
     }
 
@@ -317,22 +346,25 @@ var CollectionChild = function () {
     }, {
         key: 'setID',
         value: function setID(id) {
+            var _this4 = this;
+
             var layer = this.parent.layer;
             this.id = id;
-            // ID
-            _lodash2.default.map(this.node.querySelectorAll('[id]'), function (el) {
-                _updateAttribute(el, id, layer, 'id');
-            }, this);
-            // NAME
-            _lodash2.default.map(this.node.querySelectorAll('[name]'), function (el) {
-                _updateAttribute(el, id, layer, 'name');
-            }, this);
-            // LABEL
-            _lodash2.default.map(this.node.querySelectorAll('label[for]'), function (el) {
-                _updateAttribute(el, id, layer, 'for');
-            }, this);
+            _lodash2.default.each(SELECT_MAP, function (selector, key) {
+                _lodash2.default.each(_this4.node.querySelectorAll(selector), function (el) {
+                    return __updateAttribute(el, id, layer, key);
+                });
+            });
             // change to self
-            _updateAttribute(this.node, id, layer, 'id');
+            __updateAttribute(this.node, id, layer, 'id');
+        }
+    }, {
+        key: 'detach',
+        value: function detach() {
+            _lodash2.default.each(this.collections, function (coll) {
+                return coll.detach();
+            });
+            this.unlistenRemoveButton();
         }
     }]);
 
@@ -348,7 +380,9 @@ var CollectionChild = function () {
  */
 
 
-function _initializeCollections(prototypeElements, prototypeDataSource) {
+function __initializeCollections(prototypeElements, prototypeDataSource) {
+    var _this5 = this;
+
     if (!prototypeDataSource) {
         return _lodash2.default.map(prototypeElements, function (el) {
             return _Store2.default.getValue(el, 'collection');
@@ -356,13 +390,13 @@ function _initializeCollections(prototypeElements, prototypeDataSource) {
     } else {
         // Init next level
         return _lodash2.default.map(prototypeElements, function (el) {
-            var prototypeName = el.getAttribute('data-prototype');
-            var prototypeData = _lodash2.default.cloneDeep(_lodash2.default.find(prototypeDataSource, function (data) {
+            var prototypeName = el.getAttribute('data-prototype'),
+                prototypeData = _lodash2.default.cloneDeep(_lodash2.default.find(prototypeDataSource, function (data) {
                 return data.options['prototype_name'] === prototypeName;
             }));
-            prototypeData.prototype = _fillPlaceholders(this.parent.settings['prototype_name'], this.parent.settings.name, this.id, prototypeData.prototype);
-            return new Collection(el, this.parent.globalOptions, prototypeData, this.parent.layer + 1);
-        }, this);
+            prototypeData.prototype = __fillPlaceholders(_this5.parent.settings['prototype_name'], _this5.parent.settings.name, _this5.id, prototypeData.prototype);
+            return new Collection(el, _this5.parent.globalOptions, prototypeData, _this5.parent.layer + 1);
+        });
     }
 }
 
@@ -374,15 +408,15 @@ function _initializeCollections(prototypeElements, prototypeDataSource) {
  * @param attribute {string}
  * @private
  */
-function _updateAttribute(node, id, layer, attribute) {
-    var isName = attribute === 'name';
-    var regex = isName ? /\[\d]/g : /_\d_|_\d$/g;
-    var parameterStr = node.getAttribute(attribute);
-    var resultStr = '';
+function __updateAttribute(node, id, layer, attribute) {
+    var isName = attribute === 'name',
+        regex = isName ? /\[\d]/g : /_\d_|_\d$/g,
+        parameterStr = node.getAttribute(attribute),
+        resultStr = '';
 
-    var i = 0;
-    var rgxResult = null;
-    var next = true;
+    var i = 0,
+        rgxResult = null,
+        next = true;
 
     while (next) {
         rgxResult = regex.exec(parameterStr);

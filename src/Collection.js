@@ -12,9 +12,9 @@ import Store from './Store';
  * Default settings of Collection Object
  * @type {{addButton: string, deleteButton: string, onAdd: null, onDelete: null, name: string}}
  */
-var defaultSettings = {
+const defaultSettings = {
     addButton:
-    `       <div class="collection-add display-inline-block">
+        `       <div class="collection-add display-inline-block">
                 <div class="span-medium-8 span-large-6 span-xlarge-10"></div>
                 <div class="display-inline-block">
                     <a href="#" id="addButton" class="add-collection-item">
@@ -23,7 +23,7 @@ var defaultSettings = {
                 </div>
             </div>`,
     deleteButton:
-    `       <a title="Remove item" href="#" id="deleteButton" class="delete-collection-item">
+        `       <a title="Remove item" href="#" id="deleteButton" class="delete-collection-item">
                 <span class="trinity trinity-trash circle"></span>
             </a>`,
     onAdd: null,
@@ -42,56 +42,66 @@ var defaultSettings = {
  * @constructor
  */
 export default class Collection {
-    constructor(element, globalOptions, prototypeData, layer){
+    constructor(element, globalOptions = {}, prototypeData, layer){
         this.collectionHolder = element;
         this.prototype = null;
         this.protoChildren = [];
         this.children = [];
         this.globalOptions = globalOptions;
         this.layer = layer || 0;
+        // Listeners
+        this.unlistenAddButton = null;
 
         if(!prototypeData){
-            prototypeData = _parsePrototypeData(element);
+            prototypeData = __parsePrototypeData(element);
             Store.setValue(element, 'collection', this);
         }
-        this.settings = _.extend(_.clone(defaultSettings), (globalOptions ? _.extend(prototypeData.options, globalOptions) : prototypeData.options));
+        this.settings = _.defaultsDeep(globalOptions, prototypeData.options, defaultSettings);
+        //this.settings = _.extend(_.clone(defaultSettings), (globalOptions ? _.extend(prototypeData.options, globalOptions) : prototypeData.options));
         this.settings.addButton = Dom.htmlToDocumentFragment(this.settings.addButton.trim());
         this.settings.deleteButton = Dom.htmlToDocumentFragment(this.settings.deleteButton.trim());
+
         /** Make it live **/
-        _initialize.call(this, prototypeData);
+        __initialize.call(this, prototypeData);
     }
 
     /**
      * Adds new child to collection
      */
     add(){
-        var settings = this.settings,
+        let settings = this.settings,
             addButton = settings.addButton,
             prototype = this.prototype,
-            prototypeChildren = this.protoChildren
-            ;
+            prototypeChildren = this.protoChildren,
+        // children count?
+            childrenCount = _.filter(this.collectionHolder.children, node => {
+                return Dom.classlist.contains(node, 'collection-child');
+            }),
+        // Placeholders
+            newChildStr = __fillPlaceholders(
+                settings['prototype_name'],
+                settings.name,
+                childrenCount.length,
+                prototype
+            );
 
-        var childrenCount = _.filter(this.collectionHolder.children, function(node){
-            return Dom.classlist.contains(node, 'collection-child');
-        });
+        let newChildNode = Dom.htmlToDocumentFragment(newChildStr.trim()),
+            child = new CollectionChild(newChildNode, childrenCount.length, this, prototypeChildren);
 
-        var newChildStr =_fillPlaceholders(
-            settings['prototype_name'],
-            settings.name,
-            childrenCount.length,
-            prototype
-        );
-        var newChildNode = Dom.htmlToDocumentFragment(newChildStr.trim());
-        var child = new CollectionChild(newChildNode, childrenCount.length, this, prototypeChildren);
         this.children.push(child);
-        _addRemoveBtn.call(this, child);
+        __addRemoveBtn.call(this, child);
 
         //Insert new Child
         addButton.parentNode.insertBefore(newChildNode, addButton);
 
-        if (_.isFunction(settings.onAdd)){
+        if(_.isFunction(settings.onAdd)){
             settings.onAdd(newChildNode);
         }
+    }
+
+    detach(){
+        _.each(this.children, child => child.detach());
+        this.unlistenAddButton();
     }
 }
 
@@ -102,28 +112,27 @@ export default class Collection {
  * @param data {PrototypeData}
  * @private
  */
-function _initialize(data){
+function __initialize(data){
     // init
-    var prototypeDom = Dom.htmlToDocumentFragment(data.prototype);
-    var protoChildren = _.map(prototypeDom.querySelectorAll('[data-prototype]'), function(node){
-        return _parsePrototypeData(node);
-    });
+    let prototypeDom = Dom.htmlToDocumentFragment(data.prototype),
+        children = prototypeDom.querySelectorAll('[data-prototype]'),
+        protoChildren = _.map(children, node => __parsePrototypeData(node));
 
-    this.prototype = _getHtmlString(prototypeDom);
+    this.prototype = __getHtmlString(prototypeDom);
     this.protoChildren = protoChildren;
-    _addCreateBtn.call(this);
+    __addCreateBtn.call(this);
 
     // Add class and delete button to children
-    var children = _.filter(this.collectionHolder.children, function(node){
-        return Dom.classlist.contains(node, 'row');
-    });
-    this.children = _.each(children, function(child, index, coll){
-        var newChild = new CollectionChild(child, index, this);
-        _addRemoveBtn.call(this, newChild);
-        coll[index] = newChild;
-    }, this);
+    this.children  = _(this.collectionHolder.children)
+        .filter(node => Dom.classlist.contains(node, 'row'))
+        .map((child, index) => {
+            let newChild = new CollectionChild(child, index, this);
+            __addRemoveBtn.call(this, newChild);
+            return newChild;
+        }).value();
+
     //Add first?
-    if(children.length === 0 && this.settings.addFirst){
+    if(this.children.length === 0 && this.settings.addFirst){
         this.add();
     }
 }
@@ -135,8 +144,8 @@ function _initialize(data){
  * @returns {PrototypeData}
  * @private
  */
-function _parsePrototypeData(element){
-    var data = new PrototypeData(
+function __parsePrototypeData(element){
+    let data = new PrototypeData(
         element.getAttribute('data-prototype'),
         JSON.parse(element.getAttribute('data-options'))
     );
@@ -151,14 +160,14 @@ function _parsePrototypeData(element){
  * @param child {CollectionChild}
  * @private
  */
-function _addRemoveBtn(child){
-    var settings = this.settings,
+function __addRemoveBtn(child){
+    let settings = this.settings,
         removeButton = settings.deleteButton.cloneNode(true);
 
     // right ID to delete button
-    removeButton.setAttribute('id', [removeButton.getAttribute('id'), '_', child.node.getAttribute('id')].join(''));
+    removeButton.setAttribute('id', [removeButton.getAttribute('id'), child.node.getAttribute('id')].join('_'));
 
-    Events.listenOnce(removeButton, 'click', (e)=>{
+    child.unlistenRemoveButton = Events.listenOnce(removeButton, 'click', (e)=>{
         // prevent the link from creating a "#" on the URL
         e.preventDefault();
 
@@ -186,9 +195,9 @@ function _addRemoveBtn(child){
  * Add Add button to collection
  * @private
  */
-function _addCreateBtn(){
+function __addCreateBtn(){
     let sett = this.settings;
-    Events.listen(sett.addButton, 'click', (e)=>{
+    this.unlistenAddButton = Events.listen(sett.addButton, 'click', (e)=>{
         e.preventDefault();
         // add a new tag form (see next code block)
         this.add();
@@ -206,8 +215,8 @@ function _addCreateBtn(){
  * @returns {XML|string}
  * @private
  */
-function _fillPlaceholders(key, name, number, prototype){
-    var labelRegx = new RegExp(key + 'label__', 'g'),
+function __fillPlaceholders(key, name, number, prototype){
+    let labelRegx = new RegExp(key + 'label__', 'g'),
         nameRegx = new RegExp(key, 'g');
     return prototype.replace(labelRegx, name + number).replace(nameRegx, '' + number);
 }
@@ -218,8 +227,8 @@ function _fillPlaceholders(key, name, number, prototype){
  * @returns {string}
  * @private
  */
-function _getHtmlString(element){
-    var wrap = document.createElement('div');
+function __getHtmlString(element){
+    let wrap = document.createElement('div');
     wrap.appendChild(element);
     return wrap.innerHTML;
 }
@@ -231,7 +240,7 @@ function _getHtmlString(element){
  */
 function _removeLabel(node){
     Dom.removeNode(node.querySelector('.form-left'));
-    var formRight = node.querySelector('.form-right');
+    let formRight = node.querySelector('.form-right');
     Dom.classlist.removeAll(formRight, ['span-none-padding-medium-16', 'span-none-padding-large-18', 'span-none-padding-xlarge-14']);
     Dom.classlist.addAll(formRight, ['span-none-padding-medium-24', 'span-none-padding-large-24', 'span-none-padding-xlarge-24']);
 }
@@ -250,6 +259,13 @@ class PrototypeData {
     }
 }
 
+
+const SELECT_MAP = {
+    id:'[id]',
+    name:'[name]',
+    'for':'label[for]'
+};
+
 /**
  * Class representing child of collection
  * @class CollectionChild
@@ -264,6 +280,7 @@ class CollectionChild {
         this.id = id;
         this.node = node;
         this.parent = parent;
+        this.unlistenRemoveButton = null;
 
         Dom.classlist.add(node, 'collection-child');
         //Label?
@@ -271,9 +288,9 @@ class CollectionChild {
             _removeLabel(node);
         }
 
-        var prototypeElements = node.querySelectorAll('[data-prototype]');
+        let prototypeElements = node.querySelectorAll('[data-prototype]');
         if(prototypeElements.length > 0){
-            this.collections = _initializeCollections.call(this, prototypeElements, prototypeData);
+            this.collections = __initializeCollections.call(this, prototypeElements, prototypeData);
         }
     }
 
@@ -289,22 +306,18 @@ class CollectionChild {
      * @param id
      */
     setID(id){
-        var layer = this.parent.layer;
+        let layer = this.parent.layer;
         this.id = id;
-        // ID
-        _.map(this.node.querySelectorAll('[id]'), function(el){
-            _updateAttribute(el, id, layer, 'id');
-        }, this);
-        // NAME
-        _.map(this.node.querySelectorAll('[name]'), function(el){
-            _updateAttribute(el, id, layer, 'name');
-        }, this);
-        // LABEL
-        _.map(this.node.querySelectorAll('label[for]'), function(el){
-            _updateAttribute(el, id, layer, 'for');
-        }, this);
+        _.each(SELECT_MAP, (selector, key)=>{
+            _.each(this.node.querySelectorAll(selector), el => __updateAttribute(el, id, layer, key));
+        });
         // change to self
-        _updateAttribute(this.node, id, layer, 'id');
+        __updateAttribute(this.node, id, layer, 'id');
+    }
+
+    detach(){
+        _.each(this.collections, coll => coll.detach());
+        this.unlistenRemoveButton();
     }
 }
 
@@ -315,26 +328,24 @@ class CollectionChild {
  * @returns {*|Array}
  * @private
  */
-function _initializeCollections(prototypeElements, prototypeDataSource){
+function __initializeCollections(prototypeElements, prototypeDataSource){
     if(!prototypeDataSource){
-        return _.map(prototypeElements, function(el){
-            return Store.getValue(el, 'collection');
-        });
+        return _.map(prototypeElements, el => Store.getValue(el, 'collection'));
     } else {
         // Init next level
-        return _.map(prototypeElements, function(el){
-            var prototypeName = el.getAttribute('data-prototype');
-            var prototypeData = _.cloneDeep(_.find(prototypeDataSource, function(data){
-                return data.options['prototype_name'] === prototypeName;
-            }));
-            prototypeData.prototype =_fillPlaceholders(
+        return _.map(prototypeElements, (el)=>{
+            let prototypeName = el.getAttribute('data-prototype'),
+                prototypeData = _.cloneDeep(_.find(prototypeDataSource, (data)=>{
+                    return data.options['prototype_name'] === prototypeName;
+                }));
+            prototypeData.prototype = __fillPlaceholders(
                 this.parent.settings['prototype_name'],
                 this.parent.settings.name,
                 this.id,
                 prototypeData.prototype
             );
             return new Collection(el, this.parent.globalOptions, prototypeData, this.parent.layer + 1);
-        }, this);
+        });
     }
 }
 
@@ -346,15 +357,15 @@ function _initializeCollections(prototypeElements, prototypeDataSource){
  * @param attribute {string}
  * @private
  */
-function _updateAttribute(node, id, layer, attribute){
-    var isName = attribute === 'name';
-    var regex = isName ? /\[\d]/g : /_\d_|_\d$/g;
-    var parameterStr =  node.getAttribute(attribute);
-    var resultStr = '';
+function __updateAttribute(node, id, layer, attribute){
+    let isName = attribute === 'name',
+        regex = isName ? /\[\d]/g : /_\d_|_\d$/g,
+        parameterStr =  node.getAttribute(attribute),
+        resultStr = '';
 
-    var i = 0;
-    var rgxResult = null;
-    var next = true;
+    let i = 0,
+        rgxResult = null,
+        next = true;
 
     while(next){
         rgxResult = regex.exec(parameterStr);
@@ -377,6 +388,3 @@ function _updateAttribute(node, id, layer, attribute){
     //Set new ID
     node.setAttribute(attribute, resultStr);
 }
-
-
-

@@ -206,13 +206,13 @@ function __sendFile(url, method, file, fieldName, successCallback, errorCallback
 
     if(_.isArrayLike(file)){
         _.each(file, (f)=>{
-            r.attach(fieldName, f)
+            r.attach(fieldName, f);
         });
     } else {
         r.attach(fieldName, file);
     }
     if(progressCallback){
-        r.on('progress', progressCallback)
+        r.on('progress', progressCallback);
     }
     r.end(__responseHandler(successCallback, errorCallback));
 }
