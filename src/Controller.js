@@ -37,12 +37,26 @@ export default class Controller {
     getScope(){
         return this._scope;
     }
+
     getApp(){
         return this._app;
     }
 
+    /**
+     * Hook to run before every action
+     */
+    beforeAction($scope){}
 
-    Get(serviceName){
+    /**
+     * Hook after every action run
+     */
+    afterAction($scope){}
+
+    /**
+     * Not implemented
+     * @param serviceName
+     */
+    getService(serviceName){
         console.warn('Method not implemented');
         //TODO: should pull from app requested service, if exists, if not return null
     }

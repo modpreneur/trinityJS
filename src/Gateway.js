@@ -1,16 +1,16 @@
-/**
- * Created by fisa on 7/27/15.
- */
-/**
- * @deprecated
- */
-import Xhr from './utils/Xhr.js';
+'use strict';
+
+import _ from 'lodash';
+import Request from 'superagent';
 import Debug from './Debug';
 
-/**
- * @deprecated
- */
-var Gateway = {
+// Global configuration
+let config = {
+    timeout: 10000,
+    fileTimeout: 10000
+};
+
+let Gateway = {
     /**
      *  normal GET request to defined URL
      * @param url
@@ -19,7 +19,7 @@ var Gateway = {
      * @param errorCallback
      */
     get: function get(url, data, successCallback, errorCallback){
-        _send(url,'GET', data, successCallback, errorCallback);
+        __send(url,'GET', data, successCallback, errorCallback);
     },
     /**
      * JSON GET request
@@ -29,7 +29,7 @@ var Gateway = {
      * @param errorCallback
      */
     getJSON: function getJSON(url, data, successCallback, errorCallback){
-        _sendJSON(url, 'GET',  data, successCallback, errorCallback);
+        __sendJSON(url, 'GET',  data, successCallback, errorCallback);
     },
 
     /**
@@ -40,7 +40,7 @@ var Gateway = {
      * @param errorCallback
      */
     post: function post(url, data, successCallback, errorCallback){
-        _send(url,'POST', data, successCallback, errorCallback);
+        __send(url,'POST', data, successCallback, errorCallback);
     },
     /**
      * JSON POST request
@@ -50,7 +50,7 @@ var Gateway = {
      * @param errorCallback
      */
     postJSON: function postJSON(url, data, successCallback, errorCallback){
-        _sendJSON(url, 'POST',  data, successCallback, errorCallback);
+        __sendJSON(url, 'POST',  data, successCallback, errorCallback);
     },
     /**
      * normal PUT request
@@ -60,7 +60,7 @@ var Gateway = {
      * @param errorCallback
      */
     put: function put(url, data, successCallback, errorCallback){
-        _send(url,'PUT', data, successCallback, errorCallback);
+        __send(url,'PUT', data, successCallback, errorCallback);
     },
     /**
      * JSON PUT request
@@ -70,8 +70,20 @@ var Gateway = {
      * @param errorCallback
      */
     putJSON: function putJSON(url, data, successCallback, errorCallback){
-        _sendJSON(url, 'PUT',  data, successCallback, errorCallback);
+        __sendJSON(url, 'PUT',  data, successCallback, errorCallback);
     },
+
+    /**
+     * JSON PUT request
+     * @param url
+     * @param data
+     * @param successCallback
+     * @param errorCallback
+     */
+    deleteJSON: function deleteJSON(url, data, successCallback, errorCallback) {
+        __sendJSON(url, 'DELETE', data, successCallback, errorCallback);
+    },
+
     /**
      * Same as others, just allow specify method.
      * @param url
@@ -80,7 +92,7 @@ var Gateway = {
      * @param successCallback
      * @param errorCallback
      */
-    send: _send,
+    send: __send,
 
     /**
      * Send JSON request and accepts only json
@@ -90,11 +102,10 @@ var Gateway = {
      * @param successCallback
      * @param errorCallback
      */
-    sendJSON: _sendJSON,
-
+    sendJSON: __sendJSON,
 
     /**
-     * File send
+     * Send file fnc
      * @param url
      * @param method
      * @param file
@@ -104,21 +115,14 @@ var Gateway = {
      * @param progressCallback
      * @private
      */
-    sendFile: _sendFile,
+    sendFile: __sendFile,
 
     /**
      * settings for gateway
-     * TODO: consider how to globally get settings ?
      */
-    settings:{
-        debug: false,
-        timeout: 10000
-    }
+    settings: config
 };
-/**
- * @deprecated
- */
-export default Gateway;
+
 
 /** PRIVATE METHODS **/
 /**
@@ -131,14 +135,21 @@ export default Gateway;
  * @returns {Xhr}
  * @private
  */
-function _send(url, method, data, successCallback, errorCallback){
-    if(method.toUpperCase() ==='GET' && data){
-        url = [url.trim(), _createQuery(data)].join('');
-        data = null;
+function __send(url, method, data, successCallback, errorCallback){
+    method = method.toUpperCase();
+    let r = Request(method, url.trim())
+        .set('X-Requested-With', 'XMLHttpRequest')
+        .timeout(Gateway.settings.timeout);
+
+    if(data){
+        if(method ==='GET' && ( !(window.FormData && data instanceof window.FormData))){
+            r.query(data);
+        } else {
+            r.send(data);
+        }
     }
-    var xhr = _createRequest(url, method, successCallback, errorCallback);
-    xhr.send(data);
-    return xhr;
+
+    r.end(__responseHandler(successCallback, errorCallback));
 }
 
 /**
@@ -151,18 +162,29 @@ function _send(url, method, data, successCallback, errorCallback){
  * @returns {Xhr}
  * @private
  */
-function _sendJSON(url, method, data, successCallback, errorCallback){
-    if(method.toUpperCase() ==='GET' && data){
-        url = [url.trim(), _createQuery(data)].join('');
-        data = null;
+function __sendJSON(url, method, data, successCallback, errorCallback){
+    method = method.toUpperCase();
+    let r = Request(method, url.trim())
+        .set({
+            'Content-type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        })
+        .timeout(Gateway.settings.timeout);
+
+    if(data){
+        if(method ==='GET'){
+            r.query(data);
+        } else {
+            r.send(data);
+        }
     }
-    var xhr = _createJSONRequest(url.trim(), method, successCallback, errorCallback);
-    xhr.send(data ? JSON.stringify(data) : null);
-    return xhr;
+
+    r.end(__responseHandler(successCallback, errorCallback));
 }
 
 /**
- * File send
+ * Send file fnc
  * @param url
  * @param method
  * @param file
@@ -172,183 +194,51 @@ function _sendJSON(url, method, data, successCallback, errorCallback){
  * @param progressCallback
  * @private
  */
-function _sendFile(url, method, file, fieldName, successCallback, errorCallback, progressCallback){
-    url = url.trim();
+function __sendFile(url, method, file, fieldName, successCallback, errorCallback, progressCallback){
+    method = method || 'POST';
+    fieldName = fieldName || 'files';
+    successCallback = successCallback || _.noop;
+    errorCallback = errorCallback || _.noop;
 
-    let formData = new FormData();
-    if(Array.isArray(file) || file['length'] !== undefined){
-        let fLength = file.length;
-        for(let i=0; i < fLength; i++){
-            formData.append(fieldName || file[i].name, file[i]);
-        }
+    let r = Request(method.toUpperCase(), url.trim())
+        .set('X-Requested-With', 'XMLHttpRequest')
+        .timeout(config.fileTimeout);
+
+    if(_.isArrayLike(file)){
+        _.each(file, (f)=>{
+            r.attach(fieldName, f);
+        });
     } else {
-        formData.append(fieldName || file.name, file);
+        r.attach(fieldName, file);
     }
-
-    let xhr = new Xhr(url, method, {
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-    });
-    xhr.setTimeoutInterval(Gateway.settings.timeout);
-    xhr.onTimeout(function(){
-        Debug.error('AJAX REQUEST TIMED OUT!');
-        errorCallback({timeout:true});
-    });
-    xhr.onComplete(function(){
-        if(this.getResponseHeader('Content-Type').indexOf('application/json') === -1){
-            if(Debug.isDev()){
-                Debug.log('HEADERS', this.getResponseHeaders());
-                _dumpOnScreen(this.getResponse());
-            }
-            Debug.error('Content-Type application/json expected! got:', this.getResponse());
-            return false;
-        }
-        if(this.isSuccess()){
-            successCallback(this.getResponseJson());
-        } else if(302 === this.getStatus()){
-            var resp = this.getResponseJson(),
-                redirectTo = resp.location;
-            // Do callback and then redirect
-            if(successCallback(resp) === false){
-                return false;
-            }
-            // Redirect
-            if(!redirectTo){
-                return errorCallback({Error: 'Missing "location" attribute!'});
-            }
-            window.location.assign(redirectTo);
-        } else {
-            Debug.error('RESPONSE:', this.getResponseJson());
-            errorCallback(this.getResponseJson().error);
-        }
-    });
-
     if(progressCallback){
-        xhr.request.upload.onprogress = progressCallback;
+        r.on('progress', progressCallback);
     }
-
-    xhr.send(formData);
-    return xhr;
+    r.end(__responseHandler(successCallback, errorCallback));
 }
 
-/**
- * Create normal request not expecting json response
- * @param url
- * @param method
- * @param sC
- * @param eC
- * @private
- */
-function _createRequest(url, method, sC, eC){
-    if(arguments.length < 4){
-        throw new Error('Not all arguments defined!');
-    }
-    var xhr = new Xhr(url, method, {
-        'Content-type':'application/x-www-form-urlencoded',
-        'Accept': 'text/html',
-        'X-Requested-With': 'XMLHttpRequest'
-    });
-
-    xhr.setTimeoutInterval(Gateway.settings.timeout);
-    xhr.onTimeout(function(){
-        Debug.error('AJAX REQUEST TIMED OUT!');
-        eC({timeout:true});
-    });
-    xhr.onComplete(function(){
-        if(this.getResponseHeader('Content-Type').indexOf('text/html') === -1){
-            if(Debug.isDev()){
-                Debug.log('HEADERS', this.getResponseHeaders());
-                _dumpOnScreen(this.getResponse());
-            }
-            Debug.error('Content-Type text/html expected! got:', this.getResponse());
-            return false;
-        }
-        if(this.isSuccess()){
-            sC(this.getResponse());
-        } else {
-            if(Debug.isDev()){
-                Debug.error('RESPONSE:', this.getResponse());
-                _dumpOnScreen(this.getResponse())
-            }
-
-            eC(this.getResponseJson());
-        }
-    });
-    return xhr;
-}
-
-/**
- * Create JSON request
- * @param url
- * @param method
- * @param sC
- * @param eC
- * @private
- */
-function _createJSONRequest(url, method, sC, eC){
-    if(arguments.length < 4){
-        throw new Error('Not all arguments defined!');
-    }
-    var xhr = new Xhr(url, method, {
-        'Content-type': 'application/json',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-    });
-
-    xhr.setTimeoutInterval(Gateway.settings.timeout);
-    xhr.onTimeout(function(){
-        Debug.error('AJAX REQUEST TIMED OUT!');
-        eC({timeout:true});
-    });
-    xhr.onComplete(function(){
-        if(this.getResponseHeader('Content-Type') !== 'application/json'){
-            if(Debug.isDev()){
-                Debug.log('HEADERS', this.getResponseHeaders());
-                //TODO:  Test if ladyBug
-                _dumpOnScreen(this.getResponse());
-            }
-            Debug.error('Content-Type JSON expected! got:', this.getResponse());
-            return false;
-        }
-        if(this.isSuccess()){
-            sC(this.getResponseJson());
-        } else if(302 === this.getStatus()){
-            var resp = this.getResponseJson(),
-                redirectTo = resp.location;
+function __responseHandler(successCallback, errorCallback){
+    return function __abstractHandler(err, response){
+        if(response && response.status === 302) {
+            let redirectTo = response.body.location;
             // Do callback and then redirect
-            if(sC(resp) === false){
+            if(successCallback(response) === false){
                 return false;
             }
             // Redirect
-            if(!redirectTo){
-                return eC({Error: 'Missing "location" attribute!'});
+            if(!redirectTo && Debug.isDev()){
+                throw new Error('Missing "location" attribute!');
             }
             window.location.assign(redirectTo);
-        } else {
-            Debug.error('RESPONSE:', this.getResponseJson());
-            // TODO: It would be correct to return only response, not parse error!!!
-            eC(this.getResponseJson().error);
+            return;
         }
-    });
-    return xhr;
-}
-
-
-/**
- * Create query string from data
- * @param data
- * @returns {string}
- * @private
- */
-function _createQuery(data){
-    var keys = Object.keys(data),
-        keysLength = keys.length,
-        query = new Array(keysLength);
-    for(let i=0; i< keysLength; i++){
-        query[i] = keys[i] + '=' + data[keys[i]];
+        if(err){
+            return errorCallback(err);
+        }
+        successCallback(response);
     }
-    return '?'+ query.join('&');
 }
+
 
 /**
  * Dump response on screen
@@ -358,3 +248,22 @@ function _createQuery(data){
 function _dumpOnScreen(response){
     Debug.dump(response);
 }
+
+/**
+ * Set global configuration object
+ * @param conf
+ * @returns {{timeout: number}}
+ */
+function configure(conf){
+    let keys = Object.keys(conf),
+        keysLength = keys.length;
+
+    for(let i=0; i<keysLength; i++){
+        config[keys[i]] = conf[keys[i]];
+    }
+    return config;
+}
+
+/** EXPORTS **/
+export default Gateway;
+export {configure};

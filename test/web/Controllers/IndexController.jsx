@@ -1,7 +1,7 @@
 import Controller from 'trinity/src/Controller';
 import _ from 'lodash';
 import TrinityForm from 'trinity/src/components/TrinityForm';
-import Gateway from 'trinity/src/Gateway.new';
+import Gateway from 'trinity/src/Gateway';
 import Events from 'trinity/src/utils/Events';
 
 export default class IndexController extends Controller {
@@ -44,5 +44,13 @@ export default class IndexController extends Controller {
         gdsgdsgsdgsdgds
         gdsgsdgds`;
         console.log(cc);
+    }
+
+    beforeAction(){
+        console.log('BEFORE ACTION');
+    }
+
+    afterAction(){
+        console.log('AFTER ACTION');
     }
 }

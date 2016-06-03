@@ -1,3 +1,6 @@
+/**
+ * Created by fisa on 11/1/15.
+ */
 'use strict';
 
 import _ from 'lodash';
@@ -6,36 +9,35 @@ import Controller from './Controller.js';
 import Debug from './Debug';
 
 const defaultSettings = {
-    env: 'production',
-    controllersPath: '/'
+    env: 'prod',
+    attributeName: 'data-ng-scope',
+    globalController: null
 };
 
 /**
  * Represents application, provides main control over running js
- * @deprecated
  */
 export default class App {
     constructor(routes, controllers, settings){
         //Settings FIRST !
         this.settings = _.defaultsDeep(settings || {}, defaultSettings);
-        // Removed in new version
-        if(settings.environment){
-            this.settings.env = settings.environment;
-        }
         if(this.settings.env === 'dev' || this.settings.env === 'development'){
             Debug.env = 'dev';
-            System.import('trinity/devTools');
         }
 
         this.routes = routes;
         this.controllers = controllers;
         this.router = new Router(routes);
+        this.global = null;
         this.activeController = null;
 
         // This way $scope property cannot be reassigned
         Object.defineProperty(this, '$scope', {
             value: {}
         });
+
+        /** Try to find initial scope **/
+        _.extend(this.$scope, this.parseScope());
     }
 
     /**
@@ -45,30 +47,46 @@ export default class App {
      * @returns {boolean}
      */
     start(successCallback, errorCallback){
-        if(this.isDevEnvironment()) {
-            return this.__devStart(successCallback, errorCallback);
-        } else {
-            return this.__prodStart();
-        }
-    }
+        let name = this.settings.globalController,
+            action = 'indexAction';
 
-    /**
-     * Kick up production application
-     * @returns {boolean}
-     * @private
-     */
-    __prodStart(){
-        let controller = this.router.findController();
-        if(_.isNull(controller)) {
-            return false;
+        if(!_.isNull(name)){
+            name += 'Controller';
+            // Create new active controller instance
+            if(!this.controllers.hasOwnProperty(name)){
+                throw new Error('Global Controller '+ name+ ' does not exist, did you forget to run "buildControllers.js" script?');
+            }
+
+            this.global = new this.controllers[name](name);
+            if(!(this.global instanceof Controller)){
+                throw new Error(name + ' does not inherit from "Controller" class!');
+            }
+            this.global._scope = this.$scope;
+            this.global._app = this;
+            this.global[action](this.$scope);
         }
 
-        let controllerInfo = controller.action.split('.');
-        if(controllerInfo.length < 1){
-            throw new Error('No Controller defined! did you forget to define controller in routes?');
+        /**
+         * Active controller
+         */
+        let controllerInfo = this.router.findController();
+        if(_.isNull(controllerInfo)) {
+            return this.finishCallback(false, successCallback);
         }
-        let name = controllerInfo[0] + 'Controller',
-            action = controllerInfo[1] + 'Action' || 'indexAction';
+
+        [name, action] = controllerInfo.action.split('.');
+
+        if(!name){
+            let err = new Error('No Controller defined! did you forget to define controller in routes?');
+            if(errorCallback){
+                return errorCallback(err);
+            }
+            throw err;
+        }
+
+        // Load controller
+        name += 'Controller';
+        action = (action || 'index') + 'Action';
 
         // Create new active controller instance
         if(!this.controllers.hasOwnProperty(name)){
@@ -76,99 +94,65 @@ export default class App {
         }
 
         /** Create and Set up controller instance **/
-        let instance = new this.controllers[name]();
+        let instance = new this.controllers[name](name);
         if(!(instance instanceof Controller)){
             throw new Error(name + ' does not inherit from "Controller" class!');
         }
+
         instance._scope = this.$scope;
         instance._app = this;
-        instance.request = controller.request;
+        instance.request = controllerInfo.request;
         this.activeController = instance;
 
         /** Run **/
         if(instance[action]){
+            instance.beforeAction(this.$scope);
             instance[action](this.$scope);
-        }
-        return true;
-    }
-
-    /**
-     * Kick up development application
-     * @param successCallback {Function} optional success callback
-     * @param errorCallback {Function} optional error callback
-     * @returns {boolean}
-     * @private
-     */
-    __devStart(successCallback, errorCallback){
-        let path =  this.settings.controllersPath;
-        let controller = this.router.findController();
-        if(_.isNull(controller)) {
-            if(successCallback){
-                successCallback(false);
-            }
-            return false;
-        }
-
-        let controllerInfo = controller.action.split('.');
-        if(controllerInfo.length < 1){
-            let err = new Error('No Controller defined! did you forget to define controller in routes?');
+            instance.afterAction(this.$scope);
+        } else {
+            let err = new Error('Action "'+ action + '" doesn\'t exists');
             if(errorCallback){
                 return errorCallback(err);
             }
             throw err;
         }
-        // Load controller
-        let name = controllerInfo[0] + 'Controller',
-            action = controllerInfo[1] + 'Action' || 'indexAction';
-        let self = this;
-        System.import(path + '/'+name+'.js').then(function(resp){
-            /** Create and Set up controller instance **/
-            let instance = new resp.default();
-            if(!(instance instanceof Controller)){
-                let err = new Error(name + ' does not inherit from "Controller" class!');
-                if(errorCallback){
-                    return errorCallback(err);
-                }
-                throw err;
-            }
-            instance._scope = self.$scope;
-            instance._app = self;
-            instance.request = controller.request;
-            self.activeController = instance;
-
-            /** Run **/
-            if(instance[action]){
-                instance[action](self.$scope);
-                if(successCallback){
-                    successCallback(instance);
-                }
-            } else {
-                let err = new Error('Action "'+ action + '" doesn\'t exists');
-                if(errorCallback){
-                    return errorCallback(err);
-                }
-                throw err;
-            }
-        }).catch(function(err){
-            if(errorCallback){
-                errorCallback(err);
-            }
-        });
-        return true;
+        return this.finishCallback(true, successCallback);
     }
 
     /**
-     * Kick up application
-     * @deprecated use start() instead and define path in settings as "controllersPath"
-     * @param path {String} where to look for controller
-     *  - used for async lazy load of controller file described in routes array
-     * @param successCallback {Function} optional success callback
-     * @param errorCallback {Function} optional error callback
+     * Finishing success callback
+     * @param isController {boolean}
+     * @param callback {function}
      * @returns {boolean}
      */
-    devStart(path, successCallback, errorCallback){
-        this.settings.controllersPath = path;
-        return this.__devStart(successCallback, errorCallback);
+    finishCallback(isController, callback){
+        let message = isController ?
+            this.activeController.name + ' loaded.'
+            : 'Route does\'t have any controller.';
+
+        Debug.log(message);
+        if(callback){
+            callback(this.activeController || false);
+        }
+        return isController;
+    }
+
+    /**
+     * Search in "root" element for every element with attribute defined in settings
+     * @param root
+     * @returns {{}} - bag with {attName.value:element}
+     */
+    parseScope(root){
+        root = root || window.document;
+        let attName = this.settings.attributeName,
+            elements = root.querySelectorAll('['+ attName +']');
+
+        let bag = {};
+        _.each(elements, (el, i)=>{
+            let name = el.getAttribute(attName) || ''+el.name + i;
+            bag[name] = el;
+        });
+        return bag;
     }
 
     /**
