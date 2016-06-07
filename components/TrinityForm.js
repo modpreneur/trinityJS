@@ -284,14 +284,18 @@ var TrinityForm = function (_EventEmitter) {
                 data: data
             });
 
-            (0, _superagent2.default)(method, url).set({
+            var req = (0, _superagent2.default)(method, url).set({
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
             }).timeout(this.settings.requestTimeout)
             //.timeout(1)
             .send(data).on('progress', function (e) {
                 _this3.emit('progress', e);
-            }).end(function (err, response) {
+            });
+
+            this.emit('before-request', req);
+
+            req.end(function (err, response) {
                 // Redirect ?
                 if (response && response.status === 302) {
                     var redirectTo = response.body.location;

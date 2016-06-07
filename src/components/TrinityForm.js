@@ -253,7 +253,7 @@ export default class TrinityForm extends EventEmitter {
             data
         });
 
-        Request(method, url)
+        let req = Request(method, url)
             .set({
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
@@ -263,8 +263,11 @@ export default class TrinityForm extends EventEmitter {
             .send(data)
             .on('progress', (e)=>{
                 this.emit('progress', e);
-            })
-            .end((err, response)=>{
+            });
+
+        this.emit('before-request', req);
+
+        req.end((err, response)=>{
                 // Redirect ?
                 if(response && response.status === 302) {
                     let redirectTo = response.body.location;
