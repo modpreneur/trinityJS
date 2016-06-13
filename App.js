@@ -126,7 +126,7 @@ var App = function () {
 
             // Create new active controller instance
             if (!this.controllers.hasOwnProperty(name)) {
-                throw new Error('Controller ' + name + ' does not exist, did you forget to run "buildControllers.js" script?');
+                throw new Error('Controller ' + name + ' does not exist, did you forget to run "buildControllers.js" script?' + ' or did you write correct routes?');
             }
 
             /** Create and Set up controller instance **/
