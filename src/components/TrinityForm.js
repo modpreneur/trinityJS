@@ -155,7 +155,9 @@ export default class TrinityForm extends EventEmitter {
             this.__errors.push(fieldErr);
         }
         // Add onRemove Callback
-        fieldErr.onRemoveCallbacks.push(onRemove);
+        if(_.isFunction(onRemove)){
+            fieldErr.onRemoveCallbacks.push(onRemove);
+        }
 
         if(!fieldErr.listener){
             fieldErr.listener = Events.listenOnce(inputElement, 'input', (e)=>{

@@ -172,7 +172,9 @@ var TrinityForm = function (_EventEmitter) {
                 this.__errors.push(fieldErr);
             }
             // Add onRemove Callback
-            fieldErr.onRemoveCallbacks.push(onRemove);
+            if (_lodash2.default.isFunction(onRemove)) {
+                fieldErr.onRemoveCallbacks.push(onRemove);
+            }
 
             if (!fieldErr.listener) {
                 fieldErr.listener = _Events2.default.listenOnce(inputElement, 'input', function (e) {
