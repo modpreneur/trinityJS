@@ -156,9 +156,10 @@ var TrinityForm = function (_EventEmitter) {
          * @param key {string}
          * @param message {string}
          * @param inputElement {HTMLElement}
+         * @param onRemove {function}
          * @public
          */
-        value: function addError(key, message, inputElement) {
+        value: function addError(key, message, inputElement, onRemove) {
             var _this2 = this;
 
             this.state = 'error';
@@ -170,6 +171,9 @@ var TrinityForm = function (_EventEmitter) {
                 fieldErr = new FieldError(key, inputElement);
                 this.__errors.push(fieldErr);
             }
+            // Add onRemove Callback
+            fieldErr.onRemoveCallbacks.push(onRemove);
+
             if (!fieldErr.listener) {
                 fieldErr.listener = _Events2.default.listenOnce(inputElement, 'input', function (e) {
                     e.preventDefault();
@@ -510,6 +514,7 @@ var FieldError = function () {
         this.input = input;
         this.listener = null;
         this.errors = [];
+        this.onRemoveCallbacks = [];
         this.__counter = 0;
         // Add error message
         _Dom2.default.classlist.add(input, 'error');
@@ -557,9 +562,13 @@ var FieldError = function () {
     }, {
         key: 'removeAll',
         value: function removeAll() {
-            _lodash2.default.map(this.errors, function (err) {
+            _lodash2.default.each(this.errors, function (err) {
                 _Dom2.default.removeNode(err.warning);
             });
+            _lodash2.default.each(this.onRemoveCallbacks, function (fn) {
+                return fn();
+            });
+            this.onRemoveCallbacks = [];
             this.errors = [];
             _Dom2.default.classlist.remove(this.input, 'error');
         }

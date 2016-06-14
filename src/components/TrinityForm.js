@@ -141,9 +141,10 @@ export default class TrinityForm extends EventEmitter {
      * @param key {string}
      * @param message {string}
      * @param inputElement {HTMLElement}
+     * @param onRemove {function}
      * @public
      */
-    addError(key, message, inputElement){
+    addError(key, message, inputElement, onRemove){
         this.state = 'error';
         // Add error to Form errors and get its index
         let fieldErr = _.find(this.__errors, (err)=>{
@@ -153,6 +154,9 @@ export default class TrinityForm extends EventEmitter {
             fieldErr = new FieldError(key, inputElement);
             this.__errors.push(fieldErr);
         }
+        // Add onRemove Callback
+        fieldErr.onRemoveCallbacks.push(onRemove);
+
         if(!fieldErr.listener){
             fieldErr.listener = Events.listenOnce(inputElement, 'input', (e)=>{
                 e.preventDefault();
@@ -418,6 +422,7 @@ class FieldError {
         this.input = input;
         this.listener = null;
         this.errors = [];
+        this.onRemoveCallbacks = [];
         this.__counter = 0;
         // Add error message
         Dom.classlist.add(input, 'error');
@@ -460,9 +465,11 @@ class FieldError {
     }
 
     removeAll(){
-        _.map(this.errors, (err)=>{
+        _.each(this.errors, (err)=>{
             Dom.removeNode(err.warning);
         });
+        _.each(this.onRemoveCallbacks, fn => fn());
+        this.onRemoveCallbacks = [];
         this.errors = [];
         Dom.classlist.remove(this.input, 'error');
     }
