@@ -1,7 +1,7 @@
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
 
 var _lodash = require('lodash');
@@ -11,80 +11,93 @@ var _lodash2 = _interopRequireDefault(_lodash);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var Events = {
-    /**
-     * Abbreviation for target.addEventListener
-     * @param target {HTMLElement}
-     * @param event {string}
-     * @param callback {function}
-     * @param capture [boolean]
-     * @returns {function}
-     */
-    on: __listen,
+  /**
+   * Abbreviation for target.addEventListener
+   * @param target {HTMLElement}
+   * @param event {string}
+   * @param callback {function}
+   * @param capture [boolean]
+   * @returns {function}
+   */
+  on: __listen,
 
-    /**
-     * Abbreviation for target.addEventListener
-     * @param target {HTMLElement}
-     * @param event {string}
-     * @param callback {function}
-     * @param capture [boolean]
-     * @returns {function}
-     */
-    listen: __listen,
+  /**
+   * Abbreviation for target.addEventListener
+   * @param target {HTMLElement}
+   * @param event {string}
+   * @param callback {function}
+   * @param capture [boolean]
+   * @returns {function}
+   */
+  listen: __listen,
 
-    /**
-     * Adds wrapper around function and after first invocation, remove listener
-     * @Note Returns correct listener for removing
-     * @param target {HTMLElement}
-     * @param event {string}
-     * @param callback {function}
-     * @param capture [boolean]
-     * @returns {function}
-     */
-    once: __listenOnce,
+  /**
+   * Adds wrapper around function and after first invocation, remove listener
+   * @Note Returns correct listener for removing
+   * @param target {HTMLElement}
+   * @param event {string}
+   * @param callback {function}
+   * @param capture [boolean]
+   * @returns {function}
+   */
+  once: __listenOnce,
 
-    /**
-     * Adds wrapper around function and after first invocation, remove listener
-     * @Note Returns correct listener for removing
-     * @param target {HTMLElement}
-     * @param event {string}
-     * @param callback {function}
-     * @param capture [boolean]
-     * @returns {function}
-     */
-    listenOnce: __listenOnce,
+  /**
+   * Adds wrapper around function and after first invocation, remove listener
+   * @Note Returns correct listener for removing
+   * @param target {HTMLElement}
+   * @param event {string}
+   * @param callback {function}
+   * @param capture [boolean]
+   * @returns {function}
+   */
+  listenOnce: __listenOnce,
 
-    /**
-     * Abbreviation for target.removeEventListener
-     * @param target {HTMLElement}
-     * @param event {string}
-     * @param callback {function}
-     * @param capture [boolean]
-     * @returns {void}
-     */
-    off: __removeListener,
+  /**
+   * Abbreviation for target.removeEventListener
+   * @param target {HTMLElement}
+   * @param event {string}
+   * @param callback {function}
+   * @param capture [boolean]
+   * @returns {void}
+   */
+  off: __removeListener,
 
-    /**
-     * Abbreviation for target.removeEventListener
-     * @param target {HTMLElement}
-     * @param event {string}
-     * @param callback {function}
-     * @param capture [boolean]
-     * @returns {void}
-     */
-    unlisten: __removeListener,
+  /**
+   * Abbreviation for target.removeEventListener
+   * @param target {HTMLElement}
+   * @param event {string}
+   * @param callback {function}
+   * @param capture [boolean]
+   * @returns {void}
+   */
+  unlisten: __removeListener,
 
-    /**
-     * Abbreviation for target.removeEventListener
-     * @param target {HTMLElement}
-     * @param event {string}
-     * @param callback {function}
-     * @param capture [boolean]
-     * @returns {void}
-     */
-    removeListener: __removeListener
+  /**
+   * Abbreviation for target.removeEventListener
+   * @param target {HTMLElement}
+   * @param event {string}
+   * @param callback {function}
+   * @param capture [boolean]
+   * @returns {void}
+   */
+  removeListener: __removeListener,
+
+  /**
+   * @inherit
+   */
+  onAnimation: __onAnimation,
+
+  /**
+   * @inherit
+   */
+  offAnimation: __offAnimation,
+
+  /**
+   * @inherit
+   */
+  onceAnimation: __onceAnimation
 };
-
-var animationEventNames = ['webkitAnimationEnd', 'mozAnimationEnd', 'MSAnimationEnd', 'oanimationend', 'animationend'];
 
 /**
  * Abbreviation for target.addEventListener
@@ -96,13 +109,10 @@ var animationEventNames = ['webkitAnimationEnd', 'mozAnimationEnd', 'MSAnimation
  * @private
  */
 function __listen(target, event, callback) {
-    var capture = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+  var capture = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
 
-    if (animationEventNames.indexOf(event) > -1) {
-        return __addAnimationEndListener(target, callback, capture);
-    }
-    target.addEventListener(event, callback, capture);
-    return __removeListener.bind(null, target, event, callback, capture);
+  target.addEventListener(event, callback, capture);
+  return __removeListener.bind(null, target, event, callback, capture);
 }
 
 /**
@@ -116,19 +126,16 @@ function __listen(target, event, callback) {
  * @returns {function}
  */
 function __listenOnce(target, event, callback) {
-    var capture = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+  var capture = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
 
-    if (animationEventNames.indexOf(event) > -1) {
-        return __onceOnAnimationEnd(target, callback, capture);
-    }
-    var wrapper = function () {
-        return function (e) {
-            target.removeEventListener(event, wrapper, capture);
-            callback(e);
-        };
-    }();
-    target.addEventListener(event, wrapper, capture);
-    return __removeListener.bind(null, target, event, wrapper, capture);
+  var wrapper = function () {
+    return function (e) {
+      target.removeEventListener(event, wrapper, capture);
+      callback(e);
+    };
+  }();
+  target.addEventListener(event, wrapper, capture);
+  return __removeListener.bind(null, target, event, wrapper, capture);
 }
 
 /**
@@ -141,57 +148,94 @@ function __listenOnce(target, event, callback) {
  * @private
  */
 function __removeListener(target, event, callback) {
-    var capture = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+  var capture = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
 
-    if (animationEventNames.indexOf(event) > -1) {
-        return __removeAnimationEndListener(target, callback, capture);
+  return target.removeEventListener(event, callback, capture);
+}
+
+/** ANIMATIONS **/
+var ANIMATION_TYPE = {
+  end: 'AnimationEnd',
+  start: 'AnimationStart',
+  iteration: 'AnimationIteration'
+};
+
+var ANIMATION_PREFIX = {
+  'WebkitAnimation': 'webkit',
+  'OAnimation': 'o'
+};
+
+/**
+ * Finds Correct animation event name for current browser
+ * @param type {string} enum:[start, end, iteration]
+ * @returns {string} Animation Event name
+ * @throws Incorrect animation type
+ * @private
+ */
+function __whichAnimationEvent(type) {
+  type = ANIMATION_TYPE[type.toLowerCase()];
+  if (!type) {
+    throw new Error('Incorrect animation type! Correct values: [start, end, iteration]');
+  }
+  var el = window.document.createElement('fakeelement'),
+      prefix = '';
+
+  for (var key in ANIMATION_PREFIX) {
+    if (el.style[key] !== undefined) {
+      prefix = ANIMATION_PREFIX[key];
+      break;
     }
-    return target.removeEventListener(event, callback, capture);
+  }
+
+  return prefix + !prefix ? type.toLowerCase() : type;
 }
 
 /**
- *
+ * Adds animation event listener
  * @param element {HTMLElement}
- * @param callback {function}
+ * @param type {string} enum:[start, end, iteration]
+ * @param callback {Function}
  * @param capture {boolean}
- * @returns {function(this:null)}
+ * @returns {Function} - bound callback to remove listener
  * @private
  */
-function __onceOnAnimationEnd(element, callback, capture) {
-    var finishFnc = function finishFnc() {
-        __removeAnimationEndListener(element, finishFnc, capture);
-        callback();
-    };
-    __addAnimationEndListener(element, finishFnc, capture);
-    return __removeAnimationEndListener.bind(null, element, finishFnc, capture);
+function __onAnimation(element, type, callback) {
+  var capture = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+
+  var eventName = __whichAnimationEvent(type);
+  return __listen(element, eventName, callback, capture);
 }
 
 /**
- *
+ * Adds animation event listener and after first execution its removed
  * @param element {HTMLElement}
- * @param callback {function}
+ * @param type {string} enum:[start, end, iteration]
+ * @param callback {Function}
  * @param capture {boolean}
- * @returns {function(this:null)}
+ * @returns {Function} - bound callback to remove listener
  * @private
  */
-function __addAnimationEndListener(element, callback, capture) {
-    _lodash2.default.each(animationEventNames, function (eventName) {
-        element.addEventListener(eventName, callback, capture);
-    });
-    return __removeAnimationEndListener.bind(null, element, callback, capture);
+function __onceAnimation(element, type, callback) {
+  var capture = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+
+  var eventName = __whichAnimationEvent(type);
+  return __listenOnce(element, eventName, callback, capture);
 }
 
 /**
- *
+ * Remove animation event listener
  * @param element {HTMLElement}
- * @param callback {function}
+ * @param type {string} enum:[start, end, iteration]
+ * @param callback {Function}
  * @param capture {boolean}
  * @returns {void}
  * @private
  */
-function __removeAnimationEndListener(element, callback, capture) {
-    _lodash2.default.each(animationEventNames, function (eventName) {
-        element.removeEventListener(eventName, callback, capture);
-    });
+function __offAnimation(element, type, callback) {
+  var capture = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+
+  var eventName = __whichAnimationEvent(type);
+  return __removeListener(element, eventName, callback, capture);
 }
+
 exports.default = Events;

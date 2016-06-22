@@ -138,11 +138,11 @@ function _getParams(path, regxResult) {
 function _getQueryObj(str) {
     var pairs = str.substr(1).split('&'),
         query = {};
-    var ln = pairs.length;
-    for (var i = 0; i < ln; i++) {
-        var split = pairs[i].split('=');
-        query[split[0]] = split[1];
-    }
+
+    _lodash2.default.each(pairs, function (p) {
+        var ind = p.indexOf('=');
+        query[p.substr(0, ind)] = p.substr(ind + 1);
+    });
     return query;
 }
 

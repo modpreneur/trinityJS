@@ -74,16 +74,24 @@ let Events = {
      * @param capture [boolean]
      * @returns {void}
      */
-    removeListener: __removeListener
+    removeListener: __removeListener,
+
+    /**
+     * @inherit
+     */
+    onAnimation: __onAnimation,
+
+    /**
+     * @inherit
+     */
+    offAnimation: __offAnimation,
+
+    /**
+     * @inherit
+     */
+    onceAnimation: __onceAnimation
 };
 
-const animationEventNames = [
-    'webkitAnimationEnd',
-    'mozAnimationEnd',
-    'MSAnimationEnd',
-    'oanimationend',
-    'animationend'
-];
 
 /**
  * Abbreviation for target.addEventListener
@@ -95,9 +103,6 @@ const animationEventNames = [
  * @private
  */
 function __listen(target, event, callback, capture = false){
-    if(animationEventNames.indexOf(event) >-1){
-        return __addAnimationEndListener(target,callback,capture);
-    }
     target.addEventListener(event, callback, capture);
     return __removeListener.bind(null, target, event, callback, capture);
 }
@@ -113,9 +118,6 @@ function __listen(target, event, callback, capture = false){
  * @returns {function}
  */
 function __listenOnce(target, event, callback, capture = false){
-    if(animationEventNames.indexOf(event) >-1 ){
-        return __onceOnAnimationEnd(target,callback,capture);
-    }
     let wrapper = (function(){
         return function(e){
             target.removeEventListener(event, wrapper, capture);
@@ -136,55 +138,87 @@ function __listenOnce(target, event, callback, capture = false){
  * @private
  */
 function __removeListener(target, event, callback, capture = false){
-    if(animationEventNames.indexOf(event) >-1){
-        return __removeAnimationEndListener(target,callback,capture);
-    }
     return target.removeEventListener(event, callback, capture);
 }
 
+/** ANIMATIONS **/
+const ANIMATION_TYPE = {
+    end:'AnimationEnd',
+    start:'AnimationStart',
+    iteration:'AnimationIteration'
+};
+
+const ANIMATION_PREFIX = {
+    'WebkitAnimation':'webkit',
+    'OAnimation':'o'
+};
+
 /**
- *
- * @param element {HTMLElement}
- * @param callback {function}
- * @param capture {boolean}
- * @returns {function(this:null)}
+ * Finds Correct animation event name for current browser
+ * @param type {string} enum:[start, end, iteration]
+ * @returns {string} Animation Event name
+ * @throws Incorrect animation type
  * @private
  */
-function __onceOnAnimationEnd(element, callback, capture){
-    let finishFnc = () => {
-        __removeAnimationEndListener(element, finishFnc, capture);
-        callback();
-    };
-    __addAnimationEndListener(element, finishFnc, capture);
-    return __removeAnimationEndListener.bind(null, element, finishFnc, capture);
+function __whichAnimationEvent(type){
+    type = ANIMATION_TYPE[type.toLowerCase()];
+    if(!type){
+        throw new Error('Incorrect animation type! Correct values: [start, end, iteration]');
+    }
+    let el = window.document.createElement('fakeelement'),
+        prefix = '';
+
+    for(let key in ANIMATION_PREFIX){
+        if(el.style[key] !== undefined){
+            prefix = ANIMATION_PREFIX[key];
+            break;
+        }
+    }
+
+    return prefix + !prefix ? type.toLowerCase() : type;
 }
 
 /**
- *
+ * Adds animation event listener
  * @param element {HTMLElement}
- * @param callback {function}
+ * @param type {string} enum:[start, end, iteration]
+ * @param callback {Function}
  * @param capture {boolean}
- * @returns {function(this:null)}
+ * @returns {Function} - bound callback to remove listener
  * @private
  */
-function __addAnimationEndListener(element, callback, capture){
-    _.each(animationEventNames, (eventName)=>{
-        element.addEventListener(eventName, callback, capture);
-    });
-    return __removeAnimationEndListener.bind(null, element, callback, capture);
+function __onAnimation(element, type, callback, capture = false){
+    let eventName = __whichAnimationEvent(type);
+    return __listen(element, eventName, callback, capture);
 }
 
 /**
- *
+ * Adds animation event listener and after first execution its removed
  * @param element {HTMLElement}
- * @param callback {function}
+ * @param type {string} enum:[start, end, iteration]
+ * @param callback {Function}
+ * @param capture {boolean}
+ * @returns {Function} - bound callback to remove listener
+ * @private
+ */
+function __onceAnimation(element, type, callback, capture = false){
+    let eventName = __whichAnimationEvent(type);
+    return __listenOnce(element, eventName, callback, capture);
+}
+
+/**
+ * Remove animation event listener
+ * @param element {HTMLElement}
+ * @param type {string} enum:[start, end, iteration]
+ * @param callback {Function}
  * @param capture {boolean}
  * @returns {void}
  * @private
  */
-function __removeAnimationEndListener(element, callback, capture){
-    _.each(animationEventNames, (eventName)=>{
-        element.removeEventListener(eventName, callback, capture);
-    });
+function __offAnimation(element, type, callback, capture = false){
+    let eventName = __whichAnimationEvent(type);
+    return __removeListener(element, eventName, callback, capture);
 }
+
+
 export default Events;
