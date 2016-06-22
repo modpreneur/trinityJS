@@ -135,7 +135,7 @@ function _getQueryObj(str){
 
     _.each(pairs, p => {
         let ind = p.indexOf('=');
-        query[p.substr(0, ind)] = p.substr(ind+1)
+        query[p.substr(0, ind)] = p.substr(ind+1);
     });
     return query;
 }
