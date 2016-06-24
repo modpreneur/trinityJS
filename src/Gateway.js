@@ -2,7 +2,6 @@
 
 import _ from 'lodash';
 import Request from 'superagent';
-import Debug from './Debug';
 
 // Global configuration
 let config = {
@@ -226,7 +225,7 @@ function __responseHandler(successCallback, errorCallback){
                 return false;
             }
             // Redirect
-            if(!redirectTo && Debug.isDev()){
+            if(process.env.NODE_ENV !== 'production' && !redirectTo){
                 throw new Error('Missing "location" attribute!');
             }
             window.location.assign(redirectTo);
@@ -239,15 +238,6 @@ function __responseHandler(successCallback, errorCallback){
     }
 }
 
-
-/**
- * Dump response on screen
- * @param response
- * @private
- */
-function _dumpOnScreen(response){
-    Debug.dump(response);
-}
 
 /**
  * Set global configuration object

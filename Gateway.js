@@ -13,10 +13,6 @@ var _superagent = require('superagent');
 
 var _superagent2 = _interopRequireDefault(_superagent);
 
-var _Debug = require('./Debug');
-
-var _Debug2 = _interopRequireDefault(_Debug);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Global configuration
@@ -234,7 +230,7 @@ function __responseHandler(successCallback, errorCallback) {
                 return false;
             }
             // Redirect
-            if (!redirectTo && _Debug2.default.isDev()) {
+            if (process.env.NODE_ENV !== 'production' && !redirectTo) {
                 throw new Error('Missing "location" attribute!');
             }
             window.location.assign(redirectTo);
@@ -245,15 +241,6 @@ function __responseHandler(successCallback, errorCallback) {
         }
         successCallback(response);
     };
-}
-
-/**
- * Dump response on screen
- * @param response
- * @private
- */
-function _dumpOnScreen(response) {
-    _Debug2.default.dump(response);
 }
 
 /**
