@@ -137,15 +137,16 @@ var Gateway = {
 /** PRIVATE METHODS **/
 /**
  * private abstract send request method
- * @param url
- * @param method
- * @param data
- * @param successCallback
- * @param errorCallback
+ * @param url {string}
+ * @param method {string}
+ * @param [data] {object}
+ * @param successCallback {function}
+ * @param errorCallback {function}
+ * @param [isManual] {boolean}
  * @returns {Xhr}
  * @private
  */
-function __send(url, method, data, successCallback, errorCallback) {
+function __send(url, method, data, successCallback, errorCallback, isManual) {
     method = method.toUpperCase();
     var r = (0, _superagent2.default)(method, url.trim()).set('X-Requested-With', 'XMLHttpRequest').timeout(Gateway.settings.timeout);
 
@@ -157,20 +158,27 @@ function __send(url, method, data, successCallback, errorCallback) {
         }
     }
 
-    r.end(__responseHandler(successCallback, errorCallback));
+    r.finish = function () {
+        return r.end(__responseHandler(successCallback, errorCallback));
+    };
+    if (isManual) {
+        return r;
+    }
+    r.finish();
 }
 
 /**
  * Private abstract send JSON request method
- * @param url
- * @param method
- * @param data
- * @param successCallback
- * @param errorCallback
+ * @param url {string}
+ * @param method {string}
+ * @param [data] {object}
+ * @param successCallback {function}
+ * @param errorCallback {function}
+ * @param [isManual] {boolean}
  * @returns {Xhr}
  * @private
  */
-function __sendJSON(url, method, data, successCallback, errorCallback) {
+function __sendJSON(url, method, data, successCallback, errorCallback, isManual) {
     method = method.toUpperCase();
     var r = (0, _superagent2.default)(method, url.trim()).set({
         'Content-type': 'application/json',
@@ -186,7 +194,13 @@ function __sendJSON(url, method, data, successCallback, errorCallback) {
         }
     }
 
-    r.end(__responseHandler(successCallback, errorCallback));
+    r.finish = function () {
+        return r.end(__responseHandler(successCallback, errorCallback));
+    };
+    if (isManual) {
+        return r;
+    }
+    r.finish();
 }
 
 /**

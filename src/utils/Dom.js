@@ -5,7 +5,7 @@
 import classListHelper from './classlist.js';
 
 /**
- * Just export classlit to have it all in one component
+ * Just export classlist to have it all in one component
  * @type {{}}
  */
 export let classlist = classListHelper;

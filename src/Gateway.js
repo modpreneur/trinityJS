@@ -126,15 +126,16 @@ let Gateway = {
 /** PRIVATE METHODS **/
 /**
  * private abstract send request method
- * @param url
- * @param method
- * @param data
- * @param successCallback
- * @param errorCallback
+ * @param url {string}
+ * @param method {string}
+ * @param [data] {object}
+ * @param successCallback {function}
+ * @param errorCallback {function}
+ * @param [isManual] {boolean}
  * @returns {Xhr}
  * @private
  */
-function __send(url, method, data, successCallback, errorCallback){
+function __send(url, method, data, successCallback, errorCallback, isManual){
     method = method.toUpperCase();
     let r = Request(method, url.trim())
         .set('X-Requested-With', 'XMLHttpRequest')
@@ -148,20 +149,25 @@ function __send(url, method, data, successCallback, errorCallback){
         }
     }
 
-    r.end(__responseHandler(successCallback, errorCallback));
+    r.finish = ()=>r.end(__responseHandler(successCallback, errorCallback));
+    if(isManual){
+        return r;
+    }
+    r.finish();
 }
 
 /**
  * Private abstract send JSON request method
- * @param url
- * @param method
- * @param data
- * @param successCallback
- * @param errorCallback
+ * @param url {string}
+ * @param method {string}
+ * @param [data] {object}
+ * @param successCallback {function}
+ * @param errorCallback {function}
+ * @param [isManual] {boolean}
  * @returns {Xhr}
  * @private
  */
-function __sendJSON(url, method, data, successCallback, errorCallback){
+function __sendJSON(url, method, data, successCallback, errorCallback, isManual){
     method = method.toUpperCase();
     let r = Request(method, url.trim())
         .set({
@@ -179,7 +185,11 @@ function __sendJSON(url, method, data, successCallback, errorCallback){
         }
     }
 
-    r.end(__responseHandler(successCallback, errorCallback));
+    r.finish = ()=>r.end(__responseHandler(successCallback, errorCallback));
+    if(isManual){
+        return r;
+    }
+    r.finish();
 }
 
 /**

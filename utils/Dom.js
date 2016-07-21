@@ -19,7 +19,7 @@ var _classlist2 = _interopRequireDefault(_classlist);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
- * Just export classlit to have it all in one component
+ * Just export classlist to have it all in one component
  * @type {{}}
  */
 var classlist = exports.classlist = _classlist2.default;
