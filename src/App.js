@@ -158,9 +158,10 @@ export default class App {
             } else {
                 if(_.isArray(bag[name])){
                     bag[name].push(el);
+                } else {
+                    // crate new array
+                    bag[name] = [bag[name], el];
                 }
-                // crate new array
-                bag[name] = [bag[name], el];
             }
         });
         return bag;

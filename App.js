@@ -195,9 +195,10 @@ var App = function () {
                 } else {
                     if (_lodash2.default.isArray(bag[name])) {
                         bag[name].push(el);
+                    } else {
+                        // crate new array
+                        bag[name] = [bag[name], el];
                     }
-                    // crate new array
-                    bag[name] = [bag[name], el];
                 }
             });
             return bag;
