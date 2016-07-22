@@ -76,9 +76,10 @@ var TrinityTab = function (_EventEmitter) {
         key: 'setActiveTab',
         value: function setActiveTab(tabID) {
             if (!this.tabs.hasOwnProperty(tabID)) {
-                if (_Debug2.default.isDev()) {
+                if (process.env.NODE_ENV !== 'production') {
                     throw new Error('Tab with id: ' + tabID + ' does not exist!');
                 }
+                // Do nothing
                 return;
             }
             if (tabID === this.__activeTabID) {
@@ -340,7 +341,7 @@ function __requestWidget(link, tab, timeout_i, callback) {
                 (function () {
                     console.warn('Request timed out, trying again in 2 sec');
                     var id = setTimeout(function () {
-                        __requestWidget(link, tab, timeout_i || 1);
+                        __requestWidget(link, tab, timeout_i + 1 || 1);
                         clearTimeout(id);
                     }, 2000);
                 })();

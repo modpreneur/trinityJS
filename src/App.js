@@ -153,7 +153,15 @@ export default class App {
         let bag = {};
         _.each(elements, (el, i)=>{
             let name = el.getAttribute(attName) || ''+el.name + i;
-            bag[name] = el;
+            if(_.isUndefined(bag[name])) {
+                bag[name] = el;
+            } else {
+                if(_.isArray(bag[name])){
+                    bag[name].push(el);
+                }
+                // crate new array
+                bag[name] = [bag[name], el];
+            }
         });
         return bag;
     }

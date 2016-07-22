@@ -190,7 +190,15 @@ var App = function () {
             var bag = {};
             _lodash2.default.each(elements, function (el, i) {
                 var name = el.getAttribute(attName) || '' + el.name + i;
-                bag[name] = el;
+                if (_lodash2.default.isUndefined(bag[name])) {
+                    bag[name] = el;
+                } else {
+                    if (_lodash2.default.isArray(bag[name])) {
+                        bag[name].push(el);
+                    }
+                    // crate new array
+                    bag[name] = [bag[name], el];
+                }
             });
             return bag;
         }

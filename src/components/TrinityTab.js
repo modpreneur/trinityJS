@@ -36,9 +36,10 @@ export default class TrinityTab extends EventEmitter {
      */
     setActiveTab(tabID){
         if(!this.tabs.hasOwnProperty(tabID)){
-            if(Debug.isDev()){
+            if(process.env.NODE_ENV !== 'production'){
                 throw new Error('Tab with id: '+ tabID + ' does not exist!');
             }
+            // Do nothing
             return;
         }
         if(tabID === this.__activeTabID){
@@ -275,7 +276,7 @@ function __requestWidget(link, tab, timeout_i, callback){
             } else {
                 console.warn('Request timed out, trying again in 2 sec');
                 let id = setTimeout(()=>{
-                    __requestWidget(link, tab, timeout_i || 1);
+                    __requestWidget(link, tab, (timeout_i+1) || 1);
                     clearTimeout(id);
                 }, 2000);
             }
