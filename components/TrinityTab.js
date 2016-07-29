@@ -17,13 +17,9 @@ var _Dom2 = _interopRequireDefault(_Dom);
 
 var _fbemitter = require('fbemitter');
 
-var _Gateway = require('../Gateway.new');
+var _Gateway = require('../Gateway');
 
 var _Gateway2 = _interopRequireDefault(_Gateway);
-
-var _Debug = require('../Debug');
-
-var _Debug2 = _interopRequireDefault(_Debug);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -46,7 +42,6 @@ var TrinityTab = function (_EventEmitter) {
      * Heads of tab component
      * @param [tabHeads] {Array<HTMLElement>}
      */
-
     function TrinityTab(tabHeads) {
         _classCallCheck(this, TrinityTab);
 

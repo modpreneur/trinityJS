@@ -3,8 +3,7 @@
 import _ from 'lodash';
 import Dom from '../utils/Dom';
 import {EventEmitter} from 'fbemitter';
-import Gateway from '../Gateway.new';
-import Debug from '../Debug';
+import Gateway from '../Gateway';
 
 const MAX_TRY = 3;
 

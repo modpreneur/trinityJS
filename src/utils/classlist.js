@@ -121,5 +121,5 @@ classlist.removeAll = function(element, classesToRemove){
  */
 classlist.contains = function(element, className){
     return element.classList ?
-        element.classList.contains(className) : _.contains(classlist.get(element), className);
+        element.classList.contains(className) : _.includes(classlist.get(element), className);
 };

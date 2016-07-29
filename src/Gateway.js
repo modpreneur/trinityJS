@@ -255,13 +255,7 @@ function __responseHandler(successCallback, errorCallback){
  * @returns {{timeout: number}}
  */
 function configure(conf){
-    let keys = Object.keys(conf),
-        keysLength = keys.length;
-
-    for(let i=0; i<keysLength; i++){
-        config[keys[i]] = conf[keys[i]];
-    }
-    return config;
+    return _.extend(config, conf);
 }
 
 /** EXPORTS **/

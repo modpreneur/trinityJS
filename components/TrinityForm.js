@@ -20,6 +20,14 @@ var _Events = require('../utils/Events');
 
 var _Events2 = _interopRequireDefault(_Events);
 
+var _TrinityEvent = require('../utils/TrinityEvent');
+
+var _TrinityEvent2 = _interopRequireDefault(_TrinityEvent);
+
+var _FormInput = require('./FormInput');
+
+var _FormInput2 = _interopRequireDefault(_FormInput);
+
 var _Dom = require('../utils/Dom');
 
 var _Dom2 = _interopRequireDefault(_Dom);
@@ -35,13 +43,11 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 /**
  * Default FORM settings
  * @type {{
- *      type: null,
  *      button: {loading: string, success: string, error: string, ready: string},
  *      successTimeout: number
  *   }}
  */
 var defaultSettings = {
-    type: null,
     button: { // Defines which classes add to active button in which state
         loading: 'trinity-form-loading',
         success: 'trinity-form-success',
@@ -51,17 +57,10 @@ var defaultSettings = {
     },
     requestTimeout: 10000,
     successTimeout: 3000,
-    timeoutTimeout: 2000
-};
-
-/**
- * Trinity form types
- * @type {{EDIT: string, NEW: string, DELETE: string}}
- */
-var formType = {
-    EDIT: 'edit',
-    NEW: 'new',
-    DELETE: 'delete'
+    timeoutTimeout: 2000,
+    errorTemplate: function errorTemplate(message) {
+        return '<div>' + message + '</div>';
+    }
 };
 
 var IS_FORM_DATA = !!window.FormData;
@@ -78,7 +77,7 @@ var IS_FORM_DATA = !!window.FormData;
 var TrinityForm = function (_EventEmitter) {
     _inherits(TrinityForm, _EventEmitter);
 
-    function TrinityForm(formElement, type, settings) {
+    function TrinityForm(formElement, settings) {
         _classCallCheck(this, TrinityForm);
 
         var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(TrinityForm).call(this));
@@ -89,20 +88,27 @@ var TrinityForm = function (_EventEmitter) {
         _this.form = formElement;
         _this.buttons = formElement.querySelectorAll('input[type="submit"], button[type="submit"]');
         _this.activeBtn = null;
-        _this.type = type || null;
         _this.settings = _lodash2.default.defaultsDeep(settings || {}, defaultSettings);
-        _this.__errors = [];
         _this.__state = 'ready';
+        _this.__inputs = {};
 
         //Main initialize
+        // Create inputs
+        _lodash2.default.each(_this.form, function (el) {
+            el.name && (_this.__inputs[el.name] = new _FormInput2.default(el));
+        });
+
         // Add ready class to all buttons
         var btnReadyClass = _this.settings.button['ready'].split(' ');
         _lodash2.default.each(_this.buttons, function (btn) {
-            _Dom2.default.classlist.addAll(btn, btnReadyClass);
+            return _Dom2.default.classlist.addAll(btn, btnReadyClass);
         });
 
+        // Listeners at last
         // Add listener to form element
         _this.unlistenSubmit = _Events2.default.listen(formElement, 'submit', _this.submit.bind(_this));
+        // Add listener for input value change
+        _this.unlistenValueChange = _Events2.default.listen(formElement, 'input', _this.onInputChange.bind(_this));
         return _this;
     }
 
@@ -131,11 +137,7 @@ var TrinityForm = function (_EventEmitter) {
     }, {
         key: 'unlock',
         value: function unlock() {
-            if (this.loading) {
-                return false;
-            }
-            _lodash2.default.each(this.buttons, _Dom2.default.enable);
-            return true;
+            return this.state !== 'loading' && !!_lodash2.default.each(this.buttons, _Dom2.default.enable);
         }
         /**
          * Returns name of the form
@@ -148,94 +150,90 @@ var TrinityForm = function (_EventEmitter) {
             return this.form.getAttribute('name');
         }
     }, {
-        key: 'addError',
-
+        key: 'onInputChange',
+        value: function onInputChange(e) {
+            // Only elements with name can be tested
+            if (!e.target.name) {
+                return;
+            }
+            var inputObj = this.__inputs[e.target.name];
+            inputObj.errors = _lodash2.default.filter(inputObj.errors, function (err) {
+                if (!_lodash2.default.isFunction(err.validate) || err.validate(inputObj.getValue(), inputObj.element)) {
+                    _Dom2.default.removeNode(err.element);
+                    return false;
+                }
+                return true;
+            });
+            this.validate();
+        }
 
         /**
          * Adds new error to TrinityForm instance
-         * @param key {string}
-         * @param message {string}
-         * @param inputElement {HTMLElement}
-         * @param onRemove {function}
+         * @param element {string || HTMLElement} - input name or instance itself
+         * @param error {string || object}
          * @public
          */
-        value: function addError(key, message, inputElement, onRemove) {
-            var _this2 = this;
 
+    }, {
+        key: 'addError',
+        value: function addError(element, error) {
+            var inputObj = this.__findInput(element);
+            if (!inputObj) {
+                if (process.env.NODE_ENV !== 'production') {
+                    throw new Error('Form does not have input ' + (_lodash2.default.isString(element) ? 'with name ' : '') + element + '.');
+                }
+                return false;
+            }
             this.state = 'error';
-            // Add error to Form errors and get its index
-            var fieldErr = _lodash2.default.find(this.__errors, function (err) {
-                return err.key === key;
-            });
-            if (!fieldErr) {
-                fieldErr = new FieldError(key, inputElement);
-                this.__errors.push(fieldErr);
-            }
-            // Add onRemove Callback
-            if (_lodash2.default.isFunction(onRemove)) {
-                fieldErr.onRemoveCallbacks.push(onRemove);
-            }
-
-            if (!fieldErr.listener) {
-                fieldErr.listener = _Events2.default.listenOnce(inputElement, 'input', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    _lodash2.default.remove(_this2.__errors, function (err) {
-                        return err.key === fieldErr.key;
-                    });
-                    fieldErr.removeAll();
-                    _this2.validate();
-                });
-            }
-            return fieldErr.add(message);
+            return __addError(inputObj, error, this.settings.errorTemplate);
         }
     }, {
         key: 'hasError',
-
-
-        /**
-         * Check if form has error with same key
-         * @param inputKey {string} - key of input
-         * @param [errorId] {string} - id of error message
-         * @returns {boolean}
-         */
-        value: function hasError(inputKey, errorId) {
-            return this.__errors.length > 0 && !!_lodash2.default.find(this.__errors, function (err) {
-                return err.key === inputKey && (!errorId || err.has(errorId));
+        value: function hasError(element, errorKey) {
+            var inputObj = this.__findInput(element);
+            if (!inputObj) {
+                if (process.env.NODE_ENV !== 'production') {
+                    throw new Error('Form does not have input ' + (_lodash2.default.isString(element) ? 'with name ' : '') + element + '.');
+                }
+                return false;
+            }
+            return _lodash2.default.some(inputObj.errors, function (err) {
+                return err.key === errorKey;
             });
         }
-
-        /**
-         * Remove errors from TrinityForm input
-         * @param input {string} | {HTMLInputElement}
-         * @public
-         */
-
     }, {
         key: 'removeError',
-        value: function removeError(input) {
-            var fieldError = _lodash2.default.isString(input) ? _lodash2.default.remove(this.__errors, function (err) {
-                return err.key === input;
-            }) : _lodash2.default.remove(this.__errors, function (err) {
-                return err.input === input;
-            })[0];
-            fieldError.removeAll();
-            _Events2.default.removeListener(fieldError.input, 'input', fieldError.listener);
-        }
-    }, {
-        key: 'validate',
+        value: function removeError(element, errorKey) {
+            var inputObj = this.__findInput(element);
+            if (!inputObj) {
+                if (process.env.NODE_ENV !== 'production') {
+                    throw new Error('Form does not have input ' + (_lodash2.default.isString(element) ? 'with name ' : '') + element + '.');
+                }
+                return false;
+            }
 
+            _lodash2.default.remove(inputObj.errors, function (err) {
+                return err.key === errorKey && !!_Dom2.default.removeNode(err.element);
+            });
+            this.validate();
+        }
 
         /**
          * Validates if all errors are removed from form
          * @public
          */
+
+    }, {
+        key: 'validate',
         value: function validate() {
-            if (this.__errors.length < 1) {
+            if (!_lodash2.default.some(this.__inputs, function (input) {
+                return !input.isValid();
+            })) {
                 this.unlock();
                 this.state = 'ready';
+                return true;
             }
+            return false;
         }
 
         /**
@@ -248,41 +246,21 @@ var TrinityForm = function (_EventEmitter) {
     }, {
         key: 'submit',
         value: function submit(e) {
-            var _this3 = this;
+            var _this2 = this;
 
             /** catch button with focus first **/
             this.activeBtn = document.activeElement.type === 'button' ? document.activeElement : this.buttons[0];
             /** Continue **/
-            if (e) {
-                e.preventDefault();
-            }
+            e && e.preventDefault();
+
             /** Lock and Load **/
             this.lock();
             this.state = 'loading';
-            //this.toggleLoading();
 
             /** Parse and send Data **/
-            var data = null;
-            if (IS_FORM_DATA) {
-                data = new FormData(this.form);
-            } else {
-                data = __parseSymfonyForm(this.form, this.activeBtn);
-            }
-
-            var url = this.form.action.trim();
-            var method = (data.hasOwnProperty('_method') ? data['_method'] : this.form.method).toUpperCase();
-
-            /** Discover type **/
-            if (_lodash2.default.isNull(this.type)) {
-                switch (method) {
-                    case 'POST':
-                        this.type = formType.NEW;break;
-                    case 'PUT':
-                        this.type = formType.EDIT;break;
-                    default:
-                        this.type = formType.DELETE;break;
-                }
-            }
+            var data = IS_FORM_DATA ? new FormData(this.form) : __parseSymfonyForm(this.form, this.activeBtn),
+                url = this.form.action.trim(),
+                method = (data.hasOwnProperty('_method') ? data['_method'] : this.form.method).toUpperCase();
 
             this.emit('submit-data', {
                 url: url,
@@ -293,10 +271,8 @@ var TrinityForm = function (_EventEmitter) {
             var req = (0, _superagent2.default)(method, url).set({
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
-            }).timeout(this.settings.requestTimeout)
-            //.timeout(1)
-            .send(data).on('progress', function (e) {
-                _this3.emit('progress', e);
+            }).timeout(this.settings.requestTimeout).send(data).on('progress', function (e) {
+                _this2.emit('progress', e);
             });
 
             this.emit('before-request', req);
@@ -306,22 +282,23 @@ var TrinityForm = function (_EventEmitter) {
                 if (response && response.status === 302) {
                     var redirectTo = response.body.location;
                     // Do callback and then redirect
-                    if (__successHandler.call(_this3, response) === false) {
+                    if (_this2.__successHandler(response) === false) {
                         return false;
                     }
                     // Redirect
-                    if (!redirectTo && Debug.isDev()) {
+                    if (!redirectTo && process.env.NODE_ENV !== 'production') {
                         throw new Error('Missing "location" attribute!');
                     }
-                    window.location.assign(redirectTo);
+
+                    redirectTo && window.location.assign(redirectTo);
                     return;
                 }
                 // Error ?
                 if (err) {
-                    return __errorHandler.call(_this3, err);
+                    return _this2.__errorHandler(err);
                 }
 
-                __successHandler.call(_this3, response);
+                _this2.__successHandler(response);
             });
         }
 
@@ -390,19 +367,75 @@ var TrinityForm = function (_EventEmitter) {
         value: function detach() {
             // Main listener
             this.unlistenSubmit();
-            // Errors if any
-            if (this.__errors.length > 0) {
-                _lodash2.default.each(this.__errors, function (err) {
-                    err.removeAll();
-                    _Events2.default.removeListener(err.input, 'input', err.listener);
-                });
-            }
+            this.unlistenValueChange();
             this.element = null;
+            this.__inputs = null;
+        }
+    }, {
+        key: '__findInput',
+        value: function __findInput(element) {
+            return this.__inputs[_lodash2.default.isString(element) ? element : element.name];
+        }
+
+        /**
+         * Form success handler
+         * @param response {Object}
+         * @private
+         */
+
+    }, {
+        key: '__successHandler',
+        value: function __successHandler(response) {
+            var _this3 = this;
+
+            var event = new _TrinityEvent2.default(response);
+
+            this.state = 'success';
+            this.emit('success', event);
+
+            this.unlock();
+            var id = setTimeout(function () {
+                _this3.state = 'ready';
+                clearTimeout(id);
+            }, this.settings.successTimeout);
+
+            return event.defaultPrevented;
+        }
+
+        /**
+         * Form error handler
+         * @param error
+         * @private
+         * @returns {boolean}
+         */
+
+    }, {
+        key: '__errorHandler',
+        value: function __errorHandler(error) {
+            var _this4 = this;
+
+            if (error.timeout) {
+                (function () {
+                    _this4.state = 'timeout';
+                    var id = setTimeout(function () {
+                        _this4.unlock();
+                        _this4.state = 'ready';
+                        clearTimeout(id);
+                    }, _this4.settings.timeoutTimeout);
+                })();
+            } else {
+                this.state = 'error';
+            }
+
+            // Emit event
+            var event = new _TrinityEvent2.default(error);
+            this.emit('error', event);
+            return event.defaultPrevented;
         }
     }, {
         key: 'state',
         set: function set(newState) {
-            var _this4 = this;
+            var _this5 = this;
 
             if (newState === this.__state) {
                 return;
@@ -413,8 +446,8 @@ var TrinityForm = function (_EventEmitter) {
             if (newState === 'error' || newState === 'ready') {
                 // For all btns
                 _lodash2.default.each(this.buttons, function (btn) {
-                    _Dom2.default.classlist.removeAll(btn, _this4.settings.button[oldState].split(' '));
-                    _Dom2.default.classlist.addAll(btn, _this4.settings.button[newState].split(' '));
+                    _Dom2.default.classlist.removeAll(btn, _this5.settings.button[oldState].split(' '));
+                    _Dom2.default.classlist.addAll(btn, _this5.settings.button[newState].split(' '));
                 });
             } else {
                 //Switch classes for active
@@ -441,162 +474,23 @@ var TrinityForm = function (_EventEmitter) {
     return TrinityForm;
 }(_fbemitter.EventEmitter);
 
-/** STATIC CONSTANTS **/
-/**
- * Form types
- * @static
- */
-
-
 exports.default = TrinityForm;
-TrinityForm.formType = formType;
+
+
+function __addError(formInput, error, template) {
+    error.key = error.key || formInput.element.name + '_error_' + ("" + Math.random() * 100).substr(3, 4);
+
+    // Create error message
+    error.element = _Dom2.default.htmlToDocumentFragment(error.isTemplate ? error.message : template(error.message));
+
+    formInput.errors.push(error);
+    _Dom2.default.classlist.add(formInput.element, 'error');
+    formInput.messageWrapper.appendChild(error.element);
+
+    return error.key;
+}
 
 /**** PRIVATE METHODS ****/
-/** RESPONSE HANDLERS ************************************************************/
-
-/**
- * Form success handler
- * @param response {Object}
- * @private
- */
-function __successHandler(response) {
-    var _this5 = this;
-
-    this.state = 'success';
-    this.emit('success', response);
-
-    // Edit type behaviour
-    //if(this.type === 'edit'){
-    this.unlock();
-    var id = setTimeout(function (e) {
-        _this5.state = 'ready';
-        clearTimeout(id);
-    }, this.settings.successTimeout);
-    //}
-}
-
-/**
- * Form error handler
- * @param error
- * @private
- * @returns {boolean}
- */
-function __errorHandler(error) {
-    var _this6 = this;
-
-    if (error.timeout) {
-        (function () {
-            _this6.state = 'timeout';
-            var id = setTimeout(function () {
-                _this6.unlock();
-                _this6.state = 'ready';
-                clearTimeout(id);
-            }, _this6.settings.timeoutTimeout);
-        })();
-    } else {
-        this.state = 'error';
-    }
-    this.emit('error', error);
-}
-
-/**
- * Class representing field error
- * @param key {string}
- * @param message {string}
- * @param input {HTMLElement}
- * @private
- * @constructor
- */
-
-var FieldError = function () {
-    function FieldError(key, input) {
-        _classCallCheck(this, FieldError);
-
-        this.key = key;
-        this.input = input;
-        this.listener = null;
-        this.errors = [];
-        this.onRemoveCallbacks = [];
-        this.__counter = 0;
-        // Add error message
-        _Dom2.default.classlist.add(input, 'error');
-    }
-
-    _createClass(FieldError, [{
-        key: 'add',
-        value: function add(message) {
-            var errMessage = {
-                id: this.__counter++ + '_' + this.key,
-                message: message,
-                warning: __createErrorMessage(this.key, message)
-            };
-            this.errors.push(errMessage);
-
-            var sibling = this.input.nextSibling;
-            if (sibling) {
-                this.input.parentElement.insertBefore(errMessage.warning, sibling);
-            } else {
-                this.input.parentElement.appendChild(errMessage.warning);
-            }
-            return errMessage.id;
-        }
-    }, {
-        key: 'has',
-        value: function has(id) {
-            return !!_lodash2.default.find(this.errors, function (err) {
-                return err.id === id;
-            });
-        }
-    }, {
-        key: 'remove',
-        value: function remove(id) {
-            _lodash2.default.remove(this.errors, function (err) {
-                if (err.id === id) {
-                    _Dom2.default.removeNode(err.warning);
-                    return true;
-                }
-                return false;
-            });
-            if (this.errors.length === 0) {
-                _Dom2.default.classlist.remove(this.input, 'error');
-            }
-        }
-    }, {
-        key: 'removeAll',
-        value: function removeAll() {
-            _lodash2.default.each(this.errors, function (err) {
-                _Dom2.default.removeNode(err.warning);
-            });
-            _lodash2.default.each(this.onRemoveCallbacks, function (fn) {
-                return fn();
-            });
-            this.onRemoveCallbacks = [];
-            this.errors = [];
-            _Dom2.default.classlist.remove(this.input, 'error');
-        }
-    }]);
-
-    return FieldError;
-}();
-
-/**
- * Just return Error message element
- * TODO: possibility for custom message in settings
- * @param key {string}
- * @param message {string}
- * @private
- */
-
-
-function __createErrorMessage(key, message) {
-    var errDiv = document.createElement('div');
-    errDiv.className = 'validation-error';
-    errDiv.id = key + '_error';
-    errDiv.style.paddingTop = '2px';
-    errDiv.innerHTML = message;
-    return errDiv;
-}
-
 /** FORM PARSER ************************************************************/
 
 /**
@@ -651,7 +545,7 @@ function __parseSymfonyForm(form, button) {
         }
 
         // Init necessary variables
-        var isArray = form[i].name.indexOf('[]') !== -1,
+        var isArray = ~form[i].name.indexOf('[]'),
             parsed = form[i].name.match(nameRegExp),
             reference = data,
             last = parsed.length - 1;
@@ -685,3 +579,33 @@ function __parseSymfonyForm(form, button) {
     }
     return data;
 }
+
+//function __parseSymfonyForm2(form, button){
+//    let data = {};
+//
+//    /** Go through all inputs in form */
+//    _(form).filter((el)=>{
+//        return !el.name
+//            || (
+//                !el.value
+//                && el.type !== 'submit'
+//                && el !== button
+//            )
+//            || (
+//                !el.checked
+//                && (
+//                    el.type === 'radio'
+//                    || el.type === 'checkbox'
+//                )
+//            );
+//    }).each((el)=>{
+//        let isArray = el.name.indexOf('[]') !== -1,
+//            parsed = el.name.match(nameRegExp),
+//            ref = data,
+//            lastIndex = parsed.length -1;
+//
+//        _.each(parsed, ()=>{
+//            //TODO:
+//        })
+//    });
+//}

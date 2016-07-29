@@ -13,7 +13,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var classlist = {}; /**
                      * Created by fisa on 10/26/15.
                      */
-
 exports.default = classlist;
 
 /**
@@ -132,5 +131,5 @@ classlist.removeAll = function (element, classesToRemove) {
  * @returns {boolean}
  */
 classlist.contains = function (element, className) {
-    return element.classList ? element.classList.contains(className) : _lodash2.default.contains(classlist.get(element), className);
+    return element.classList ? element.classList.contains(className) : _lodash2.default.includes(classlist.get(element), className);
 };

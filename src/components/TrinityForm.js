@@ -4,18 +4,18 @@ import _ from 'lodash';
 import Request from 'superagent';
 import {EventEmitter} from 'fbemitter';
 import Events from '../utils/Events';
+import TrinityEvent from '../utils/TrinityEvent';
+import FormInput from './FormInput';
 import Dom from '../utils/Dom';
 
 /**
  * Default FORM settings
  * @type {{
- *      type: null,
  *      button: {loading: string, success: string, error: string, ready: string},
  *      successTimeout: number
  *   }}
  */
 const defaultSettings = {
-    type: null,
     button : { // Defines which classes add to active button in which state
         loading: 'trinity-form-loading',
         success: 'trinity-form-success',
@@ -25,18 +25,10 @@ const defaultSettings = {
     },
     requestTimeout: 10000,
     successTimeout: 3000,
-    timeoutTimeout: 2000
+    timeoutTimeout: 2000,
+    errorTemplate: (message) => `<div>${message}</div>`
 };
 
-/**
- * Trinity form types
- * @type {{EDIT: string, NEW: string, DELETE: string}}
- */
-const formType = {
-    EDIT: 'edit',
-    NEW : 'new',
-    DELETE : 'delete'
-};
 
 const IS_FORM_DATA = !!window.FormData;
 
@@ -49,7 +41,7 @@ const IS_FORM_DATA = !!window.FormData;
  * @constructor
  */
 export default class TrinityForm extends EventEmitter {
-    constructor(formElement, type, settings) {
+    constructor(formElement, settings) {
         super();
         if (!formElement) {
             throw new Error('Missing "formElement" parameter!');
@@ -57,21 +49,29 @@ export default class TrinityForm extends EventEmitter {
         this.form = formElement;
         this.buttons = formElement.querySelectorAll('input[type="submit"], button[type="submit"]');
         this.activeBtn = null;
-        this.type = type || null;
         this.settings = _.defaultsDeep(settings || {}, defaultSettings);
-        this.__errors = [];
         this.__state = 'ready';
+        this.__inputs = {};
+
 
         //Main initialize
-        // Add ready class to all buttons
-        let btnReadyClass = this.settings.button['ready'].split(' ');
-        _.each(this.buttons, (btn)=>{
-            Dom.classlist.addAll(btn, btnReadyClass);
+        // Create inputs
+        _.each(this.form, (el)=>{
+            el.name && (this.__inputs[el.name] = new FormInput(el));
         });
 
+        // Add ready class to all buttons
+        let btnReadyClass = this.settings.button['ready'].split(' ');
+        _.each(this.buttons, btn => Dom.classlist.addAll(btn, btnReadyClass));
+
+        // Listeners at last
         // Add listener to form element
         this.unlistenSubmit = Events.listen(formElement, 'submit', this.submit.bind(this));
+        // Add listener for input value change
+        this.unlistenValueChange = Events.listen(formElement, 'input', this.onInputChange.bind(this));
     }
+
+
 
     /**
      * Sets new form state
@@ -122,11 +122,7 @@ export default class TrinityForm extends EventEmitter {
      * Enable all forms submit inputs
      */
     unlock(){
-        if(this.loading){
-            return false;
-        }
-        _.each(this.buttons, Dom.enable);
-        return true;
+        return this.state !== 'loading' && !!_.each(this.buttons, Dom.enable);
     }
     /**
      * Returns name of the form
@@ -136,82 +132,78 @@ export default class TrinityForm extends EventEmitter {
         return this.form.getAttribute('name');
     };
 
-    /**
-     * Adds new error to TrinityForm instance
-     * @param key {string}
-     * @param message {string}
-     * @param inputElement {HTMLElement}
-     * @param onRemove {function}
-     * @public
-     */
-    addError(key, message, inputElement, onRemove){
-        this.state = 'error';
-        // Add error to Form errors and get its index
-        let fieldErr = _.find(this.__errors, (err)=>{
-            return err.key === key;
+    onInputChange(e){
+        // Only elements with name can be tested
+        if(!e.target.name){
+            return;
+        }
+        let inputObj = this.__inputs[e.target.name];
+        inputObj.errors = _.filter(inputObj.errors, (err) => {
+            if(!_.isFunction(err.validate) || err.validate(inputObj.getValue(), inputObj.element)){
+                Dom.removeNode(err.element);
+                return false;
+            }
+            return true;
         });
-        if(!fieldErr){
-            fieldErr = new FieldError(key, inputElement);
-            this.__errors.push(fieldErr);
-        }
-        // Add onRemove Callback
-        if(_.isFunction(onRemove)){
-            fieldErr.onRemoveCallbacks.push(onRemove);
-        }
-
-        if(!fieldErr.listener){
-            fieldErr.listener = Events.listenOnce(inputElement, 'input', (e)=>{
-                e.preventDefault();
-                e.stopPropagation();
-
-                _.remove(this.__errors, (err)=>{
-                    return err.key === fieldErr.key;
-                });
-                fieldErr.removeAll();
-                this.validate()
-            });
-        }
-        return fieldErr.add(message);
-    };
-
-    /**
-     * Check if form has error with same key
-     * @param inputKey {string} - key of input
-     * @param [errorId] {string} - id of error message
-     * @returns {boolean}
-     */
-    hasError(inputKey, errorId){
-        return this.__errors.length > 0 && !!_.find(this.__errors, (err)=>{
-                return err.key === inputKey && (!errorId || err.has(errorId));
-            });
+        this.validate();
     }
 
     /**
-     * Remove errors from TrinityForm input
-     * @param input {string} | {HTMLInputElement}
+     * Adds new error to TrinityForm instance
+     * @param element {string || HTMLElement} - input name or instance itself
+     * @param error {string || object}
      * @public
      */
-    removeError(input){
-        let fieldError = (_.isString(input) ?
-                _.remove(this.__errors, (err)=>{
-                    return err.key === input;
-                }) : _.remove(this.__errors, (err)=>{
-                return err.input === input;
-            })[0]
-        );
-        fieldError.removeAll();
-        Events.removeListener(fieldError.input, 'input', fieldError.listener);
-    };
+    addError(element, error) {
+        let inputObj = this.__findInput(element);
+        if(!inputObj){
+            if (process.env.NODE_ENV !== 'production') {
+                throw new Error('Form does not have input ' + (_.isString(element) ? 'with name ' : '') + element + '.');
+            }
+            return false;
+        }
+        this.state = 'error';
+        return __addError(inputObj, error, this.settings.errorTemplate);
+    }
+
+    hasError(element, errorKey){
+        let inputObj = this.__findInput(element);
+        if(!inputObj){
+            if (process.env.NODE_ENV !== 'production') {
+                throw new Error('Form does not have input ' + (_.isString(element) ? 'with name ' : '') + element + '.');
+            }
+            return false;
+        }
+        return _.some(inputObj.errors, err => err.key === errorKey);
+    }
+
+    removeError(element, errorKey){
+        let inputObj = this.__findInput(element);
+        if(!inputObj){
+            if (process.env.NODE_ENV !== 'production') {
+                throw new Error('Form does not have input ' + (_.isString(element) ? 'with name ' : '') + element + '.');
+            }
+            return false;
+        }
+
+        _.remove(inputObj.errors, err => {
+            return err.key === errorKey && !!Dom.removeNode(err.element);
+        });
+        this.validate();
+    }
+
 
     /**
      * Validates if all errors are removed from form
      * @public
      */
     validate(){
-        if(this.__errors.length < 1){
+        if(!_.some(this.__inputs, input => !input.isValid())){
             this.unlock();
             this.state = 'ready';
+            return true;
         }
+        return false;
     }
 
     /**
@@ -224,34 +216,16 @@ export default class TrinityForm extends EventEmitter {
         /** catch button with focus first **/
         this.activeBtn = document.activeElement.type === 'button' ? document.activeElement : this.buttons[0];
         /** Continue **/
-        if(e){
-            e.preventDefault();
-        }
+        e && e.preventDefault();
+
         /** Lock and Load **/
         this.lock();
         this.state = 'loading';
-        //this.toggleLoading();
 
         /** Parse and send Data **/
-        let data = null;
-        if(IS_FORM_DATA){
-            data = new FormData(this.form);
-        } else {
-            data = __parseSymfonyForm(this.form, this.activeBtn);
-        }
-
-        let url = this.form.action.trim();
-        let method = (data.hasOwnProperty('_method')? data['_method'] : this.form.method).toUpperCase();
-
-
-        /** Discover type **/
-        if(_.isNull(this.type)){
-            switch(method){
-                case 'POST' : this.type = formType.NEW; break;
-                case 'PUT' : this.type = formType.EDIT; break;
-                default : this.type = formType.DELETE; break;
-            }
-        }
+        let data = IS_FORM_DATA ? new FormData(this.form) : __parseSymfonyForm(this.form, this.activeBtn),
+            url = this.form.action.trim(),
+            method = (data.hasOwnProperty('_method')? data['_method'] : this.form.method).toUpperCase();
 
         this.emit('submit-data', {
             url,
@@ -265,7 +239,6 @@ export default class TrinityForm extends EventEmitter {
                 'X-Requested-With': 'XMLHttpRequest'
             })
             .timeout(this.settings.requestTimeout)
-            //.timeout(1)
             .send(data)
             .on('progress', (e)=>{
                 this.emit('progress', e);
@@ -274,27 +247,28 @@ export default class TrinityForm extends EventEmitter {
         this.emit('before-request', req);
 
         req.end((err, response)=>{
-                // Redirect ?
-                if(response && response.status === 302) {
-                    let redirectTo = response.body.location;
-                    // Do callback and then redirect
-                    if(__successHandler.call(this, response) === false){
-                        return false;
-                    }
-                    // Redirect
-                    if(!redirectTo && Debug.isDev()){
-                        throw new Error('Missing "location" attribute!');
-                    }
-                    window.location.assign(redirectTo);
-                    return;
+            // Redirect ?
+            if(response && response.status === 302) {
+                let redirectTo = response.body.location;
+                // Do callback and then redirect
+                if(this.__successHandler(response) === false){
+                    return false;
                 }
-                // Error ?
-                if(err){
-                    return __errorHandler.call(this, err);
+                // Redirect
+                if(!redirectTo && process.env.NODE_ENV !== 'production'){
+                    throw new Error('Missing "location" attribute!');
                 }
 
-                __successHandler.call(this, response);
-            });
+                redirectTo && window.location.assign(redirectTo);
+                return;
+            }
+            // Error ?
+            if(err){
+                return this.__errorHandler(err);
+            }
+
+            this.__successHandler(response);
+        });
     }
 
     /**
@@ -349,151 +323,76 @@ export default class TrinityForm extends EventEmitter {
     detach(){
         // Main listener
         this.unlistenSubmit();
-        // Errors if any
-        if(this.__errors.length > 0){
-            _.each(this.__errors, (err)=>{
-                err.removeAll();
-                Events.removeListener(err.input, 'input', err.listener);
-            });
-        }
+        this.unlistenValueChange();
         this.element = null;
+        this.__inputs = null;
     }
-}
 
-/** STATIC CONSTANTS **/
-/**
- * Form types
- * @static
- */
-TrinityForm.formType = formType;
+    __findInput(element){
+        return this.__inputs[_.isString(element) ? element : element.name];
+    }
 
+    /**
+     * Form success handler
+     * @param response {Object}
+     * @private
+     */
+    __successHandler(response){
+        let event = new TrinityEvent(response);
 
-/**** PRIVATE METHODS ****/
-/** RESPONSE HANDLERS ************************************************************/
+        this.state = 'success';
+        this.emit('success', event);
 
-/**
- * Form success handler
- * @param response {Object}
- * @private
- */
-function __successHandler(response){
-    this.state = 'success';
-    this.emit('success', response);
-
-    // Edit type behaviour
-    //if(this.type === 'edit'){
         this.unlock();
-        let id = setTimeout((e)=>{
+        let id = setTimeout(()=>{
             this.state = 'ready';
             clearTimeout(id);
         }, this.settings.successTimeout);
-    //}
-}
 
-/**
- * Form error handler
- * @param error
- * @private
- * @returns {boolean}
- */
-function __errorHandler(error){
-    if(error.timeout){
-        this.state = 'timeout';
-        let id = setTimeout(()=>{
-            this.unlock();
-            this.state = 'ready';
-            clearTimeout(id);
-        }, this.settings.timeoutTimeout)
-    } else {
-        this.state = 'error';
-    }
-    this.emit('error', error);
-}
-
-/**
- * Class representing field error
- * @param key {string}
- * @param message {string}
- * @param input {HTMLElement}
- * @private
- * @constructor
- */
-class FieldError {
-    constructor(key, input){
-        this.key = key;
-        this.input = input;
-        this.listener = null;
-        this.errors = [];
-        this.onRemoveCallbacks = [];
-        this.__counter = 0;
-        // Add error message
-        Dom.classlist.add(input, 'error');
+        return event.defaultPrevented;
     }
 
-    add(message){
-        let errMessage = {
-            id: (this.__counter++) + '_'+ this.key,
-            message: message,
-            warning: __createErrorMessage(this.key, message)
-        };
-        this.errors.push(errMessage);
-
-        let sibling = this.input.nextSibling;
-        if(sibling){
-            this.input.parentElement.insertBefore(errMessage.warning, sibling);
+    /**
+     * Form error handler
+     * @param error
+     * @private
+     * @returns {boolean}
+     */
+    __errorHandler(error){
+        if(error.timeout){
+            this.state = 'timeout';
+            let id = setTimeout(()=>{
+                this.unlock();
+                this.state = 'ready';
+                clearTimeout(id);
+            }, this.settings.timeoutTimeout)
         } else {
-            this.input.parentElement.appendChild(errMessage.warning);
+            this.state = 'error';
         }
-        return errMessage.id;
+
+        // Emit event
+        let event = new TrinityEvent(error);
+        this.emit('error', event);
+        return event.defaultPrevented;
     }
 
-    has(id){
-        return !!_.find(this.errors, (err)=>{
-            return err.id === id;
-        });
-    }
-
-    remove(id){
-        _.remove(this.errors, (err)=>{
-            if(err.id === id){
-                Dom.removeNode(err.warning);
-                return true;
-            }
-            return false;
-        });
-        if(this.errors.length === 0){
-            Dom.classlist.remove(this.input, 'error');
-        }
-    }
-
-    removeAll(){
-        _.each(this.errors, (err)=>{
-            Dom.removeNode(err.warning);
-        });
-        _.each(this.onRemoveCallbacks, fn => fn());
-        this.onRemoveCallbacks = [];
-        this.errors = [];
-        Dom.classlist.remove(this.input, 'error');
-    }
-}
-
-/**
- * Just return Error message element
- * TODO: possibility for custom message in settings
- * @param key {string}
- * @param message {string}
- * @private
- */
-function __createErrorMessage(key, message){
-    let errDiv = document.createElement('div');
-    errDiv.className = 'validation-error';
-    errDiv.id = key + '_error';
-    errDiv.style.paddingTop = '2px';
-    errDiv.innerHTML = message;
-    return errDiv;
 }
 
 
+function __addError(formInput, error, template){
+    error.key = error.key || formInput.element.name + '_error_' + (""+(Math.random() * 100)).substr(3,4);
+
+    // Create error message
+    error.element = Dom.htmlToDocumentFragment(error.isTemplate ? error.message : template(error.message));
+
+    formInput.errors.push(error);
+    Dom.classlist.add(formInput.element, 'error');
+    formInput.messageWrapper.appendChild(error.element);
+
+    return error.key;
+}
+
+/**** PRIVATE METHODS ****/
 /** FORM PARSER ************************************************************/
 
 /**
@@ -545,12 +444,12 @@ function __parseSymfonyForm(form, button){
         }
 
         // Init necessary variables
-        var isArray = form[i].name.indexOf('[]') !== -1,
+        let isArray = ~form[i].name.indexOf('[]'),
             parsed = form[i].name.match(nameRegExp),
             reference = data,
             last = parsed.length -1;
         /** Evaluate parsed reference object */
-        for(var j=0;j<=last;j++){
+        for(let j=0;j<=last;j++){
             if(!reference[parsed[j]]){
                 if(j === last){
                     if(isArray){
@@ -578,3 +477,34 @@ function __parseSymfonyForm(form, button){
     }
     return data;
 }
+
+//function __parseSymfonyForm2(form, button){
+//    let data = {};
+//
+//    /** Go through all inputs in form */
+//    _(form).filter((el)=>{
+//        return !el.name
+//            || (
+//                !el.value
+//                && el.type !== 'submit'
+//                && el !== button
+//            )
+//            || (
+//                !el.checked
+//                && (
+//                    el.type === 'radio'
+//                    || el.type === 'checkbox'
+//                )
+//            );
+//    }).each((el)=>{
+//        let isArray = el.name.indexOf('[]') !== -1,
+//            parsed = el.name.match(nameRegExp),
+//            ref = data,
+//            lastIndex = parsed.length -1;
+//
+//        _.each(parsed, ()=>{
+//            //TODO:
+//        })
+//    });
+//}
+

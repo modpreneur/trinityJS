@@ -32,7 +32,6 @@ var Xhr = function () {
      * @param method {string} enum [GET, POST, PUT, DELETE]
      * @param headers {Object}
      */
-
     function Xhr(url, method, headers) {
         _classCallCheck(this, Xhr);
 

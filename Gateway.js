@@ -263,13 +263,7 @@ function __responseHandler(successCallback, errorCallback) {
  * @returns {{timeout: number}}
  */
 function configure(conf) {
-    var keys = Object.keys(conf),
-        keysLength = keys.length;
-
-    for (var i = 0; i < keysLength; i++) {
-        config[keys[i]] = conf[keys[i]];
-    }
-    return config;
+    return _lodash2.default.extend(config, conf);
 }
 
 /** EXPORTS **/
