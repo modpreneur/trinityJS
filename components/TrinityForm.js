@@ -478,7 +478,8 @@ exports.default = TrinityForm;
 
 
 function __addError(formInput, error, template) {
-    error.key = error.key || formInput.element.name + '_error_' + ("" + Math.random() * 100).substr(3, 4);
+    error = _lodash2.default.isString(error) ? { message: error } : error;
+    error.key = error.key || formInput.element.name + '_error_' + ('' + Math.random() * 100).substr(3, 4);
 
     // Create error message
     error.element = _Dom2.default.htmlToDocumentFragment(error.isTemplate ? error.message : template(error.message));

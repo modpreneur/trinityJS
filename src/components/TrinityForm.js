@@ -380,7 +380,8 @@ export default class TrinityForm extends EventEmitter {
 
 
 function __addError(formInput, error, template){
-    error.key = error.key || formInput.element.name + '_error_' + (""+(Math.random() * 100)).substr(3,4);
+    error = _.isString(error) ? { message: error} : error;
+    error.key = error.key || formInput.element.name + '_error_' + (''+(Math.random() * 100)).substr(3,4);
 
     // Create error message
     error.element = Dom.htmlToDocumentFragment(error.isTemplate ? error.message : template(error.message));
