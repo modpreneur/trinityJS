@@ -130,6 +130,7 @@ var TrinityForm = function (_EventEmitter) {
         value: function lock() {
             _lodash2.default.each(this.buttons, _Dom2.default.disable);
         }
+
         /**
          * Enable all forms submit inputs
          */
@@ -157,6 +158,9 @@ var TrinityForm = function (_EventEmitter) {
                 return;
             }
             var inputObj = this.__inputs[e.target.name];
+            if (!inputObj) {
+                return;
+            }
             inputObj.errors = _lodash2.default.filter(inputObj.errors, function (err) {
                 if (!_lodash2.default.isFunction(err.validate) || err.validate(inputObj.getValue(), inputObj.element)) {
                     _Dom2.default.removeNode(err.element);

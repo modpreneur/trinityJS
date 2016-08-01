@@ -118,6 +118,7 @@ export default class TrinityForm extends EventEmitter {
     lock(){
         _.each(this.buttons, Dom.disable);
     }
+
     /**
      * Enable all forms submit inputs
      */
@@ -138,6 +139,9 @@ export default class TrinityForm extends EventEmitter {
             return;
         }
         let inputObj = this.__inputs[e.target.name];
+        if(!inputObj){
+            return;
+        }
         inputObj.errors = _.filter(inputObj.errors, (err) => {
             if(!_.isFunction(err.validate) || err.validate(inputObj.getValue(), inputObj.element)){
                 Dom.removeNode(err.element);
