@@ -210,6 +210,10 @@ function _initialize() {
 function __handleNavigation() {
     var tabID = location.hash.substring(1);
     if (tabID.length > 0) {
+        // If undefined -> Create and Set as Active
+        if (_lodash2.default.isUndefined(this.tabs[tabID])) {
+            this.tabs[tabID] = new Tab(document.getElementById(tabID), this);
+        }
         this.setActiveTab(tabID);
     }
 }

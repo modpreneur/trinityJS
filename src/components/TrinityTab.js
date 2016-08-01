@@ -157,6 +157,10 @@ function _initialize(){
 function __handleNavigation(){
     let tabID = location.hash.substring(1);
     if(tabID.length > 0) {
+        // If undefined -> Create and Set as Active
+        if(_.isUndefined(this.tabs[tabID])) {
+            this.tabs[tabID] = new Tab(document.getElementById(tabID), this);
+        }
         this.setActiveTab(tabID);
     }
 }
