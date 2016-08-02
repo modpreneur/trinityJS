@@ -353,7 +353,7 @@ export default class TrinityForm extends EventEmitter {
             clearTimeout(id);
         }, this.settings.successTimeout);
 
-        return event.defaultPrevented;
+        return !event.defaultPrevented;
     }
 
     /**
@@ -377,7 +377,7 @@ export default class TrinityForm extends EventEmitter {
         // Emit event
         let event = new TrinityEvent(error);
         this.emit('error', event);
-        return event.defaultPrevented;
+        return !event.defaultPrevented;
     }
 
 }

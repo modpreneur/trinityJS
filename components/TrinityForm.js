@@ -403,7 +403,7 @@ var TrinityForm = function (_EventEmitter) {
                 clearTimeout(id);
             }, this.settings.successTimeout);
 
-            return event.defaultPrevented;
+            return !event.defaultPrevented;
         }
 
         /**
@@ -434,7 +434,7 @@ var TrinityForm = function (_EventEmitter) {
             // Emit event
             var event = new _TrinityEvent2.default(error);
             this.emit('error', event);
-            return event.defaultPrevented;
+            return !event.defaultPrevented;
         }
     }, {
         key: 'state',
