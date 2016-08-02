@@ -11,13 +11,13 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _Dom = require('../utils/Dom');
+var _Dom = require('trinity/utils/Dom');
 
 var _Dom2 = _interopRequireDefault(_Dom);
 
 var _fbemitter = require('fbemitter');
 
-var _Gateway = require('../Gateway');
+var _Gateway = require('trinity/Gateway');
 
 var _Gateway2 = _interopRequireDefault(_Gateway);
 
@@ -70,6 +70,10 @@ var TrinityTab = function (_EventEmitter) {
     _createClass(TrinityTab, [{
         key: 'setActiveTab',
         value: function setActiveTab(tabID) {
+            // If undefined -> Create and Set as Active
+            if (_lodash2.default.isUndefined(this.tabs[tabID])) {
+                this.tabs[tabID] = new Tab(document.getElementById(tabID), this);
+            }
             if (!this.tabs.hasOwnProperty(tabID)) {
                 if (process.env.NODE_ENV !== 'production') {
                     throw new Error('Tab with id: ' + tabID + ' does not exist!');
@@ -172,6 +176,8 @@ function _initialize() {
 
     if (tabID.length > 0) {
         activeHead = document.getElementById(tabID);
+    }
+    if (activeHead) {
         activeHead.setAttribute('checked', 'checked');
     } else {
         activeHead = _lodash2.default.find(this.heads, function (tab) {
@@ -207,7 +213,7 @@ function _initialize() {
  * Handles pop state navigation
  * @private
  */
-function __handleNavigation() {
+function __handleNavigation(e) {
     var tabID = location.hash.substring(1);
     if (tabID.length > 0) {
         // If undefined -> Create and Set as Active

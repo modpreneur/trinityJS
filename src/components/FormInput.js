@@ -1,6 +1,7 @@
 'use strict';
 
-import ClassList from 'trinity/utils/classlist';
+import Dom from '../utils/Dom';
+import ClassList from '../utils/classlist';
 
 // Default is value
 const TYPE_VAL_MAP = {
@@ -14,7 +15,7 @@ export default class FormInput {
         this.errors = [];
         this.rules = [];
         this.messages = [];
-        this.messageWrapper = document.createElement('div');
+        this.messageWrapper = Dom.createDom('div', { 'class': 'form-error-wrapper' });
 
         let sibling = element.nextSibling;
         if(sibling){

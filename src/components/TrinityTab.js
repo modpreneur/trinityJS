@@ -1,9 +1,9 @@
 'use strict';
 
 import _ from 'lodash';
-import Dom from '../utils/Dom';
+import Dom from  'trinity/utils/Dom';
 import {EventEmitter} from 'fbemitter';
-import Gateway from '../Gateway';
+import Gateway from 'trinity/Gateway';
 
 const MAX_TRY = 3;
 
@@ -34,6 +34,10 @@ export default class TrinityTab extends EventEmitter {
      * @public
      */
     setActiveTab(tabID){
+        // If undefined -> Create and Set as Active
+        if(_.isUndefined(this.tabs[tabID])) {
+            this.tabs[tabID] = new Tab(document.getElementById(tabID), this);
+        }
         if(!this.tabs.hasOwnProperty(tabID)){
             if(process.env.NODE_ENV !== 'production'){
                 throw new Error('Tab with id: '+ tabID + ' does not exist!');
@@ -117,8 +121,10 @@ function _initialize(){
     let tabID = location.hash.substring(1),
         activeHead = null;
 
-    if(tabID.length > 0){
+    if(tabID.length > 0) {
         activeHead = document.getElementById(tabID);
+    }
+    if(activeHead){
         activeHead.setAttribute('checked', 'checked');
     } else {
         activeHead = _.find(this.heads, (tab)=>{
@@ -154,7 +160,7 @@ function _initialize(){
  * Handles pop state navigation
  * @private
  */
-function __handleNavigation(){
+function __handleNavigation(e){
     let tabID = location.hash.substring(1);
     if(tabID.length > 0) {
         // If undefined -> Create and Set as Active
