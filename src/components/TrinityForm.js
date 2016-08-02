@@ -31,6 +31,7 @@ const defaultSettings = {
 
 
 const IS_FORM_DATA = !!window.FormData;
+const INPUT_TYPE_FILTER = ['radio', 'checkbox'];
 
 /**
  * Connects to formElement and change it to ajax form
@@ -57,7 +58,9 @@ export default class TrinityForm extends EventEmitter {
         //Main initialize
         // Create inputs
         _.each(this.form, (el)=>{
-            el.name && (this.__inputs[el.name] = new FormInput(el));
+            if(el.name && !~INPUT_TYPE_FILTER.indexOf(el.type)){
+                this.__inputs[el.name] = new FormInput(el);
+            }
         });
 
         // Add ready class to all buttons
@@ -150,6 +153,17 @@ export default class TrinityForm extends EventEmitter {
             return true;
         });
         this.validate();
+    }
+
+    addRule(element, validator){
+        let inputObj = this.__findInput(element);
+        if(!inputObj){
+            if (process.env.NODE_ENV !== 'production') {
+                throw new Error('Form does not have input ' + (_.isString(element) ? 'with name ' : '') + element + '.');
+            }
+            return false;
+        }
+        return !!inputObj.rules.push(validator);
     }
 
     /**

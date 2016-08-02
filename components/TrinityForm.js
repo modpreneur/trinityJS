@@ -64,6 +64,7 @@ var defaultSettings = {
 };
 
 var IS_FORM_DATA = !!window.FormData;
+var INPUT_TYPE_FILTER = ['radio', 'checkbox'];
 
 /**
  * Connects to formElement and change it to ajax form
@@ -95,7 +96,9 @@ var TrinityForm = function (_EventEmitter) {
         //Main initialize
         // Create inputs
         _lodash2.default.each(_this.form, function (el) {
-            el.name && (_this.__inputs[el.name] = new _FormInput2.default(el));
+            if (el.name && !~INPUT_TYPE_FILTER.indexOf(el.type)) {
+                _this.__inputs[el.name] = new _FormInput2.default(el);
+            }
         });
 
         // Add ready class to all buttons
@@ -169,6 +172,18 @@ var TrinityForm = function (_EventEmitter) {
                 return true;
             });
             this.validate();
+        }
+    }, {
+        key: 'addRule',
+        value: function addRule(element, validator) {
+            var inputObj = this.__findInput(element);
+            if (!inputObj) {
+                if (process.env.NODE_ENV !== 'production') {
+                    throw new Error('Form does not have input ' + (_lodash2.default.isString(element) ? 'with name ' : '') + element + '.');
+                }
+                return false;
+            }
+            return !!inputObj.rules.push(validator);
         }
 
         /**

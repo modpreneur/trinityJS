@@ -12,6 +12,7 @@ export default class FormInput {
     constructor(element){
         this.element = element;
         this.errors = [];
+        this.rules = [];
         this.messages = [];
         this.messageWrapper = document.createElement('div');
 

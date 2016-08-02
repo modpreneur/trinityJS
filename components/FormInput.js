@@ -26,6 +26,7 @@ var FormInput = function () {
 
         this.element = element;
         this.errors = [];
+        this.rules = [];
         this.messages = [];
         this.messageWrapper = document.createElement('div');
 
