@@ -34,17 +34,19 @@ export default class TrinityTab extends EventEmitter {
      * @public
      */
     setActiveTab(tabID){
+        tabID = tabID || this.heads[0].id;
         // If undefined -> Create and Set as Active
         if(_.isUndefined(this.tabs[tabID])) {
+            let head = _.find(this.heads, el => el.id === tabID);
+            if(!head){
+                if(process.env.NODE_ENV !== 'production'){
+                    throw new Error('Tab with id: '+ tabID + ' does not exist!');
+                }
+                return false;
+            }
             this.tabs[tabID] = new Tab(document.getElementById(tabID), this);
         }
-        if(!this.tabs.hasOwnProperty(tabID)){
-            if(process.env.NODE_ENV !== 'production'){
-                throw new Error('Tab with id: '+ tabID + ' does not exist!');
-            }
-            // Do nothing
-            return;
-        }
+
         if(tabID === this.__activeTabID){
             return;
         }
@@ -163,10 +165,6 @@ function _initialize(){
 function __handleNavigation(e){
     let tabID = location.hash.substring(1);
     if(tabID.length > 0) {
-        // If undefined -> Create and Set as Active
-        if(_.isUndefined(this.tabs[tabID])) {
-            this.tabs[tabID] = new Tab(document.getElementById(tabID), this);
-        }
         this.setActiveTab(tabID);
     }
 }

@@ -70,17 +70,21 @@ var TrinityTab = function (_EventEmitter) {
     _createClass(TrinityTab, [{
         key: 'setActiveTab',
         value: function setActiveTab(tabID) {
+            tabID = tabID || this.heads[0].id;
             // If undefined -> Create and Set as Active
             if (_lodash2.default.isUndefined(this.tabs[tabID])) {
+                var head = _lodash2.default.find(this.heads, function (el) {
+                    return el.id === tabID;
+                });
+                if (!head) {
+                    if (process.env.NODE_ENV !== 'production') {
+                        throw new Error('Tab with id: ' + tabID + ' does not exist!');
+                    }
+                    return false;
+                }
                 this.tabs[tabID] = new Tab(document.getElementById(tabID), this);
             }
-            if (!this.tabs.hasOwnProperty(tabID)) {
-                if (process.env.NODE_ENV !== 'production') {
-                    throw new Error('Tab with id: ' + tabID + ' does not exist!');
-                }
-                // Do nothing
-                return;
-            }
+
             if (tabID === this.__activeTabID) {
                 return;
             }
@@ -216,10 +220,6 @@ function _initialize() {
 function __handleNavigation(e) {
     var tabID = location.hash.substring(1);
     if (tabID.length > 0) {
-        // If undefined -> Create and Set as Active
-        if (_lodash2.default.isUndefined(this.tabs[tabID])) {
-            this.tabs[tabID] = new Tab(document.getElementById(tabID), this);
-        }
         this.setActiveTab(tabID);
     }
 }
