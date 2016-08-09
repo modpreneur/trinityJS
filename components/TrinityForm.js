@@ -60,6 +60,9 @@ var defaultSettings = {
     timeoutTimeout: 2000,
     errorTemplate: function errorTemplate(message) {
         return '<div>' + message + '</div>';
+    },
+    messageTemplate: function messageTemplate(message) {
+        return '<div>' + message + '</div>';
     }
 };
 
@@ -235,6 +238,47 @@ var TrinityForm = function (_EventEmitter) {
                 return err.key === errorKey && !!_Dom2.default.removeNode(err.element);
             });
             this.validate();
+        }
+    }, {
+        key: 'addMessage',
+        value: function addMessage(element, message) {
+            var inputObj = this.__findInput(element);
+            if (!inputObj) {
+                if (process.env.NODE_ENV !== 'production') {
+                    throw new Error('Form does not have input ' + (_lodash2.default.isString(element) ? 'with name ' : '') + element + '.');
+                }
+                return false;
+            }
+
+            return __addMessage(inputObj, message, this.settings.messageTemplate);
+        }
+    }, {
+        key: 'hasMessage',
+        value: function hasMessage(element, key) {
+            var inputObj = this.__findInput(element);
+            if (!inputObj) {
+                if (process.env.NODE_ENV !== 'production') {
+                    throw new Error('Form does not have input ' + (_lodash2.default.isString(element) ? 'with name ' : '') + element + '.');
+                }
+                return false;
+            }
+            return _lodash2.default.some(inputObj.messages, function (msg) {
+                return msg.key === key;
+            });
+        }
+    }, {
+        key: 'removeMessage',
+        value: function removeMessage(element, key) {
+            var inputObj = this.__findInput(element);
+            if (!inputObj) {
+                if (process.env.NODE_ENV !== 'production') {
+                    throw new Error('Form does not have input ' + (_lodash2.default.isString(element) ? 'with name ' : '') + element + '.');
+                }
+                return false;
+            }
+            _lodash2.default.remove(inputObj.messages, function (msg) {
+                return msg.key === key && !!_Dom2.default.removeNode(msg.element);
+            });
         }
 
         /**
@@ -493,9 +537,17 @@ var TrinityForm = function (_EventEmitter) {
     return TrinityForm;
 }(_fbemitter.EventEmitter);
 
+/**
+ * Create error object
+ * @param formInput {FormInput}
+ * @param error {string|*}
+ * @param template {function}
+ * @returns {string}
+ * @private
+ */
+
+
 exports.default = TrinityForm;
-
-
 function __addError(formInput, error, template) {
     error = _lodash2.default.isString(error) ? { message: error } : error;
     error.key = error.key || formInput.element.name + '_error_' + ('' + Math.random() * 100).substr(3, 4);
@@ -508,6 +560,27 @@ function __addError(formInput, error, template) {
     formInput.messageWrapper.appendChild(error.element);
 
     return error.key;
+}
+
+/**
+ * Create message plain object
+ * @param formInput {FormInput}
+ * @param msg {string|*}
+ * @param template {function}
+ * @returns {string}
+ * @private
+ */
+function __addMessage(formInput, msg, template) {
+    msg = _lodash2.default.isString(msg) ? { message: msg } : msg;
+    msg.key = msg.key || formInput.element.name + '_msg_' + ('' + Math.random() * 100).substr(3, 4);
+
+    // Create error message
+    msg.element = _Dom2.default.htmlToDocumentFragment(msg.isTemplate ? msg.message : template(msg.message));
+
+    formInput.messages.push(msg);
+    formInput.messageWrapper.appendChild(msg.element);
+
+    return msg.key;
 }
 
 /**** PRIVATE METHODS ****/

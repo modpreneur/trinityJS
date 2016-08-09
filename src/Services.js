@@ -15,9 +15,9 @@ export function messageService(message, type){
     type = type || 'info';
     message = message || type;
 
-    let ajaxInput = q('.ajax-checkbox'),
-        ajaxAlert = q('.ajax-alert'),
-        box = q.id('flashMessages');
+    let ajaxInput = document.querySelector('.ajax-checkbox'),
+        ajaxAlert = document.querySelector('.ajax-alert'),
+        box = document.getElementById('flashMessages');
 
     if(!ajaxInput || !ajaxAlert){
         console.log('MESSAGE', message);

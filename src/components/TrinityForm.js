@@ -26,7 +26,8 @@ const defaultSettings = {
     requestTimeout: 10000,
     successTimeout: 3000,
     timeoutTimeout: 2000,
-    errorTemplate: (message) => `<div>${message}</div>`
+    errorTemplate: (message) => `<div>${message}</div>`,
+    messageTemplate: (message) => `<div>${message}</div>`
 };
 
 
@@ -210,6 +211,41 @@ export default class TrinityForm extends EventEmitter {
         this.validate();
     }
 
+    addMessage(element, message){
+        let inputObj = this.__findInput(element);
+        if(!inputObj){
+            if (process.env.NODE_ENV !== 'production') {
+                throw new Error('Form does not have input ' + (_.isString(element) ? 'with name ' : '') + element + '.');
+            }
+            return false;
+        }
+
+        return __addMessage(inputObj, message, this.settings.messageTemplate);
+    }
+
+    hasMessage(element, key){
+        let inputObj = this.__findInput(element);
+        if(!inputObj){
+            if (process.env.NODE_ENV !== 'production') {
+                throw new Error('Form does not have input ' + (_.isString(element) ? 'with name ' : '') + element + '.');
+            }
+            return false;
+        }
+        return _.some(inputObj.messages, msg => msg.key === key);
+    }
+
+    removeMessage(element, key){
+        let inputObj = this.__findInput(element);
+        if(!inputObj){
+            if (process.env.NODE_ENV !== 'production') {
+                throw new Error('Form does not have input ' + (_.isString(element) ? 'with name ' : '') + element + '.');
+            }
+            return false;
+        }
+        _.remove(inputObj.messages, msg => {
+            return msg.key === key && !!Dom.removeNode(msg.element);
+        });
+    }
 
     /**
      * Validates if all errors are removed from form
@@ -396,7 +432,14 @@ export default class TrinityForm extends EventEmitter {
 
 }
 
-
+/**
+ * Create error object
+ * @param formInput {FormInput}
+ * @param error {string|*}
+ * @param template {function}
+ * @returns {string}
+ * @private
+ */
 function __addError(formInput, error, template){
     error = _.isString(error) ? { message: error} : error;
     error.key = error.key || formInput.element.name + '_error_' + (''+(Math.random() * 100)).substr(3,4);
@@ -409,6 +452,27 @@ function __addError(formInput, error, template){
     formInput.messageWrapper.appendChild(error.element);
 
     return error.key;
+}
+
+/**
+ * Create message plain object
+ * @param formInput {FormInput}
+ * @param msg {string|*}
+ * @param template {function}
+ * @returns {string}
+ * @private
+ */
+function __addMessage(formInput, msg, template){
+    msg = _.isString(msg) ? {message:msg} : msg;
+    msg.key = msg.key || formInput.element.name + '_msg_' + (''+(Math.random() * 100)).substr(3,4);
+
+    // Create error message
+    msg.element = Dom.htmlToDocumentFragment(msg.isTemplate ? msg.message : template(msg.message));
+
+    formInput.messages.push(msg);
+    formInput.messageWrapper.appendChild(msg.element);
+
+    return msg.key;
 }
 
 /**** PRIVATE METHODS ****/
