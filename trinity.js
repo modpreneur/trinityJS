@@ -11,10 +11,6 @@ var _App = require('./App');
 
 var _App2 = _interopRequireDefault(_App);
 
-var _App3 = require('./App.new');
-
-var _App4 = _interopRequireDefault(_App3);
-
 var _Controller = require('./Controller');
 
 var _Controller2 = _interopRequireDefault(_Controller);
@@ -61,7 +57,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 exports.default = {
   // Core
   App: _App2.default,
-  AppNew: _App4.default,
   Controller: _Controller2.default,
   Router: _Router2.default,
   Debug: _Debug2.default,

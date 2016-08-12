@@ -4,7 +4,6 @@
 'use strict';
 
 import App from './App';
-import AppNew from './App.new';
 import Controller from './Controller';
 import Router from './Router';
 import Debug from './Debug';
@@ -21,7 +20,6 @@ import TrinityTab from './components/TrinityTab';
 export default {
     // Core
     App,
-    AppNew,
     Controller,
     Router,
     Debug,

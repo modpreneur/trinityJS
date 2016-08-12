@@ -129,14 +129,11 @@ export default class TrinityForm extends EventEmitter {
     unlock(){
         return this.state !== 'loading' && !!_.each(this.buttons, Dom.enable);
     }
-    /**
-     * Returns name of the form
-     * @returns {string}
-     */
-    getName(){
-        return this.form.getAttribute('name');
-    };
 
+    /**
+     * Main function which runs validation
+     * @param e {Event}
+     */
     onInputChange(e){
         // Only elements with name can be tested
         if(!e.target.name){
@@ -156,7 +153,15 @@ export default class TrinityForm extends EventEmitter {
         this.validate();
     }
 
+    /**
+     * TODO: feature
+     * @notImplemented
+     * @param element {HTMLElement || string} - name of input or input itself
+     * @param validator
+     * @returns {boolean}
+     */
     addRule(element, validator){
+        return;
         let inputObj = this.__findInput(element);
         if(!inputObj){
             if (process.env.NODE_ENV !== 'production') {
@@ -171,9 +176,10 @@ export default class TrinityForm extends EventEmitter {
      * Adds new error to TrinityForm instance
      * @param element {string || HTMLElement} - input name or instance itself
      * @param error {string || object}
+     * @param [args] {Array}
      * @public
      */
-    addError(element, error) {
+    addError(element, error, ...args) {
         let inputObj = this.__findInput(element);
         if(!inputObj){
             if (process.env.NODE_ENV !== 'production') {
@@ -182,10 +188,23 @@ export default class TrinityForm extends EventEmitter {
             return false;
         }
         this.state = 'error';
-        return __addError(inputObj, error, this.settings.errorTemplate);
+        let errObj = __createMessage(
+            error, // error object or string
+            this.settings.errorTemplate, // template
+            inputObj.element.name + '_error_', // prefix if no id
+            args // rest of args
+        );
+        return inputObj.addError(errObj);
     }
 
-    hasError(element, errorKey){
+    /**
+     * Check if input element has error with provided key
+     * or if key not provided, checks if input has any error
+     * @param element {HTMLElement || string} - name of input or input itself
+     * @param [errorId] {string}
+     * @returns {boolean}
+     */
+    hasError(element, errorId){
         let inputObj = this.__findInput(element);
         if(!inputObj){
             if (process.env.NODE_ENV !== 'production') {
@@ -193,10 +212,18 @@ export default class TrinityForm extends EventEmitter {
             }
             return false;
         }
-        return _.some(inputObj.errors, err => err.key === errorKey);
+        return errorId ?
+            _.some(inputObj.errors, err => err.id === errorKey)
+            : inputObj.errors.length > 0;
     }
 
-    removeError(element, errorKey){
+    /**
+     * Remove error with errorKey provided, or remove all errors if errorKey is not provided
+     * @param element {HTMLElement || string} - name of input or input itself
+     * @param [errorId] {string}
+     * @returns {boolean}
+     */
+    removeError(element, errorId){
         let inputObj = this.__findInput(element);
         if(!inputObj){
             if (process.env.NODE_ENV !== 'production') {
@@ -205,13 +232,27 @@ export default class TrinityForm extends EventEmitter {
             return false;
         }
 
-        _.remove(inputObj.errors, err => {
-            return err.key === errorKey && !!Dom.removeNode(err.element);
-        });
+        if(errorId) {
+            _.remove(inputObj.errors, err => {
+                return err.id === errorId && !!Dom.removeNode(err.element);
+            });
+        } else {
+            // Remove all if error key not provided
+            _.each(inputObj.errors, err => Dom.removeNode(err.element));
+            inputObj.errors = [];
+        }
         this.validate();
+        return true;
     }
 
-    addMessage(element, message){
+    /**
+     * Set message to requested element
+     * @param element {HTMLElement || string} - name of input or input itself
+     * @param message {object || string}
+     * @param [args]
+     * @returns {*} id or false if element was not found
+     */
+    setMessage(element, message, ...args){
         let inputObj = this.__findInput(element);
         if(!inputObj){
             if (process.env.NODE_ENV !== 'production') {
@@ -219,11 +260,21 @@ export default class TrinityForm extends EventEmitter {
             }
             return false;
         }
-
-        return __addMessage(inputObj, message, this.settings.messageTemplate);
+        let msg = __createMessage(
+            message, // msg object or string
+            this.settings.messageTemplate, // template object
+            inputObj.element.name + '_msg_', // prefix
+            args // args
+        );
+        return inputObj.setMessage(msg);
     }
 
-    hasMessage(element, key){
+    /**
+     * Removes message from input
+     * @param element {HTMLElement || string} - name of input or input itself
+     * @returns {*}
+     */
+    removeMessage(element){
         let inputObj = this.__findInput(element);
         if(!inputObj){
             if (process.env.NODE_ENV !== 'production') {
@@ -231,20 +282,7 @@ export default class TrinityForm extends EventEmitter {
             }
             return false;
         }
-        return _.some(inputObj.messages, msg => msg.key === key);
-    }
-
-    removeMessage(element, key){
-        let inputObj = this.__findInput(element);
-        if(!inputObj){
-            if (process.env.NODE_ENV !== 'production') {
-                throw new Error('Form does not have input ' + (_.isString(element) ? 'with name ' : '') + element + '.');
-            }
-            return false;
-        }
-        _.remove(inputObj.messages, msg => {
-            return msg.key === key && !!Dom.removeNode(msg.element);
-        });
+        return inputObj.clearMessage() || true;
     }
 
     /**
@@ -349,9 +387,9 @@ export default class TrinityForm extends EventEmitter {
 
     /**
      * Abbreviation for addListener
-     * @param eventName
-     * @param callback
-     * @param context
+     * @param eventName {string}
+     * @param callback {function}
+     * @param context {object}
      * @returns {TrinityForm}
      */
     on(eventName, callback, context){
@@ -433,46 +471,24 @@ export default class TrinityForm extends EventEmitter {
 }
 
 /**
- * Create error object
- * @param formInput {FormInput}
- * @param error {string|*}
+ * Create message and returns object with description and element object
+ * @param msg {object || string}
  * @param template {function}
- * @returns {string}
+ * @param prefix {string}
+ * @param args {Array}
+ * @returns {{message: *}|*}
  * @private
  */
-function __addError(formInput, error, template){
-    error = _.isString(error) ? { message: error} : error;
-    error.key = error.key || formInput.element.name + '_error_' + (''+(Math.random() * 100)).substr(3,4);
+function __createMessage(msg, template, prefix, args){
+    msg = _.isString(msg) ? { message: msg } : msg;
+    msg.id = msg.id || (prefix + (''+(Math.random() * 100)).substr(3,4));
 
-    // Create error message
-    error.element = Dom.htmlToDocumentFragment(error.isTemplate ? error.message : template(error.message));
-
-    formInput.errors.push(error);
-    Dom.classlist.add(formInput.element, 'error');
-    formInput.messageWrapper.appendChild(error.element);
-
-    return error.key;
-}
-
-/**
- * Create message plain object
- * @param formInput {FormInput}
- * @param msg {string|*}
- * @param template {function}
- * @returns {string}
- * @private
- */
-function __addMessage(formInput, msg, template){
-    msg = _.isString(msg) ? {message:msg} : msg;
-    msg.key = msg.key || formInput.element.name + '_msg_' + (''+(Math.random() * 100)).substr(3,4);
-
-    // Create error message
-    msg.element = Dom.htmlToDocumentFragment(msg.isTemplate ? msg.message : template(msg.message));
-
-    formInput.messages.push(msg);
-    formInput.messageWrapper.appendChild(msg.element);
-
-    return msg.key;
+    // Create message
+    msg.element = Dom.htmlToDocumentFragment(msg.isHtml ?
+        msg.message : template.apply(null, [msg.message].concat(args))
+    );
+    msg.element.setAttribute('id', msg.id);
+    return msg;
 }
 
 /**** PRIVATE METHODS ****/

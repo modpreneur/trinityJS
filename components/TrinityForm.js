@@ -146,16 +146,12 @@ var TrinityForm = function (_EventEmitter) {
         value: function unlock() {
             return this.state !== 'loading' && !!_lodash2.default.each(this.buttons, _Dom2.default.enable);
         }
+
         /**
-         * Returns name of the form
-         * @returns {string}
+         * Main function which runs validation
+         * @param e {Event}
          */
 
-    }, {
-        key: 'getName',
-        value: function getName() {
-            return this.form.getAttribute('name');
-        }
     }, {
         key: 'onInputChange',
         value: function onInputChange(e) {
@@ -176,9 +172,19 @@ var TrinityForm = function (_EventEmitter) {
             });
             this.validate();
         }
+
+        /**
+         * TODO: feature
+         * @notImplemented
+         * @param element {HTMLElement || string} - name of input or input itself
+         * @param validator
+         * @returns {boolean}
+         */
+
     }, {
         key: 'addRule',
         value: function addRule(element, validator) {
+            return;
             var inputObj = this.__findInput(element);
             if (!inputObj) {
                 if (process.env.NODE_ENV !== 'production') {
@@ -193,6 +199,7 @@ var TrinityForm = function (_EventEmitter) {
          * Adds new error to TrinityForm instance
          * @param element {string || HTMLElement} - input name or instance itself
          * @param error {string || object}
+         * @param [args] {Array}
          * @public
          */
 
@@ -207,11 +214,30 @@ var TrinityForm = function (_EventEmitter) {
                 return false;
             }
             this.state = 'error';
-            return __addError(inputObj, error, this.settings.errorTemplate);
+
+            for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+                args[_key - 2] = arguments[_key];
+            }
+
+            var errObj = __createMessage(error, // error object or string
+            this.settings.errorTemplate, // template
+            inputObj.element.name + '_error_', // prefix if no id
+            args // rest of args
+            );
+            return inputObj.addError(errObj);
         }
+
+        /**
+         * Check if input element has error with provided key
+         * or if key not provided, checks if input has any error
+         * @param element {HTMLElement || string} - name of input or input itself
+         * @param [errorId] {string}
+         * @returns {boolean}
+         */
+
     }, {
         key: 'hasError',
-        value: function hasError(element, errorKey) {
+        value: function hasError(element, errorId) {
             var inputObj = this.__findInput(element);
             if (!inputObj) {
                 if (process.env.NODE_ENV !== 'production') {
@@ -219,13 +245,21 @@ var TrinityForm = function (_EventEmitter) {
                 }
                 return false;
             }
-            return _lodash2.default.some(inputObj.errors, function (err) {
-                return err.key === errorKey;
-            });
+            return errorId ? _lodash2.default.some(inputObj.errors, function (err) {
+                return err.id === errorKey;
+            }) : inputObj.errors.length > 0;
         }
+
+        /**
+         * Remove error with errorKey provided, or remove all errors if errorKey is not provided
+         * @param element {HTMLElement || string} - name of input or input itself
+         * @param [errorId] {string}
+         * @returns {boolean}
+         */
+
     }, {
         key: 'removeError',
-        value: function removeError(element, errorKey) {
+        value: function removeError(element, errorId) {
             var inputObj = this.__findInput(element);
             if (!inputObj) {
                 if (process.env.NODE_ENV !== 'production') {
@@ -234,14 +268,32 @@ var TrinityForm = function (_EventEmitter) {
                 return false;
             }
 
-            _lodash2.default.remove(inputObj.errors, function (err) {
-                return err.key === errorKey && !!_Dom2.default.removeNode(err.element);
-            });
+            if (errorId) {
+                _lodash2.default.remove(inputObj.errors, function (err) {
+                    return err.id === errorId && !!_Dom2.default.removeNode(err.element);
+                });
+            } else {
+                // Remove all if error key not provided
+                _lodash2.default.each(inputObj.errors, function (err) {
+                    return _Dom2.default.removeNode(err.element);
+                });
+                inputObj.errors = [];
+            }
             this.validate();
+            return true;
         }
+
+        /**
+         * Set message to requested element
+         * @param element {HTMLElement || string} - name of input or input itself
+         * @param message {object || string}
+         * @param [args]
+         * @returns {*} id or false if element was not found
+         */
+
     }, {
-        key: 'addMessage',
-        value: function addMessage(element, message) {
+        key: 'setMessage',
+        value: function setMessage(element, message) {
             var inputObj = this.__findInput(element);
             if (!inputObj) {
                 if (process.env.NODE_ENV !== 'production') {
@@ -250,25 +302,27 @@ var TrinityForm = function (_EventEmitter) {
                 return false;
             }
 
-            return __addMessage(inputObj, message, this.settings.messageTemplate);
-        }
-    }, {
-        key: 'hasMessage',
-        value: function hasMessage(element, key) {
-            var inputObj = this.__findInput(element);
-            if (!inputObj) {
-                if (process.env.NODE_ENV !== 'production') {
-                    throw new Error('Form does not have input ' + (_lodash2.default.isString(element) ? 'with name ' : '') + element + '.');
-                }
-                return false;
+            for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+                args[_key2 - 2] = arguments[_key2];
             }
-            return _lodash2.default.some(inputObj.messages, function (msg) {
-                return msg.key === key;
-            });
+
+            var msg = __createMessage(message, // msg object or string
+            this.settings.messageTemplate, // template object
+            inputObj.element.name + '_msg_', // prefix
+            args // args
+            );
+            return inputObj.setMessage(msg);
         }
+
+        /**
+         * Removes message from input
+         * @param element {HTMLElement || string} - name of input or input itself
+         * @returns {*}
+         */
+
     }, {
         key: 'removeMessage',
-        value: function removeMessage(element, key) {
+        value: function removeMessage(element) {
             var inputObj = this.__findInput(element);
             if (!inputObj) {
                 if (process.env.NODE_ENV !== 'production') {
@@ -276,9 +330,7 @@ var TrinityForm = function (_EventEmitter) {
                 }
                 return false;
             }
-            _lodash2.default.remove(inputObj.messages, function (msg) {
-                return msg.key === key && !!_Dom2.default.removeNode(msg.element);
-            });
+            return inputObj.clearMessage() || true;
         }
 
         /**
@@ -395,9 +447,9 @@ var TrinityForm = function (_EventEmitter) {
 
         /**
          * Abbreviation for addListener
-         * @param eventName
-         * @param callback
-         * @param context
+         * @param eventName {string}
+         * @param callback {function}
+         * @param context {object}
          * @returns {TrinityForm}
          */
 
@@ -538,49 +590,25 @@ var TrinityForm = function (_EventEmitter) {
 }(_fbemitter.EventEmitter);
 
 /**
- * Create error object
- * @param formInput {FormInput}
- * @param error {string|*}
+ * Create message and returns object with description and element object
+ * @param msg {object || string}
  * @param template {function}
- * @returns {string}
+ * @param prefix {string}
+ * @param args {Array}
+ * @returns {{message: *}|*}
  * @private
  */
 
 
 exports.default = TrinityForm;
-function __addError(formInput, error, template) {
-    error = _lodash2.default.isString(error) ? { message: error } : error;
-    error.key = error.key || formInput.element.name + '_error_' + ('' + Math.random() * 100).substr(3, 4);
-
-    // Create error message
-    error.element = _Dom2.default.htmlToDocumentFragment(error.isTemplate ? error.message : template(error.message));
-
-    formInput.errors.push(error);
-    _Dom2.default.classlist.add(formInput.element, 'error');
-    formInput.messageWrapper.appendChild(error.element);
-
-    return error.key;
-}
-
-/**
- * Create message plain object
- * @param formInput {FormInput}
- * @param msg {string|*}
- * @param template {function}
- * @returns {string}
- * @private
- */
-function __addMessage(formInput, msg, template) {
+function __createMessage(msg, template, prefix, args) {
     msg = _lodash2.default.isString(msg) ? { message: msg } : msg;
-    msg.key = msg.key || formInput.element.name + '_msg_' + ('' + Math.random() * 100).substr(3, 4);
+    msg.id = msg.id || prefix + ('' + Math.random() * 100).substr(3, 4);
 
-    // Create error message
-    msg.element = _Dom2.default.htmlToDocumentFragment(msg.isTemplate ? msg.message : template(msg.message));
-
-    formInput.messages.push(msg);
-    formInput.messageWrapper.appendChild(msg.element);
-
-    return msg.key;
+    // Create message
+    msg.element = _Dom2.default.htmlToDocumentFragment(msg.isHtml ? msg.message : template.apply(null, [msg.message].concat(args)));
+    msg.element.setAttribute('id', msg.id);
+    return msg;
 }
 
 /**** PRIVATE METHODS ****/
