@@ -317,13 +317,19 @@ export default class TrinityForm extends EventEmitter {
         /** Parse and send Data **/
         let data = IS_FORM_DATA ? new FormData(this.form) : __parseSymfonyForm(this.form, this.activeBtn),
             url = this.form.action.trim(),
-            method = (data.hasOwnProperty('_method')? data['_method'] : this.form.method).toUpperCase();
+            method = (data.hasOwnProperty('_method')? data['_method'] : this.form.method).toUpperCase(),
+            submitEvent = new TrinityEvent({
+                url,
+                method,
+                data
+            })
+            ;
 
-        this.emit('submit-data', {
-            url,
-            method,
-            data
-        });
+        this.emit('submit', submitEvent);
+
+        if(submitEvent.defaultPrevented){
+            return;
+        }
 
         let req = Request(method, url)
             .set({
