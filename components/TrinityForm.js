@@ -375,13 +375,18 @@ var TrinityForm = function (_EventEmitter) {
             /** Parse and send Data **/
             var data = IS_FORM_DATA ? new FormData(this.form) : __parseSymfonyForm(this.form, this.activeBtn),
                 url = this.form.action.trim(),
-                method = (data.hasOwnProperty('_method') ? data['_method'] : this.form.method).toUpperCase();
-
-            this.emit('submit-data', {
+                method = (data.hasOwnProperty('_method') ? data['_method'] : this.form.method).toUpperCase(),
+                submitEvent = new _TrinityEvent2.default({
                 url: url,
                 method: method,
                 data: data
             });
+
+            this.emit('submit', submitEvent);
+
+            if (submitEvent.defaultPrevented) {
+                return;
+            }
 
             var req = (0, _superagent2.default)(method, url).set({
                 'Accept': 'application/json',
