@@ -39,7 +39,7 @@ function Router(routes) {
     }, this);
 
     /** Adds prefix to regular expressions **/
-    if (_Debug2.default.isDev()) {
+    if (process.env.NODE_ENV !== 'production') {
         this.routes = this.routes.map(function (route) {
             var path = route['path'];
             if (path.indexOf('/') > 1) {

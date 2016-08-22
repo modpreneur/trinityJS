@@ -32,9 +32,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var defaultSettings = {
-    env: 'prod',
-    attributeName: 'data-ng-scope',
-    globalController: null
+    attributeName: 'data-ng-scope'
 };
 
 /**
@@ -47,15 +45,13 @@ var App = function () {
 
         //Settings FIRST !
         this.settings = _lodash2.default.defaultsDeep(settings || {}, defaultSettings);
-        if (this.settings.env === 'dev' || this.settings.env === 'development') {
-            _Debug2.default.env = 'dev';
-        }
 
         this.routes = routes;
         this.controllers = controllers;
         this.router = new _Router2.default(routes);
-        this.global = null;
+        // this.global = null;
         this.activeController = null;
+        this.preBootScripts = [];
 
         // This way $scope property cannot be reassigned
         Object.defineProperty(this, '$scope', {
@@ -77,24 +73,12 @@ var App = function () {
     _createClass(App, [{
         key: 'start',
         value: function start(successCallback, errorCallback) {
-            var name = this.settings.globalController,
-                action = 'indexAction';
+            var _this = this;
 
-            if (!_lodash2.default.isNull(name)) {
-                name += 'Controller';
-                // Create new active controller instance
-                if (!this.controllers.hasOwnProperty(name)) {
-                    throw new Error('Global Controller ' + name + ' does not exist, did you forget to run "buildControllers.js" script?');
-                }
-
-                this.global = new this.controllers[name](name);
-                if (!(this.global instanceof _Controller2.default)) {
-                    throw new Error(name + ' does not inherit from "Controller" class!');
-                }
-                this.global._scope = this.$scope;
-                this.global._app = this;
-                this.global[action](this.$scope);
-            }
+            //super cool feature
+            _lodash2.default.find(this.preBootScripts, function (script) {
+                return script(_this.$scope);
+            });
 
             /**
              * Active controller
@@ -108,8 +92,8 @@ var App = function () {
 
             var _controllerInfo$actio2 = _slicedToArray(_controllerInfo$actio, 2);
 
-            name = _controllerInfo$actio2[0];
-            action = _controllerInfo$actio2[1];
+            var name = _controllerInfo$actio2[0];
+            var action = _controllerInfo$actio2[1];
 
 
             if (!name) {
@@ -156,6 +140,17 @@ var App = function () {
         }
 
         /**
+         * add script befor launching of app
+         * @param func {function} if true is returned => lounch app (skip other pre-scripts)
+         */
+
+    }, {
+        key: 'addPreBOOTScript',
+        value: function addPreBOOTScript(func) {
+            this.preBootScripts.push(func);
+        }
+
+        /**
          * Finishing success callback
          * @param isController {boolean}
          * @param callback {function}
@@ -184,7 +179,7 @@ var App = function () {
         key: 'parseScope',
         value: function parseScope(root) {
             root = root || window.document;
-            var attName = this.settings.attributeName,
+            var attName = defaultSettings.attributeName,
                 elements = root.querySelectorAll('[' + attName + ']');
 
             var bag = {};
@@ -202,22 +197,6 @@ var App = function () {
                 }
             });
             return bag;
-        }
-
-        /**
-         * Getter for environment
-         * @returns {string|*|string}
-         */
-
-    }, {
-        key: 'isDevEnvironment',
-        value: function isDevEnvironment() {
-            return _Debug2.default.isDev();
-        }
-    }, {
-        key: 'environment',
-        get: function get() {
-            return this.settings.env;
         }
     }]);
 

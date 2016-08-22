@@ -15,7 +15,6 @@ var _Debug2 = _interopRequireDefault(_Debug);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-_Debug2.default.env = 'dev';
 _Debug2.default.dump = function () {
   window.document.documentElement.innerHTML = Array.prototype.join.call(arguments, '<br><br>');
 };
