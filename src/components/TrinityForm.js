@@ -102,6 +102,10 @@ export default class TrinityForm extends EventEmitter {
             Dom.classlist.addAll(this.activeBtn, this.settings.button[newState].split(' '));
         }
 
+        if(newState === 'error'){
+            this.lock();
+        }
+
         // Emit new state change
         this.emit('state-change', {
             oldValue: oldState,
