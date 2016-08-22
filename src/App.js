@@ -9,9 +9,7 @@ import Controller from './Controller.js';
 import Debug from './Debug';
 
 const defaultSettings = {
-    env: 'prod',
     attributeName: 'data-ng-scope',
-    globalController: null
 };
 
 /**
@@ -21,15 +19,14 @@ export default class App {
     constructor(routes, controllers, settings){
         //Settings FIRST !
         this.settings = _.defaultsDeep(settings || {}, defaultSettings);
-        if(this.settings.env === 'dev' || this.settings.env === 'development'){
-            Debug.env = 'dev';
-        }
+
 
         this.routes = routes;
         this.controllers = controllers;
         this.router = new Router(routes);
-        this.global = null;
+        // this.global = null;
         this.activeController = null;
+        this.preBootScripts = [];
 
         // This way $scope property cannot be reassigned
         Object.defineProperty(this, '$scope', {
@@ -47,24 +44,8 @@ export default class App {
      * @returns {boolean}
      */
     start(successCallback, errorCallback){
-        let name = this.settings.globalController,
-            action = 'indexAction';
-
-        if(!_.isNull(name)){
-            name += 'Controller';
-            // Create new active controller instance
-            if(!this.controllers.hasOwnProperty(name)){
-                throw new Error('Global Controller '+ name+ ' does not exist, did you forget to run "buildControllers.js" script?');
-            }
-
-            this.global = new this.controllers[name](name);
-            if(!(this.global instanceof Controller)){
-                throw new Error(name + ' does not inherit from "Controller" class!');
-            }
-            this.global._scope = this.$scope;
-            this.global._app = this;
-            this.global[action](this.$scope);
-        }
+        //super cool feature
+        _.find(this.preBootScripts, script => script(this.$scope));
 
         /**
          * Active controller
@@ -74,7 +55,7 @@ export default class App {
             return this.finishCallback(false, successCallback);
         }
 
-        [name, action] = controllerInfo.action.split('.');
+        let [name, action] = controllerInfo.action.split('.');
 
         if(!name){
             let err = new Error('No Controller defined! did you forget to define controller in routes?');
@@ -123,6 +104,14 @@ export default class App {
     }
 
     /**
+     * add script befor launching of app
+     * @param func {function} if true is returned => lounch app (skip other pre-scripts)
+     */
+    addPreBOOTScript(func){
+        this.preBootScripts.push(func);
+    }
+
+    /**
      * Finishing success callback
      * @param isController {boolean}
      * @param callback {function}
@@ -147,7 +136,7 @@ export default class App {
      */
     parseScope(root){
         root = root || window.document;
-        let attName = this.settings.attributeName,
+        let attName = defaultSettings.attributeName,
             elements = root.querySelectorAll('['+ attName +']');
 
         let bag = {};
@@ -167,15 +156,4 @@ export default class App {
         return bag;
     }
 
-    /**
-     * Getter for environment
-     * @returns {string|*|string}
-     */
-    get environment(){
-        return this.settings.env;
-    }
-
-    isDevEnvironment(){
-        return Debug.isDev();
-    }
 }

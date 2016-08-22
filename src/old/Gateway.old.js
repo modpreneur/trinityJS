@@ -196,7 +196,7 @@ function _sendFile(url, method, file, fieldName, successCallback, errorCallback,
     });
     xhr.onComplete(function(){
         if(this.getResponseHeader('Content-Type').indexOf('application/json') === -1){
-            if(Debug.isDev()){
+            if(process.env.NODE_ENV !== 'production'){
                 Debug.log('HEADERS', this.getResponseHeaders());
                 _dumpOnScreen(this.getResponse());
             }
@@ -256,7 +256,7 @@ function _createRequest(url, method, sC, eC){
     });
     xhr.onComplete(function(){
         if(this.getResponseHeader('Content-Type').indexOf('text/html') === -1){
-            if(Debug.isDev()){
+            if(process.env.NODE_ENV !== 'production'){
                 Debug.log('HEADERS', this.getResponseHeaders());
                 _dumpOnScreen(this.getResponse());
             }
@@ -266,7 +266,7 @@ function _createRequest(url, method, sC, eC){
         if(this.isSuccess()){
             sC(this.getResponse());
         } else {
-            if(Debug.isDev()){
+            if(process.env.NODE_ENV !== 'production'){
                 Debug.error('RESPONSE:', this.getResponse());
                 _dumpOnScreen(this.getResponse())
             }
@@ -302,7 +302,7 @@ function _createJSONRequest(url, method, sC, eC){
     });
     xhr.onComplete(function(){
         if(this.getResponseHeader('Content-Type') !== 'application/json'){
-            if(Debug.isDev()){
+            if(process.env.NODE_ENV !== 'production'){
                 Debug.log('HEADERS', this.getResponseHeaders());
                 //TODO:  Test if ladyBug
                 _dumpOnScreen(this.getResponse());

@@ -11,7 +11,6 @@
 
 import Debug from './Debug';
 
-Debug.env = 'dev';
 Debug.dump = function(){
     window.document.documentElement.innerHTML = Array.prototype.join.call(arguments, '<br><br>');
 };

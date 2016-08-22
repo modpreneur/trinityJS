@@ -8,9 +8,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var ENV = 'prod';
-var IS_DEV = false;
-
 function noop() {/*Nothing will happen*/}
 
 var Debug = function () {
@@ -21,30 +18,16 @@ var Debug = function () {
     _createClass(Debug, null, [{
         key: 'error',
         value: function error() {
-            if (IS_DEV) {
+            if (process.env.NODE_ENV !== 'production') {
                 console.error.apply(console, arguments);
             }
         }
     }, {
         key: 'log',
         value: function log() {
-            if (IS_DEV) {
+            if (process.env.NODE_ENV !== 'production') {
                 console.log.apply(console, arguments);
             }
-        }
-    }, {
-        key: 'isDev',
-        value: function isDev() {
-            return ENV === 'dev' || ENV === 'development';
-        }
-    }, {
-        key: 'env',
-        get: function get() {
-            return ENV;
-        },
-        set: function set(val) {
-            ENV = val;
-            IS_DEV = Debug.isDev();
         }
     }]);
 
