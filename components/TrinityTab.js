@@ -50,7 +50,7 @@ var TrinityTab = function (_EventEmitter) {
             throw new Error('No "tabHeads" provided or elements with "tab-head" class not found!');
         }
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(TrinityTab).call(this));
+        var _this = _possibleConstructorReturn(this, (TrinityTab.__proto__ || Object.getPrototypeOf(TrinityTab)).call(this));
 
         _this.heads = tabHeads;
         _this.tabs = {};

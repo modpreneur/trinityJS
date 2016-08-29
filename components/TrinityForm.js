@@ -84,7 +84,7 @@ var TrinityForm = function (_EventEmitter) {
     function TrinityForm(formElement, settings) {
         _classCallCheck(this, TrinityForm);
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(TrinityForm).call(this));
+        var _this = _possibleConstructorReturn(this, (TrinityForm.__proto__ || Object.getPrototypeOf(TrinityForm)).call(this));
 
         if (!formElement) {
             throw new Error('Missing "formElement" parameter!');
@@ -114,7 +114,8 @@ var TrinityForm = function (_EventEmitter) {
         // Add listener to form element
         _this.unlistenSubmit = _Events2.default.listen(formElement, 'submit', _this.submit.bind(_this));
         // Add listener for input value change
-        _this.unlistenValueChange = _Events2.default.listen(formElement, 'input', _this.onInputChange.bind(_this));
+        _this.unlistenValueInput = _Events2.default.listen(formElement, 'input', _this.onInputChange.bind(_this));
+        _this.unlistenValueChange = _Events2.default.listen(formElement, 'change', _this.onInputChange.bind(_this));
         return _this;
     }
 
@@ -156,9 +157,15 @@ var TrinityForm = function (_EventEmitter) {
         key: 'onInputChange',
         value: function onInputChange(e) {
             // Only elements with name can be tested
-            if (!e.target.name) {
+
+            // Filter
+            var isSelectType = !!~e.target.type.indexOf('select'),
+                isChangeEvent = e.type === 'change';
+
+            if (isSelectType ^ isChangeEvent || !e.target.name) {
                 return;
             }
+
             var inputObj = this.__inputs[e.target.name];
             if (!inputObj) {
                 return;
@@ -488,6 +495,7 @@ var TrinityForm = function (_EventEmitter) {
             // Main listener
             this.unlistenSubmit();
             this.unlistenValueChange();
+            this.unlistenValueInput();
             this.element = null;
             this.__inputs = null;
         }

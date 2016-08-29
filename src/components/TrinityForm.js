@@ -72,7 +72,8 @@ export default class TrinityForm extends EventEmitter {
         // Add listener to form element
         this.unlistenSubmit = Events.listen(formElement, 'submit', this.submit.bind(this));
         // Add listener for input value change
-        this.unlistenValueChange = Events.listen(formElement, 'input', this.onInputChange.bind(this));
+        this.unlistenValueInput = Events.listen(formElement, 'input', this.onInputChange.bind(this));
+        this.unlistenValueChange = Events.listen(formElement, 'change', this.onInputChange.bind(this));
     }
 
 
@@ -140,7 +141,13 @@ export default class TrinityForm extends EventEmitter {
      */
     onInputChange(e){
         // Only elements with name can be tested
-        if(!e.target.name){
+
+        // Filter
+        let isSelectType = !!~e.target.type.indexOf('select'),
+            isChangeEvent = e.type === 'change'
+        ;
+
+        if(isSelectType ^ isChangeEvent || !e.target.name){
             return;
         }
         let inputObj = this.__inputs[e.target.name];
@@ -426,6 +433,7 @@ export default class TrinityForm extends EventEmitter {
         // Main listener
         this.unlistenSubmit();
         this.unlistenValueChange();
+        this.unlistenValueInput();
         this.element = null;
         this.__inputs = null;
     }
