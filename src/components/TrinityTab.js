@@ -4,6 +4,7 @@ import _ from 'lodash';
 import Dom from  'trinity/utils/Dom';
 import {EventEmitter} from 'fbemitter';
 import Gateway from 'trinity/Gateway';
+import Events from 'trinity/utils/Events';
 
 const MAX_TRY = 3;
 
@@ -15,56 +16,113 @@ export default class TrinityTab extends EventEmitter {
      * Heads of tab component
      * @param [tabHeads] {Array<HTMLElement>}
      */
-    constructor(tabHeads){
+    constructor(tabHeads) {
         tabHeads = tabHeads || document.querySelectorAll('.tab-head');
-        if(tabHeads.length < 1){
+        if (tabHeads.length < 1) {
             throw new Error('No "tabHeads" provided or elements with "tab-head" class not found!');
         }
         super();
         this.heads = tabHeads;
+        this.aliases = {};
+        // find heads with aliases
+        _.each(tabHeads, head => {
+            head.alias = head.getAttribute('data-alias'); // sets custom attribute, for not having to use getAttribute anny later
+            if (head.alias) {
+                this.aliases[head.alias] = head;
+            }
+        });
+
         this.tabs = {};
-        this.__activeTabID = null;
-        _initialize.call(this);
+        this.__activeTabName = null;
+
+
+        //Check which tab to load first
+        let tabName = location.hash.substring(1),
+            activeHead = null;
+
+        if (tabName.length > 0) {
+            if (this.aliases[tabName]) {
+                activeHead = this.aliases[tabName];
+            } else {
+                activeHead = _.find(this.heads, head => head.id === tabName);
+                if (activeHead.alias) { // if head have alias, replace hash and tabName to it
+                    tabName = activeHead.alias;
+                    window.location.hash = `#${activeHead.alias}`;
+                }
+            }
+        }
+
+        if (activeHead) {
+            activeHead.setAttribute('checked', 'checked'); //sets head from url as active
+        } else {
+            activeHead = _.find(this.heads, (tab)=> {
+                let checked = false;
+                if (_.isUndefined(tab.checked)) {
+                    checked = !_.isNull(tab.getAttribute('checked'));
+                } else {
+                    checked = tab.checked;
+                }
+                return checked;
+            });
+            if (!activeHead) {
+                activeHead = this.heads[0];
+            }
+            tabName = activeHead.alias || activeHead.id;
+            // Replace history string
+            window.history.replaceState(null, tabName, '#' + tabName);
+        }
+        this.__activeTabName = tabName;
+        // Add new Tab to tabs
+        this.tabs[tabName] = new Tab(activeHead, this);
+
+        /** Attach click event Listeners to other heads **/
+        _.map(this.heads, (head)=> {
+            head.addEventListener('click', __handleTabClick.bind(this, head));
+        });
+
+        // Navigation
+        window.addEventListener('popstate', __handleNavigation.bind(this));
     }
 
     /**
      * Set active Tab by provided tabID
-     * @param tabID {string}
+     * @param tabName {string}
      * @throws {Error} if tab with provided ID does't exit
      * @public
      */
-    setActiveTab(tabID){
-        tabID = tabID || this.heads[0].id;
+    setActiveTab(tabName) {
+        tabName = tabName || this.heads[0].alias || this.heads[0].id;
         // If undefined -> Create and Set as Active
-        if(_.isUndefined(this.tabs[tabID])) {
-            let head = _.find(this.heads, el => el.id === tabID);
-            if(!head){
-                if(process.env.NODE_ENV !== 'production'){
-                    throw new Error('Tab with id: '+ tabID + ' does not exist!');
+        if (!this.tabs[tabName]) {
+            let head = this.aliases[tabName] || _.find(this.heads, el => el.id === tabName);
+            if (!head) {
+                if (process.env.NODE_ENV !== 'production') {
+                    throw new Error('Tab with id or alias: ' + tabName + ' does not exist!');
                 }
                 return false;
             }
-            this.tabs[tabID] = new Tab(document.getElementById(tabID), this);
+            this.tabs[tabName] = new Tab(head, this);
         }
 
-        if(tabID === this.__activeTabID){
+        if (tabName === this.__activeTabName) {
             return;
         }
-        let prevTab = this.__activeTabID;
-        this.__activeTabID = tabID;
+        let prevTab = this.__activeTabName;
+
+        this.__activeTabName = tabName;
         this.tabs[prevTab].head.removeAttribute('checked');
         this.tabs[prevTab].head.checked = false;
-        this.tabs[tabID].head.setAttribute('checked', 'checked');
-        this.tabs[tabID].head.checked = true;
+        this.tabs[tabName].head.setAttribute('checked', 'checked');
+        this.tabs[tabName].head.checked = true;
 
         //Update Hash URL
-        __pushHistory(tabID);
+        __pushHistory(tabName);
 
         // Emit change
         this.emit('tab-changed', {
             previous: prevTab,
-            id: tabID,
-            tab: this.tabs[tabID]
+            id: tabName,
+            tab: this.tabs[tabName]
         });
     }
 
@@ -74,114 +132,64 @@ export default class TrinityTab extends EventEmitter {
      * @public
      * @returns {Tab}
      */
-    getActiveTab(){
-        return this.tabs[this.__activeTabID];
+    getActiveTab() {
+        return this.tabs[this.__activeTabName];
     }
 
     /**
      * Reloads content of tab
-     * @param tabID {string || Array<string>}
+     * @param tabName {string || Array<string>}
      */
-    reload(tabID){
-        if(!_.isArray(tabID)){
-            let tab = _.find(this.tabs, (t)=>{
-                return t.id === tabID;
-            });
-            if(tab){
+    reload(tabName) {
+        if (!_.isArray(tabName)) {
+            let tab = this.aliases[tabName] ||
+                _.find(this.tabs, t => t.id === tabName);
+            if (tab) {
                 tab.reloadContent();
             }
         } else {
-            _.each(this.tabs, (t)=>{
-                if(tabID.indexOf(t.id) !== -1){
+            _.each(this.tabs, t => {
+                if (this.aliases[tabName] || ~tabName.indexOf(t.id)) {
                     t.reloadContent();
                 }
             });
         }
     }
 
+
     /**
      * Reload content of all tabs
      */
-    reloadAll(){
-        _.each(this.tabs, (t)=>{
+    reloadAll() {
+        _.each(this.tabs, (t)=> {
             t.reloadContent();
         });
     }
 
-    onLoad(tabID, callback, context){
+    onLoad(tabID, callback, context) {
         this.addListener(tabID, callback, context);
     }
 
 }
 
 /**
- * Initialize TrinityTab wrapper
- * @private
- */
-function _initialize(){
-    //Check which tab to load first
-    let tabID = location.hash.substring(1),
-        activeHead = null;
-
-    if(tabID.length > 0) {
-        activeHead = document.getElementById(tabID);
-    }
-    if(activeHead){
-        activeHead.setAttribute('checked', 'checked');
-    } else {
-        activeHead = _.find(this.heads, (tab)=>{
-            let checked = false;
-            if(_.isUndefined(tab.checked)){
-                checked = !_.isNull(tab.getAttribute('checked'));
-            } else {
-                checked = tab.checked;
-            }
-            return checked;
-        });
-        if(!activeHead){
-            activeHead = this.heads[0];
-        }
-        tabID = activeHead.getAttribute('id');
-        // Replace history string
-        window.history.replaceState(null, tabID, '#'+tabID);
-    }
-    this.__activeTabID = tabID;
-    // Add new Tab to tabs
-    this.tabs[tabID] = new Tab(activeHead, this);
-
-    /** Attach click event Listeners to other heads **/
-    _.map(this.heads, (head)=>{
-        head.addEventListener('click', __handleTabClick.bind(this, head));
-    });
-
-    // Navigation
-    window.addEventListener('popstate', __handleNavigation.bind(this));
-}
-
-/**
  * Handles pop state navigation
  * @private
  */
-function __handleNavigation(e){
-    let tabID = location.hash.substring(1);
-    if(tabID.length > 0) {
-        this.setActiveTab(tabID);
+function __handleNavigation() {
+    let tabName = location.hash.substring(1);
+    if (tabName.length > 0) {
+        this.setActiveTab(tabName);
     }
 }
 
 /**
  * Handles click event on Tab
  * @param head {HTMLElement}
- * @param [e] {Event}
  * @private
  */
-function __handleTabClick(head, e){
-    let tabID = head.getAttribute('id');
-    // If undefined -> Create and Set as Active
-    if(_.isUndefined(this.tabs[tabID])) {
-        this.tabs[tabID] = new Tab(head, this);
-    }
-    this.setActiveTab(tabID);
+function __handleTabClick(head) {
+    this.setActiveTab(head.alias || head.getAttribute('id'));
 }
 
 /**
@@ -189,27 +197,27 @@ function __handleTabClick(head, e){
  * @param newHash
  * @private
  */
-function __pushHistory(newHash){
-    if(newHash !== window.location.hash.substring(1)){
-        window.history.pushState(null, newHash, '#'+newHash);
+function __pushHistory(newHash) {
+    if (newHash !== window.location.hash.substring(1)) {
+        window.history.pushState(null, newHash, '#' + newHash);
     }
 }
-
 
 
 /**
  * Tab class
  */
-export class Tab {
-    constructor(head, parent){
-        this.id = head.getAttribute('id');
+class Tab {
+    constructor(head, parent) {
+        this.name = head.alias || head.id;
         this.head = head;
         this.parent = parent;
         this.root = null;
-        this.forms = [];
+        this.isLoading = false;
+        // this.forms = []; --never used
 
         // Tab body
-        this.bodyElement = document.getElementById(this.id.replace('tab', 'tab-body-'));
+        this.bodyElement = document.getElementById(head.id.replace('tab', 'tab-body-'));
 
         __showLoading(this.bodyElement);
 
@@ -218,14 +226,14 @@ export class Tab {
         this.loadContent();
     }
 
-    loadContent(){
+    loadContent() {
         __requestWidget(this.dataSource, this, null);
     }
 
-    reloadContent(){
+    reloadContent() {
         __showLoading(this.bodyElement);
         this.parent.emit('tab-unload', {
-            id: this.id,
+            id: this.name,
             tab: this,
             element: this.bodyElement
         });
@@ -234,81 +242,108 @@ export class Tab {
     }
 }
 
-function __requestWidget(link, tab, timeout_i, callback){
-    Gateway.get(link, null, function(res){
-        if(res.type !== 'text/html'){
-            throw new Error('Unexpected response!: ', res);
-        }
-        let data = res.text;
 
-        let tmpDiv =  Dom.createDom('div', null, data.trim());
-        tab.root = tmpDiv.children.length === 1 ? tmpDiv.children[0] : tmpDiv;
+function __requestWidget(link, tab, timeout_i, callback) {
+    if (!tab.isLoading) {
+        tab.isLoading = true;
+        Gateway.get(link, null, res => {
+            if (res.type !== 'text/html') {
+                throw new Error('Unexpected response!: ', res);
+            }
+            let data = res.text,
+                tmpDiv = Dom.createDom('div', null, data.trim());
 
-        __hideLoading(tab.bodyElement);
-        tab.bodyElement.appendChild(tab.root);
+            tab.root = tmpDiv.children.length === 1 ? tmpDiv.children[0] : tmpDiv;
 
-        // Dispatch global event
-        // tab doesn't inherit from EventEmitter class, but his parent does
+            __hideLoading(tab.bodyElement);
+            tab.bodyElement.appendChild(tab.root);
 
-        tab.parent.emit('tab-load', {
-            id: tab.id,
-            tab: tab,
-            element: tab.bodyElement
-        });
+            // Dispatch global event
+            // tab doesn't inherit from EventEmitter class, but his parent does
 
-        // Dispatch tabID-specific event
-        tab.parent.emit(tab.id, {
-            tab: tab,
-            element: tab.bodyElement
-        });
-
-        // If id has any content then emit another event
-        let contentID = tab.root.getAttribute('id');
-        if(contentID){
-            tab.parent.emit(contentID, {
+            tab.parent.emit('tab-load', {
+                id: tab.name,
                 tab: tab,
                 element: tab.bodyElement
             });
-        }
-        // IF callback provided
-        if(callback) {
-            callback.call(tab, this.bodyElement);
-        }
-    }, function(error){
-        if(error.timeout){
-            if(timeout_i && timeout_i === MAX_TRY){
-                // TODO: Logger service?
-                console.error('Call for maintenance');
-                tab.parent.emit('error', {message: 'REQUEST TIMED OUT', timeout:true});
-            } else {
-                console.warn('Request timed out, trying again in 2 sec');
-                let id = setTimeout(()=>{
-                    __requestWidget(link, tab, (timeout_i+1) || 1);
-                    clearTimeout(id);
-                }, 2000);
+
+            // Dispatch tabID-specific event
+            tab.parent.emit(tab.name, {
+                tab: tab,
+                element: tab.bodyElement
+            });
+
+            // If id has any content then emit another event
+            let contentID = tab.root.id;
+            if (contentID) {
+                tab.parent.emit(contentID, {
+                    tab: tab,
+                    element: tab.bodyElement
+                });
             }
-        } else {
-            console.error(error);
-            tab.parent.emit('error', error);
-        }
+            // IF callback provided
+            if (callback) {
+                callback.call(tab, this.bodyElement);
+            }
+            tab.isLoading = false;
+        }, error => {
+            if (error.timeout) {
+                if (timeout_i && timeout_i === MAX_TRY) {
+                    // TODO: Logger service?
+                    console.error('Call for maintenance');
+                    tab.parent.emit('error', {message: 'REQUEST TIMED OUT', timeout: true});
+                    __tabNotLoaded(link, tab);
+                } else {
+                    console.warn('Request timed out, trying again in 2 sec');
+                    let id = setTimeout(()=> {
+                        __requestWidget(link, tab, (timeout_i + 1) || 1);
+                        clearTimeout(id);
+                    }, 2000);
+                }
+            } else {
+                console.error(error);
+                tab.parent.emit('error', error);
+                __tabNotLoaded(link, tab);
+            }
+            tab.isLoading = false;
+        });
+    }
+}
+
+function __tabNotLoaded(link, tab) {
+    let wrapper = document.createElement('div'),
+        button = document.createElement('input');
+    button.type = 'submit';
+    button.className = 'button button-primary';
+    button.value = 'Reload';
+
+    wrapper.innerHTML = 'Tab could not be loaded.<br>';
+    wrapper.appendChild(button);
+
+    __hideLoading(tab.bodyElement);
+    tab.bodyElement.appendChild(wrapper);
+    Events.listenOnce(button, 'click', ()=> {
+        tab.bodyElement.removeChild(wrapper);
+        __showLoading(tab.bodyElement);
+        __requestWidget(link, tab, null);
     });
 }
 
 //TODO: loading icon to settings
-function __showLoading(element){
+function __showLoading(element) {
     let loader = element.querySelector('.trinity-tab-loader');
-    if(_.isNull(loader)){
+    if (_.isNull(loader)) {
         let icon = Dom.createDom('i', {'class': 'tiecons tiecons-loading tiecons-rotate font-40'});
-        loader = Dom.createDom('div', {'class':'trinity-tab-loader tab-loader'}, icon);
+        loader = Dom.createDom('div', {'class': 'trinity-tab-loader tab-loader'}, icon);
         element.appendChild(loader);
     } else {
         Dom.classlist.remove(loader, 'display-none');
     }
 }
 
-function __hideLoading(element){
+function __hideLoading(element) {
     let loader = element.querySelector('.trinity-tab-loader');
-    if(loader){
+    if (loader) {
         Dom.classlist.add(loader, 'display-none');
     }
 }
