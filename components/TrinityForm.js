@@ -84,7 +84,7 @@ var TrinityForm = function (_EventEmitter) {
     function TrinityForm(formElement, settings) {
         _classCallCheck(this, TrinityForm);
 
-        var _this = _possibleConstructorReturn(this, (TrinityForm.__proto__ || Object.getPrototypeOf(TrinityForm)).call(this));
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(TrinityForm).call(this));
 
         if (!formElement) {
             throw new Error('Missing "formElement" parameter!');
@@ -165,7 +165,6 @@ var TrinityForm = function (_EventEmitter) {
             if (isSelectType ^ isChangeEvent || !e.target.name) {
                 return;
             }
-
             var inputObj = this.__inputs[e.target.name];
             if (!inputObj) {
                 return;
