@@ -242,7 +242,6 @@ class Tab {
     }
 }
 
-
 function __requestWidget(link, tab, timeout_i, callback) {
     if (!tab.isLoading) {
         tab.isLoading = true;
@@ -330,6 +329,7 @@ function __tabNotLoaded(link, tab) {
 }
 
 //TODO: loading icon to settings
+// TODO @ZbynekFiser what this mean? which settings?
 function __showLoading(element) {
     let loader = element.querySelector('.trinity-tab-loader');
     if (_.isNull(loader)) {
