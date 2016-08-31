@@ -381,10 +381,11 @@ function __requestWidget(link, tab, timeout_i, callback) {
 }
 
 function __tabNotLoaded(link, tab) {
-    var wrapper = document.createElement('div'),
+    let wrapper = document.createElement('div'),
         button = document.createElement('input');
+    wrapper.className = 'tnt-tab-reload-div';
     button.type = 'submit';
-    button.className = 'button button-primary';
+    button.className = 'button button-primary tnt-tab-reload-btn';
     button.value = 'Reload';
 
     wrapper.innerHTML = 'Tab could not be loaded.<br>';
