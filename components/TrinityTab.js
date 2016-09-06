@@ -53,7 +53,7 @@ var TrinityTab = function (_EventEmitter) {
             throw new Error('No "tabHeads" provided or elements with "tab-head" class not found!');
         }
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(TrinityTab).call(this));
+        var _this = _possibleConstructorReturn(this, (TrinityTab.__proto__ || Object.getPrototypeOf(TrinityTab)).call(this));
 
         _this.heads = tabHeads;
         _this.aliases = {};
@@ -191,18 +191,17 @@ var TrinityTab = function (_EventEmitter) {
         value: function reload(tabName) {
             var _this2 = this;
 
-            if (!_lodash2.default.isArray(tabName)) {
-                var tab = this.aliases[tabName] || _lodash2.default.find(this.tabs, function (t) {
-                    return t.id === tabName;
-                });
+            var __reload = function __reload(name) {
+                var tab = _this2.tabs[name];
                 if (tab) {
                     tab.reloadContent();
                 }
+            };
+            if (!_lodash2.default.isArray(tabName)) {
+                __reload(tabName);
             } else {
-                _lodash2.default.each(this.tabs, function (t) {
-                    if (_this2.aliases[tabName] || ~tabName.indexOf(t.id)) {
-                        t.reloadContent();
-                    }
+                _lodash2.default.each(tabName, function (name) {
+                    __reload(name);
                 });
             }
         }

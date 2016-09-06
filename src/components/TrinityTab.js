@@ -141,17 +141,17 @@ export default class TrinityTab extends EventEmitter {
      * @param tabName {string || Array<string>}
      */
     reload(tabName) {
-        if (!_.isArray(tabName)) {
-            let tab = this.aliases[tabName] ||
-                _.find(this.tabs, t => t.id === tabName);
+        let __reload = name =>{
+            let tab = this.tabs[name];
             if (tab) {
                 tab.reloadContent();
             }
+        };
+        if (!_.isArray(tabName)) {
+            __reload(tabName);
         } else {
-            _.each(this.tabs, t => {
-                if (this.aliases[tabName] || ~tabName.indexOf(t.id)) {
-                    t.reloadContent();
-                }
+            _.each(tabName,name=>{
+                __reload(name);
             });
         }
     }
