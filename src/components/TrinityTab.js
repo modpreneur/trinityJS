@@ -313,10 +313,10 @@ function __tabNotLoaded(link, tab) {
     let wrapper = document.createElement('div'),
         button = document.createElement('input');
     button.type = 'submit';
-    button.className = 'button button-primary';
+    button.className = 'button button-primary trinityJS-reload-tab-button';
     button.value = 'Reload';
 
-    wrapper.innerHTML = 'Tab could not be loaded.<br>';
+    wrapper.innerHTML = '<p class="trinityJS-reload-tab-text">We are sorry, but this tab could not be loaded because of server side issue</p>';
     wrapper.appendChild(button);
 
     __hideLoading(tab.bodyElement);
