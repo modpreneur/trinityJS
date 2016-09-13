@@ -16,7 +16,7 @@ import Dom from '../utils/Dom';
  *   }}
  */
 const defaultSettings = {
-    button : { // Defines which classes add to active button in which state
+    button: { // Defines which classes add to active button in which state
         loading: 'trinity-form-loading',
         success: 'trinity-form-success',
         timeout: 'trinity-form-timeout',
@@ -58,8 +58,8 @@ export default class TrinityForm extends EventEmitter {
 
         //Main initialize
         // Create inputs
-        _.each(this.form, (el)=>{
-            if(el.name && !~INPUT_TYPE_FILTER.indexOf(el.type)){
+        _.each(this.form, (el)=> {
+            if (el.name && !~INPUT_TYPE_FILTER.indexOf(el.type)) {
                 this.__inputs[el.name] = new FormInput(el);
             }
         });
@@ -77,23 +77,22 @@ export default class TrinityForm extends EventEmitter {
     }
 
 
-
     /**
      * Sets new form state
      *  - add state classes to button
      *  - emit "state-change" event
      * @param newState
      */
-    set state(newState){
-        if(newState === this.__state){
+    set state(newState) {
+        if (newState === this.__state) {
             return;
         }
         let oldState = this.__state;
         this.__state = newState;
 
-        if(newState === 'error' || newState === 'ready'){
+        if (newState === 'error' || newState === 'ready') {
             // For all btns
-            _.each(this.buttons, (btn)=>{
+            _.each(this.buttons, (btn)=> {
                 Dom.classlist.removeAll(btn, this.settings.button[oldState].split(' '));
                 Dom.classlist.addAll(btn, this.settings.button[newState].split(' '));
             });
@@ -103,7 +102,7 @@ export default class TrinityForm extends EventEmitter {
             Dom.classlist.addAll(this.activeBtn, this.settings.button[newState].split(' '));
         }
 
-        if(newState === 'error'){
+        if (newState === 'error') {
             this.lock();
         }
 
@@ -117,21 +116,21 @@ export default class TrinityForm extends EventEmitter {
     /**
      * returns actual state of form
      */
-    get state(){
+    get state() {
         return this.__state;
     }
 
     /**
      * Disable all forms submit inputs
      */
-    lock(){
+    lock() {
         _.each(this.buttons, Dom.disable);
     }
 
     /**
      * Enable all forms submit inputs
      */
-    unlock(){
+    unlock() {
         return this.state !== 'loading' && !!_.each(this.buttons, Dom.enable);
     }
 
@@ -139,23 +138,23 @@ export default class TrinityForm extends EventEmitter {
      * Main function which runs validation
      * @param e {Event}
      */
-    onInputChange(e){
+    onInputChange(e) {
         // Only elements with name can be tested
 
         // Filter
-        let isSelectType = !!~e.target.type.indexOf('select'),
+        let isSelectType = e.target.type ? !!~e.target.type.indexOf('select') : false, //tesxtarea does not have type prop
             isChangeEvent = e.type === 'change'
-        ;
+            ;
 
-        if(isSelectType ^ isChangeEvent || !e.target.name){
+        if (isSelectType ^ isChangeEvent || !e.target.name) {
             return;
         }
         let inputObj = this.__inputs[e.target.name];
-        if(!inputObj){
+        if (!inputObj) {
             return;
         }
         inputObj.errors = _.filter(inputObj.errors, (err) => {
-            if(!_.isFunction(err.validate) || err.validate(inputObj.getValue(), inputObj.element)){
+            if (!_.isFunction(err.validate) || err.validate(inputObj.getValue(), inputObj.element)) {
                 Dom.removeNode(err.element);
                 return false;
             }
@@ -171,10 +170,10 @@ export default class TrinityForm extends EventEmitter {
      * @param validator
      * @returns {boolean}
      */
-    addRule(element, validator){
+    addRule(element, validator) {
         return;
         let inputObj = this.__findInput(element);
-        if(!inputObj){
+        if (!inputObj) {
             if (process.env.NODE_ENV !== 'production') {
                 throw new Error('Form does not have input ' + (_.isString(element) ? 'with name ' : '') + element + '.');
             }
@@ -192,7 +191,7 @@ export default class TrinityForm extends EventEmitter {
      */
     addError(element, error, ...args) {
         let inputObj = this.__findInput(element);
-        if(!inputObj){
+        if (!inputObj) {
             if (process.env.NODE_ENV !== 'production') {
                 throw new Error('Form does not have input ' + (_.isString(element) ? 'with name ' : '') + element + '.');
             }
@@ -215,9 +214,9 @@ export default class TrinityForm extends EventEmitter {
      * @param [errorId] {string}
      * @returns {boolean}
      */
-    hasError(element, errorId){
+    hasError(element, errorId) {
         let inputObj = this.__findInput(element);
-        if(!inputObj){
+        if (!inputObj) {
             if (process.env.NODE_ENV !== 'production') {
                 throw new Error('Form does not have input ' + (_.isString(element) ? 'with name ' : '') + element + '.');
             }
@@ -234,16 +233,16 @@ export default class TrinityForm extends EventEmitter {
      * @param [errorId] {string}
      * @returns {boolean}
      */
-    removeError(element, errorId){
+    removeError(element, errorId) {
         let inputObj = this.__findInput(element);
-        if(!inputObj){
+        if (!inputObj) {
             if (process.env.NODE_ENV !== 'production') {
                 throw new Error('Form does not have input ' + (_.isString(element) ? 'with name ' : '') + element + '.');
             }
             return false;
         }
 
-        if(errorId) {
+        if (errorId) {
             _.remove(inputObj.errors, err => {
                 return err.id === errorId && !!Dom.removeNode(err.element);
             });
@@ -263,9 +262,9 @@ export default class TrinityForm extends EventEmitter {
      * @param [args]
      * @returns {*} id or false if element was not found
      */
-    setMessage(element, message, ...args){
+    setMessage(element, message, ...args) {
         let inputObj = this.__findInput(element);
-        if(!inputObj){
+        if (!inputObj) {
             if (process.env.NODE_ENV !== 'production') {
                 throw new Error('Form does not have input ' + (_.isString(element) ? 'with name ' : '') + element + '.');
             }
@@ -285,9 +284,9 @@ export default class TrinityForm extends EventEmitter {
      * @param element {HTMLElement || string} - name of input or input itself
      * @returns {*}
      */
-    removeMessage(element){
+    removeMessage(element) {
         let inputObj = this.__findInput(element);
-        if(!inputObj){
+        if (!inputObj) {
             if (process.env.NODE_ENV !== 'production') {
                 throw new Error('Form does not have input ' + (_.isString(element) ? 'with name ' : '') + element + '.');
             }
@@ -300,8 +299,8 @@ export default class TrinityForm extends EventEmitter {
      * Validates if all errors are removed from form
      * @public
      */
-    validate(){
-        if(!_.some(this.__inputs, input => !input.isValid())){
+    validate() {
+        if (!_.some(this.__inputs, input => !input.isValid())) {
             this.unlock();
             this.state = 'ready';
             return true;
@@ -315,7 +314,7 @@ export default class TrinityForm extends EventEmitter {
      * @Note - no event is triggered
      * @param e
      */
-    submit(e){
+    submit(e) {
         /** catch button with focus first **/
         this.activeBtn = document.activeElement.type === 'button' ? document.activeElement : this.buttons[0];
         /** Continue **/
@@ -328,7 +327,7 @@ export default class TrinityForm extends EventEmitter {
         /** Parse and send Data **/
         let data = IS_FORM_DATA ? new FormData(this.form) : __parseSymfonyForm(this.form, this.activeBtn),
             url = this.form.action.trim(),
-            method = (data.hasOwnProperty('_method')? data['_method'] : this.form.method).toUpperCase(),
+            method = (data.hasOwnProperty('_method') ? data['_method'] : this.form.method).toUpperCase(),
             submitEvent = new TrinityEvent({
                 url,
                 method,
@@ -338,7 +337,7 @@ export default class TrinityForm extends EventEmitter {
 
         this.emit('submit', submitEvent);
 
-        if(submitEvent.defaultPrevented){
+        if (submitEvent.defaultPrevented) {
             return;
         }
 
@@ -349,22 +348,22 @@ export default class TrinityForm extends EventEmitter {
             })
             .timeout(this.settings.requestTimeout)
             .send(data)
-            .on('progress', (e)=>{
+            .on('progress', (e)=> {
                 this.emit('progress', e);
             });
 
         this.emit('before-request', req);
 
-        req.end((err, response)=>{
+        req.end((err, response)=> {
             // Redirect ?
-            if(response && response.status === 302) {
+            if (response && response.status === 302) {
                 let redirectTo = response.body.location;
                 // Do callback and then redirect
-                if(this.__successHandler(response) === false){
+                if (this.__successHandler(response) === false) {
                     return false;
                 }
                 // Redirect
-                if(!redirectTo && process.env.NODE_ENV !== 'production'){
+                if (!redirectTo && process.env.NODE_ENV !== 'production') {
                     throw new Error('Missing "location" attribute!');
                 }
 
@@ -372,7 +371,7 @@ export default class TrinityForm extends EventEmitter {
                 return;
             }
             // Error ?
-            if(err){
+            if (err) {
                 return this.__errorHandler(err);
             }
 
@@ -386,7 +385,7 @@ export default class TrinityForm extends EventEmitter {
      * @param [context] {Object} - this argument
      * @returns {TrinityForm}
      */
-    success(callback, context){
+    success(callback, context) {
         this.addListener('success', callback, context);
         return this; // for chaining
     }
@@ -397,7 +396,7 @@ export default class TrinityForm extends EventEmitter {
      * @param [context] {Object} - this argument
      * @returns {TrinityForm}
      */
-    error(callback, context){
+    error(callback, context) {
         this.addListener('error', callback, context);
         return this; // for chaining
     }
@@ -409,7 +408,7 @@ export default class TrinityForm extends EventEmitter {
      * @param context {object}
      * @returns {TrinityForm}
      */
-    on(eventName, callback, context){
+    on(eventName, callback, context) {
         this.addListener.apply(this, arguments);
     }
 
@@ -417,19 +416,19 @@ export default class TrinityForm extends EventEmitter {
      * Force set submit buttons
      * @param buttons {Array<HTMLElement>}
      */
-    setSubmitButtons(buttons){
+    setSubmitButtons(buttons) {
         /** Add ready class to all buttons **/
         let btnReadyClass = this.settings.button['ready'].split(' ');
-        _.each(this.buttons, (btn)=>{
+        _.each(this.buttons, (btn)=> {
             Dom.classlist.removeAll(btn, btnReadyClass);
         });
         this.buttons = buttons;
-        _.each(this.buttons, (btn)=>{
+        _.each(this.buttons, (btn)=> {
             Dom.classlist.addAll(btn, btnReadyClass);
         });
     }
 
-    detach(){
+    detach() {
         // Main listener
         this.unlistenSubmit();
         this.unlistenValueChange();
@@ -438,7 +437,7 @@ export default class TrinityForm extends EventEmitter {
         this.__inputs = null;
     }
 
-    __findInput(element){
+    __findInput(element) {
         return this.__inputs[_.isString(element) ? element : element.name];
     }
 
@@ -447,14 +446,14 @@ export default class TrinityForm extends EventEmitter {
      * @param response {Object}
      * @private
      */
-    __successHandler(response){
+    __successHandler(response) {
         let event = new TrinityEvent(response);
 
         this.state = 'success';
         this.emit('success', event);
 
         this.unlock();
-        let id = setTimeout(()=>{
+        let id = setTimeout(()=> {
             this.state = 'ready';
             clearTimeout(id);
         }, this.settings.successTimeout);
@@ -468,10 +467,10 @@ export default class TrinityForm extends EventEmitter {
      * @private
      * @returns {boolean}
      */
-    __errorHandler(error){
-        if(error.timeout){
+    __errorHandler(error) {
+        if (error.timeout) {
             this.state = 'timeout';
-            let id = setTimeout(()=>{
+            let id = setTimeout(()=> {
                 this.unlock();
                 this.state = 'ready';
                 clearTimeout(id);
@@ -497,9 +496,9 @@ export default class TrinityForm extends EventEmitter {
  * @returns {{message: *}|*}
  * @private
  */
-function __createMessage(msg, template, prefix, args){
-    msg = _.isString(msg) ? { message: msg } : msg;
-    msg.id = msg.id || (prefix + (''+(Math.random() * 100)).substr(3,4));
+function __createMessage(msg, template, prefix, args) {
+    msg = _.isString(msg) ? {message: msg} : msg;
+    msg.id = msg.id || (prefix + ('' + (Math.random() * 100)).substr(3, 4));
 
     // Create message
     msg.element = Dom.htmlToDocumentFragment(msg.isHtml ?
@@ -531,57 +530,59 @@ const nameRegExp = /\w+/g;
  * @param button {HTMLElement}
  * @returns {{object}}
  */
-function __parseSymfonyForm(form, button){
+function __parseSymfonyForm(form, button) {
     var data = {},
         formLength = form.length;
     /** Go through all inputs in form */
-    for(var i=0;i< formLength; i++){
-        if(!form[i].name || form[i].name.length < 1){
+    for (var i = 0; i < formLength; i++) {
+        if (!form[i].name || form[i].name.length < 1) {
             continue;
         }
-        if((!form[i].value || form[i].value.length < 1) && form[i].type !== 'submit' ){
+        if ((!form[i].value || form[i].value.length < 1) && form[i].type !== 'submit') {
             continue; // No need to do any work if there are no values
         }
 
-        switch(form[i].type){
+        switch (form[i].type) {
             case 'submit' : {
-                if(form[i] === button){
+                if (form[i] === button) {
                     break;
                 }
                 continue;
             }
             case 'radio' :
-            case 'checkbox' :{
-                if(!form[i].checked){
+            case 'checkbox' : {
+                if (!form[i].checked) {
                     continue;
                 }
                 break;
             }
-            default:break;
+            default:
+                break;
         }
 
         // Init necessary variables
         let isArray = ~form[i].name.indexOf('[]'),
             parsed = form[i].name.match(nameRegExp),
             reference = data,
-            last = parsed.length -1;
+            last = parsed.length - 1;
         /** Evaluate parsed reference object */
-        for(let j=0;j<=last;j++){
-            if(!reference[parsed[j]]){
-                if(j === last){
-                    if(isArray){
+        for (let j = 0; j <= last; j++) {
+            if (!reference[parsed[j]]) {
+                if (j === last) {
+                    if (isArray) {
                         reference[parsed[j]] = [];
                         reference[parsed[j]].push(form[i].value);
                     } else {
                         reference[parsed[j]] = form[i].value;
                     }
-                } else { /** Not last -> create object */
-                reference[parsed[j]] = {};
+                } else {
+                    /** Not last -> create object */
+                    reference[parsed[j]] = {};
                     reference = reference[parsed[j]];
                 }
             } else {
-                if(j === last) {
-                    if(isArray){
+                if (j === last) {
+                    if (isArray) {
                         reference[parsed[j]].push(form[i].value);
                     } else {
                         reference[parsed[j]] = form[i].value;

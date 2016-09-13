@@ -159,8 +159,9 @@ var TrinityForm = function (_EventEmitter) {
             // Only elements with name can be tested
 
             // Filter
-            var isSelectType = !!~e.target.type.indexOf('select'),
-                isChangeEvent = e.type === 'change';
+            var isSelectType = e.target.type ? !!~e.target.type.indexOf('select') : false,
+                //tesxtarea does not have type prop
+            isChangeEvent = e.type === 'change';
 
             if (isSelectType ^ isChangeEvent || !e.target.name) {
                 return;
