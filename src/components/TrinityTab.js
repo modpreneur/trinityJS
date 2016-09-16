@@ -141,7 +141,7 @@ export default class TrinityTab extends EventEmitter {
      * @param tabName {string || Array<string>}
      */
     reload(tabName) {
-        let __reload = name =>{
+        let __reload = name => {
             let tab = this.tabs[name];
             if (tab) {
                 tab.reloadContent();
@@ -150,7 +150,7 @@ export default class TrinityTab extends EventEmitter {
         if (!_.isArray(tabName)) {
             __reload(tabName);
         } else {
-            _.each(tabName,name=>{
+            _.each(tabName, name=> {
                 __reload(name);
             });
         }
@@ -317,7 +317,9 @@ function __tabNotLoaded(link, tab) {
     button.value = 'Reload';
 
     wrapper.innerHTML = '<p class="trinityJS-reload-tab-text">We are sorry, but this tab could not be loaded because of server side issue.</p>';
+    wrapper.className = 'trinityJS-reload-tab';
     wrapper.appendChild(button);
+
 
     __hideLoading(tab.bodyElement);
     tab.bodyElement.appendChild(wrapper);
