@@ -7,3 +7,6 @@ Trinity js is a lightweight javascript "framework" based on new ES6/2015 javascr
 
 ### Why it is different?
 On the market there are already many awesome and very well maintained frameworks. So why create new one? Well we asked ourself this question many and many times. 
+
+### How compile ECMAScript 6 to ECMAScript 5
+Run <code>npm run build</code> in project root.

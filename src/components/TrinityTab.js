@@ -316,7 +316,7 @@ function __tabNotLoaded(link, tab) {
     button.className = 'button button-primary trinityJS-reload-tab-button';
     button.value = 'Reload';
 
-    wrapper.innerHTML = '<p class="trinityJS-reload-tab-text">We are sorry, but this tab could not be loaded because of server side issue.</p>';
+    wrapper.innerHTML = '<p class="trinityJS-reload-tab-text">We are sorry, something went wrong. Please reload this tab. If the problem persist, contact us.</p>';
     wrapper.className = 'trinityJS-reload-tab';
     wrapper.appendChild(button);
 
