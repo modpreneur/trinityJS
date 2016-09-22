@@ -135,14 +135,14 @@ var ErrorService = exports.ErrorService = function () {
         }
 
         /**
-         * 
+         *
          * @param message
          */
 
     }, {
         key: 'dataError',
         value: function dataError(message) {
-            messageService(message || 'We\'r sorry, but page was not loaded properly and some parts may not work.', 'w');
+            messageService(message || 'We\'r sorry, but page was not loaded properly and some parts may not work.', 'warning');
             throw new Error('Data Error');
         }
 
