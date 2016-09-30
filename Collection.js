@@ -117,6 +117,13 @@ var Collection = function () {
             }
         }
     }, {
+        key: 'removeAll',
+        value: function removeAll() {
+            _lodash2.default.each(this.children, function (child) {
+                child.detach();child.remove();
+            });
+        }
+    }, {
         key: 'detach',
         value: function detach() {
             _lodash2.default.each(this.children, function (child) {
