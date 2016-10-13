@@ -56,12 +56,13 @@ var TrinityTab = function (_EventEmitter) {
         var _this = _possibleConstructorReturn(this, (TrinityTab.__proto__ || Object.getPrototypeOf(TrinityTab)).call(this));
 
         _this.heads = tabHeads;
-        _this.aliases = {};
+        _this.aliasIdPairs = { alToId: {}, idToAl: {} };
         // find heads with aliases
         _lodash2.default.each(tabHeads, function (head) {
             head.alias = head.getAttribute('data-alias'); // sets custom attribute, for not having to use getAttribute anny later
             if (head.alias) {
-                _this.aliases[head.alias] = head;
+                _this.aliasIdPairs.alToId[head.alias] = head.id;
+                _this.aliasIdPairs.idToAl[head.id] = head.alias;
             }
         });
 
@@ -73,13 +74,18 @@ var TrinityTab = function (_EventEmitter) {
             activeHead = null;
 
         if (tabName.length > 0) {
-            if (_this.aliases[tabName]) {
-                activeHead = _this.aliases[tabName];
+            if (_this.aliasIdPairs.alToId[tabName]) {
+                (function () {
+                    var tabId = _this.aliasIdPairs.alToId[tabName];
+                    activeHead = _lodash2.default.find(_this.heads, function (head) {
+                        return head.id === tabId;
+                    });
+                })();
             } else {
                 activeHead = _lodash2.default.find(_this.heads, function (head) {
                     return head.id === tabName;
                 });
-                if (activeHead.alias) {
+                if (activeHead && activeHead.alias) {
                     // if head have alias, replace hash and tabName to it
                     tabName = activeHead.alias;
                     window.location.hash = '#' + activeHead.alias;
@@ -106,9 +112,9 @@ var TrinityTab = function (_EventEmitter) {
             // Replace history string
             window.history.replaceState(null, tabName, '#' + tabName);
         }
-        _this.__activeTabName = tabName;
+        _this.__activeTabName = activeHead.id;
         // Add new Tab to tabs
-        _this.tabs[tabName] = new Tab(activeHead, _this);
+        _this.tabs[activeHead.id] = new Tab(activeHead, _this);
 
         /** Attach click event Listeners to other heads **/
         _lodash2.default.map(_this.heads, function (head) {
@@ -131,10 +137,11 @@ var TrinityTab = function (_EventEmitter) {
     _createClass(TrinityTab, [{
         key: 'setActiveTab',
         value: function setActiveTab(tabName) {
-            tabName = tabName || this.heads[0].alias || this.heads[0].id;
+            tabName = tabName ? this.aliasIdPairs.alToId[tabName] || tabName : this.heads[0].id;
+
             // If undefined -> Create and Set as Active
             if (!this.tabs[tabName]) {
-                var head = this.aliases[tabName] || _lodash2.default.find(this.heads, function (el) {
+                var head = _lodash2.default.find(this.heads, function (el) {
                     return el.id === tabName;
                 });
                 if (!head) {
@@ -158,7 +165,7 @@ var TrinityTab = function (_EventEmitter) {
             this.tabs[tabName].head.checked = true;
 
             //Update Hash URL
-            __pushHistory(tabName);
+            __pushHistory(this.aliasIdPairs.idToAl[tabName] || tabName);
 
             // Emit change
             this.emit('tab-changed', {
@@ -191,6 +198,7 @@ var TrinityTab = function (_EventEmitter) {
         value: function reload(tabName) {
             var _this2 = this;
 
+            tabName = this.aliasIdPairs.alToId[tabName] || tabName;
             var __reload = function __reload(name) {
                 var tab = _this2.tabs[name];
                 if (tab) {
@@ -247,7 +255,7 @@ function __handleNavigation() {
  * @private
  */
 function __handleTabClick(head) {
-    this.setActiveTab(head.alias || head.getAttribute('id'));
+    this.setActiveTab(head.getAttribute('id'));
 }
 
 /**
@@ -270,6 +278,7 @@ var Tab = function () {
         _classCallCheck(this, Tab);
 
         this.name = head.alias || head.id;
+        this.id = head.id;
         this.head = head;
         this.parent = parent;
         this.root = null;
@@ -296,7 +305,7 @@ var Tab = function () {
         value: function reloadContent() {
             __showLoading(this.bodyElement);
             this.parent.emit('tab-unload', {
-                id: this.name,
+                id: this.id,
                 tab: this,
                 element: this.bodyElement
             });
@@ -329,7 +338,7 @@ function __requestWidget(link, tab, timeout_i, callback) {
             // tab doesn't inherit from EventEmitter class, but his parent does
 
             tab.parent.emit('tab-load', {
-                id: tab.name,
+                id: tab.id,
                 tab: tab,
                 element: tab.bodyElement
             });
