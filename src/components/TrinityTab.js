@@ -125,6 +125,7 @@ export default class TrinityTab extends EventEmitter {
         this.emit('tab-changed', {
             previous: prevTab,
             id: tabName,
+            alias: this.aliasIdPairs.idToAl[tabName],
             tab: this.tabs[tabName]
         });
     }
@@ -213,7 +214,7 @@ function __pushHistory(newHash) {
  */
 class Tab {
     constructor(head, parent) {
-        this.name = head.alias || head.id;
+        this.alias = head.alias;
         this.id = head.id;
         this.head = head;
         this.parent = parent;
@@ -239,6 +240,7 @@ class Tab {
         __showLoading(this.bodyElement);
         this.parent.emit('tab-unload', {
             id: this.id,
+            alias: this.alias,
             tab: this,
             element: this.bodyElement
         });
@@ -267,6 +269,7 @@ function __requestWidget(link, tab, timeout_i, callback) {
 
             tab.parent.emit('tab-load', {
                 id: tab.id,
+                alias: tab.alias,
                 tab: tab,
                 element: tab.bodyElement
             });
