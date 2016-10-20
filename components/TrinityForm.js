@@ -668,7 +668,7 @@ function serializeFrom(form, button) {
         }
 
         return isValid;
-    }).each(form, function (el) {
+    }).each(function (el) {
         return formData.append(el.name, el.value);
     });
     return formData;

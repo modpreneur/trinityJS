@@ -546,7 +546,7 @@ function serializeFrom(form, button){
         }
 
         return isValid;
-    }).each(form, el => formData.append(el.name, el.value));
+    }).each(el => formData.append(el.name, el.value));
     return formData;
 }
 
