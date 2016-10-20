@@ -32,7 +32,7 @@ var isFroala = 'none';
  * Created by rockuo on 24.8.16.
  */
 function startFroala(containers, froalaBundlePath) {
-    var callback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : function () {};
+    var callback = arguments.length <= 2 || arguments[2] === undefined ? function () {} : arguments[2];
 
     var url = froalaBundlePath;
     if (!url) {

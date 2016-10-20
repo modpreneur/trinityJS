@@ -54,7 +54,7 @@ var defaultSettings = {
 
 var Collection = function () {
     function Collection(element) {
-        var globalOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+        var globalOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
         var prototypeData = arguments[2];
         var layer = arguments[3];
 

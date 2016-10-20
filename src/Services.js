@@ -4,7 +4,6 @@
 'use strict';
 
 import Dom from './utils/Dom.js';
-import _ from 'lodash';
 
 /**
  * Flash messages
@@ -20,7 +19,9 @@ export function messageService(message, type) {
         box = document.getElementById('flashMessages');
 
     if (!ajaxInput || !ajaxAlert) {
+        /*eslint-disable*/
         console.log('MESSAGE', message);
+        /*eslint-enable*/
         alert(message);
         return;
     }
@@ -31,25 +32,21 @@ export function messageService(message, type) {
 
     let iconClass = '';
     switch (type) {
-        case 'success':
-        {
+        case 'success': {
             iconClass = 'trinity trinity-ok';
         }
             break;
-        case 'warning':
-        {
+        case 'warning': {
             iconClass = 'trinity trinity-warning';
         }
             break;
         case 'error':
-        case 'danger':
-        {
+        case 'danger': {
             type = 'danger';
             iconClass = 'tiecons tiecons-exclamation-mark-circle';
         }
             break;
-        default :
-        {
+        default : {
             iconClass = 'trinity trinity-info';
         }
             break;

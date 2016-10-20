@@ -143,8 +143,7 @@ export default class TrinityForm extends EventEmitter {
 
         // Filter
         let isSelectType = e.target.type ? !!~e.target.type.indexOf('select') : false, //tesxtarea does not have type prop
-            isChangeEvent = e.type === 'change'
-            ;
+            isChangeEvent = e.type === 'change';
 
         if (isSelectType ^ isChangeEvent || !e.target.name) {
             return;
@@ -163,6 +162,7 @@ export default class TrinityForm extends EventEmitter {
         this.validate();
     }
 
+    /*eslint-disable*/
     /**
      * TODO: feature
      * @notImplemented
@@ -171,16 +171,17 @@ export default class TrinityForm extends EventEmitter {
      * @returns {boolean}
      */
     addRule(element, validator) {
-        return;
-        let inputObj = this.__findInput(element);
-        if (!inputObj) {
-            if (process.env.NODE_ENV !== 'production') {
-                throw new Error('Form does not have input ' + (_.isString(element) ? 'with name ' : '') + element + '.');
-            }
-            return false;
-        }
-        return !!inputObj.rules.push(validator);
+        // return;
+        // let inputObj = this.__findInput(element);
+        // if (!inputObj) {
+        //     if (process.env.NODE_ENV !== 'production') {
+        //         throw new Error('Form does not have input ' + (_.isString(element) ? 'with name ' : '') + element + '.');
+        //     }
+        //     return false;
+        // }
+        // return !!inputObj.rules.push(validator);
     }
+    /*eslint-enable*/
 
     /**
      * Adds new error to TrinityForm instance
@@ -223,7 +224,7 @@ export default class TrinityForm extends EventEmitter {
             return false;
         }
         return errorId ?
-            _.some(inputObj.errors, err => err.id === errorKey)
+            _.some(inputObj.errors, err => err.id === errorId)
             : inputObj.errors.length > 0;
     }
 
@@ -325,7 +326,8 @@ export default class TrinityForm extends EventEmitter {
         this.state = 'loading';
 
         /** Parse and send Data **/
-        let data = IS_FORM_DATA ? new FormData(this.form) : __parseSymfonyForm(this.form, this.activeBtn),
+        let data = IS_FORM_DATA ?
+                serializeFrom(this.form, this.activeBtn) : __parseSymfonyForm(this.form, this.activeBtn),
             url = this.form.action.trim(),
             method = (data.hasOwnProperty('_method') ? data['_method'] : this.form.method).toUpperCase(),
             submitEvent = new TrinityEvent({
@@ -408,7 +410,9 @@ export default class TrinityForm extends EventEmitter {
      * @param context {object}
      * @returns {TrinityForm}
      */
+    /*eslint-disable*/
     on(eventName, callback, context) {
+    /*eslint-enable*/
         this.addListener.apply(this, arguments);
     }
 
@@ -474,7 +478,7 @@ export default class TrinityForm extends EventEmitter {
                 this.unlock();
                 this.state = 'ready';
                 clearTimeout(id);
-            }, this.settings.timeoutTimeout)
+            }, this.settings.timeoutTimeout);
         } else {
             this.state = 'error';
         }
@@ -516,6 +520,35 @@ function __createMessage(msg, template, prefix, args) {
  * @type {RegExp}
  */
 const nameRegExp = /\w+/g;
+
+
+function serializeFrom(form, button){
+    let formData = new FormData();
+    _(form).filter(el => {
+
+        if(!el.name){
+            return false;
+        }
+
+        let isValid = false;
+
+        switch (el.type) {
+            case 'submit' : {
+                isValid = el === button;
+            } break;
+            case 'radio' :
+            case 'checkbox' : {
+                isValid = el.checked;
+            } break;
+            default: {
+                isValid = el.value && el.value.length !== 0;
+            } break;
+        }
+
+        return isValid;
+    }).each(form, el => formData.append(el.name, el.value));
+    return formData;
+}
 
 /**
  * Parse form inputs and create json object according symfony name specifications

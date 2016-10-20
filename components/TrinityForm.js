@@ -180,6 +180,7 @@ var TrinityForm = function (_EventEmitter) {
             this.validate();
         }
 
+        /*eslint-disable*/
         /**
          * TODO: feature
          * @notImplemented
@@ -190,17 +191,18 @@ var TrinityForm = function (_EventEmitter) {
 
     }, {
         key: 'addRule',
-        value: function addRule(element, validator) {
-            return;
-            var inputObj = this.__findInput(element);
-            if (!inputObj) {
-                if (process.env.NODE_ENV !== 'production') {
-                    throw new Error('Form does not have input ' + (_lodash2.default.isString(element) ? 'with name ' : '') + element + '.');
-                }
-                return false;
-            }
-            return !!inputObj.rules.push(validator);
-        }
+        value: function addRule(element, validator) {}
+        // return;
+        // let inputObj = this.__findInput(element);
+        // if (!inputObj) {
+        //     if (process.env.NODE_ENV !== 'production') {
+        //         throw new Error('Form does not have input ' + (_.isString(element) ? 'with name ' : '') + element + '.');
+        //     }
+        //     return false;
+        // }
+        // return !!inputObj.rules.push(validator);
+
+        /*eslint-enable*/
 
         /**
          * Adds new error to TrinityForm instance
@@ -253,7 +255,7 @@ var TrinityForm = function (_EventEmitter) {
                 return false;
             }
             return errorId ? _lodash2.default.some(inputObj.errors, function (err) {
-                return err.id === errorKey;
+                return err.id === errorId;
             }) : inputObj.errors.length > 0;
         }
 
@@ -380,7 +382,7 @@ var TrinityForm = function (_EventEmitter) {
             this.state = 'loading';
 
             /** Parse and send Data **/
-            var data = IS_FORM_DATA ? new FormData(this.form) : __parseSymfonyForm(this.form, this.activeBtn),
+            var data = IS_FORM_DATA ? serializeFrom(this.form, this.activeBtn) : __parseSymfonyForm(this.form, this.activeBtn),
                 url = this.form.action.trim(),
                 method = (data.hasOwnProperty('_method') ? data['_method'] : this.form.method).toUpperCase(),
                 submitEvent = new _TrinityEvent2.default({
@@ -464,10 +466,12 @@ var TrinityForm = function (_EventEmitter) {
          * @param context {object}
          * @returns {TrinityForm}
          */
+        /*eslint-disable*/
 
     }, {
         key: 'on',
         value: function on(eventName, callback, context) {
+            /*eslint-enable*/
             this.addListener.apply(this, arguments);
         }
 
@@ -636,6 +640,39 @@ function __createMessage(msg, template, prefix, args) {
  * @type {RegExp}
  */
 var nameRegExp = /\w+/g;
+
+function serializeFrom(form, button) {
+    var formData = new FormData();
+    (0, _lodash2.default)(form).filter(function (el) {
+
+        if (!el.name) {
+            return false;
+        }
+
+        var isValid = false;
+
+        switch (el.type) {
+            case 'submit':
+                {
+                    isValid = el === button;
+                }break;
+            case 'radio':
+            case 'checkbox':
+                {
+                    isValid = el.checked;
+                }break;
+            default:
+                {
+                    isValid = el.value && el.value.length !== 0;
+                }break;
+        }
+
+        return isValid;
+    }).each(form, function (el) {
+        return formData.append(el.name, el.value);
+    });
+    return formData;
+}
 
 /**
  * Parse form inputs and create json object according symfony name specifications
