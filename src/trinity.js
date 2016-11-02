@@ -6,7 +6,6 @@
 import App from './App';
 import Controller from './Controller';
 import Router from './Router';
-import Debug from './Debug';
 import * as Services from './Services';
 import Gateway from './Gateway';
 import Store from './Store';
@@ -22,7 +21,6 @@ export default {
     App,
     Controller,
     Router,
-    Debug,
 
     // standalone utils
     Gateway,

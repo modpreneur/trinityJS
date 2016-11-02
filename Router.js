@@ -11,21 +11,17 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _Debug = require('./Debug');
-
-var _Debug2 = _interopRequireDefault(_Debug);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
  * Private help RegExpressions
  * @type {RegExp}
  */
-var optionalParam = /\((.*?)\)/g;
-var namedParam = /(\(\?)?:\w+/g;
-var splatParam = /\*\w+/g;
-var escapeRegExp = /[\-{}\[\]+?.,\\\^$|#\s]/g;
-var paramsRegExp = /:\w+/g;
+var optionalParam = /\((.*?)\)/g,
+    namedParam = /(\(\?)?:\w+/g,
+    splatParam = /\*\w+/g,
+    escapeRegExp = /[\-{}\[\]+?.,\\\^$|#\s]/g,
+    paramsRegExp = /:\w+/g;
 
 /**
  * Takes routes and create regular expression for each
@@ -45,7 +41,7 @@ function Router(routes) {
             if (path.indexOf('/') > 1) {
                 console.warn('Route should start with "/" char. Or should be index page "(/)". It can cause unexpected behaviour!', route);
             }
-            route.regx = _modifyRouteRegx(route.regx);
+            route.regx = __modifyRouteRegx(route.regx);
             return route;
         }, this);
     }
@@ -64,7 +60,7 @@ var prefixRegExp = '(?:\/\w+)*';
  * @returns {RegExp}
  * @private
  */
-function _modifyRouteRegx(regx) {
+function __modifyRouteRegx(regx) {
     var source = regx.source;
     var start = source.indexOf('^') !== 0 ? 0 : 1;
     return new RegExp(prefixRegExp + source.substring(start));
@@ -77,10 +73,13 @@ function _modifyRouteRegx(regx) {
  */
 Router.prototype.findController = function findController(route) {
     route = route || window.location.pathname;
-    var data = null;
-    var c = _lodash2.default.find(this.routes, function (el) {
-        var cache = el.regx.exec(route);
-        if (!!cache) {
+    var data = null,
+        cache = void 0,
+        controllerInfo = void 0;
+
+    controllerInfo = _lodash2.default.find(this.routes, function (el) {
+        cache = el.regx.exec(route);
+        if (cache) {
             data = cache;
             return true;
         }
@@ -88,12 +87,12 @@ Router.prototype.findController = function findController(route) {
     }) || null;
 
     // If we found any controller -> create request and return it
-    if (c) {
+    if (controllerInfo) {
         /** Create request Info object */
         var search = window.location.search;
-        c.request = new this.Request(c.path, data.length > 2 ? _getParams(c.path, data) : null, search.length > 0 ? _getQueryObj(search) : null);
+        controllerInfo.request = new this.Request(controllerInfo.path, data.length > 2 ? __getParams(controllerInfo.path, data) : null, search.length > 0 ? _getQueryObj(search) : null);
         //And return all inside one package
-        return c;
+        return controllerInfo;
     }
     return null;
 };
@@ -118,14 +117,16 @@ Router.prototype.Request = function Request(path, params, query) {
  * @returns {Object}
  * @private
  */
-function _getParams(path, regxResult) {
+function __getParams(path, regxResult) {
     var keys = path.match(paramsRegExp),
         values = regxResult.slice(1, regxResult.length - 1),
         params = {};
+
     // create pairs
-    for (var i = 0; i < values.length; i++) {
-        params[keys[i].substring(1)] = values[i];
-    }
+    _lodash2.default.each(values, function (val, i) {
+        params[keys[i].substring(1)] = val;
+    });
+
     return params;
 }
 

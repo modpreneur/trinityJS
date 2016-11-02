@@ -5,14 +5,14 @@ import _ from 'lodash';
 import $ from 'jquery';
 import Events from 'trinity/utils/Events';
 
-let isFroala = 'none';
+let froalaState = 'none';
 /**
  *
  * @param containers {HTMLElement[]|HTMLElement}
  * @param froalaBundlePath {String}
  * @param callback {Function}
  */
-export function startFroala(containers, froalaBundlePath ,callback = () => {}) {
+export function startFroala(containers, froalaBundlePath, callback = () => {}) {
     let url = froalaBundlePath;
     if(!url) {
         url = '/js/dist/froala.bundle.min.js';
@@ -25,16 +25,16 @@ export function startFroala(containers, froalaBundlePath ,callback = () => {}) {
             $(container.children[0]).froalaEditor(JSON.parse(container.getAttribute('data-settings')));
         });
         callback();
-        isFroala = 'done';
+        froalaState = 'done';
     };
     let testFroala =  () => {
-        switch (isFroala) {
+        switch (froalaState) {
             case 'none' : {
-                isFroala = 'loading';
+                froalaState = 'loading';
                 $.getScript(url)
                     .done(doneFn)
                     .fail(() => {
-                        isFroala = 'none';
+                        froalaState = 'none';
                     });
             }
                 break;
@@ -63,11 +63,11 @@ export function editFroala(containers, how) {
 }
 
 /**
- * @param $harmonicaConteiner {$}
+ * @param $harmonicaContainer {$}
  */
-export function harmonicaPlugin($harmonicaConteiner) {
+export function harmonicaPlugin($harmonicaContainer) {
     let harmonicaForms = [];
-    return _.map($harmonicaConteiner.find('input[id*=\'harmonica-global-\']'), (radio) => {
+    return _.map($harmonicaContainer.find('input[id*=\'harmonica-global-\']'), (radio) => {
         let $harmonicaForm = $(radio).next().find('form');
         harmonicaForms.push($harmonicaForm);
         if (!radio.checked) {

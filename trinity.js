@@ -19,10 +19,6 @@ var _Router = require('./Router');
 
 var _Router2 = _interopRequireDefault(_Router);
 
-var _Debug = require('./Debug');
-
-var _Debug2 = _interopRequireDefault(_Debug);
-
 var _Services = require('./Services');
 
 var Services = _interopRequireWildcard(_Services);
@@ -59,7 +55,6 @@ exports.default = {
   App: _App2.default,
   Controller: _Controller2.default,
   Router: _Router2.default,
-  Debug: _Debug2.default,
 
   // standalone utils
   Gateway: _Gateway2.default,

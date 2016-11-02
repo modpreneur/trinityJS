@@ -411,8 +411,10 @@ function __tabNotLoaded(link, tab) {
     });
 }
 
-//TODO: loading icon to settings
-// TODO @ZbynekFiser what this mean? which settings?
+/**
+ * TODO: loading icon to settings
+ * TODO: Loading icon (whole content) should be variable from outside, not strictly defined as it is now
+ */
 function __showLoading(element) {
     var loader = element.querySelector('.trinity-tab-loader');
     if (_lodash2.default.isNull(loader)) {

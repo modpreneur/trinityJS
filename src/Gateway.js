@@ -142,7 +142,7 @@ function __send(url, method, data, successCallback, errorCallback, isManual){
         .timeout(Gateway.settings.timeout);
 
     if(data){
-        if(method ==='GET' && ( !(window.FormData && data instanceof window.FormData))){
+        if(method === 'GET' && ( !(window.FormData && data instanceof window.FormData))){
             r.query(data);
         } else {
             r.send(data);
@@ -178,7 +178,7 @@ function __sendJSON(url, method, data, successCallback, errorCallback, isManual)
         .timeout(Gateway.settings.timeout);
 
     if(data){
-        if(method ==='GET'){
+        if(method === 'GET'){
             r.query(data);
         } else {
             r.send(data);
@@ -245,7 +245,7 @@ function __responseHandler(successCallback, errorCallback){
             return errorCallback(err);
         }
         successCallback(response);
-    }
+    };
 }
 
 

@@ -1,7 +1,5 @@
 'use strict';
 
-import _ from 'lodash';
-
 let Events = {
     /**
      * Abbreviation for target.addEventListener

@@ -15,17 +15,17 @@ let _Data = [];
  * Stores values according to specified key and owner
  * Whole class is static
  */
-export default class Store {
+const Store = {
     /**
      * Public function which returns Value or Null
      * @param owner
      * @param key
      * @returns {*} | null
      */
-    static getValue(owner, key){
-        var item = _get(owner, key);
+    getValue(owner, key){
+        let item = __get(owner, key);
         return item ? item.value : null;
-    }
+    },
 
     /**
      * Adds new or update existing data, If update returns old Item
@@ -34,8 +34,8 @@ export default class Store {
      * @param owner
      * @returns {*}
      */
-    static setValue(owner, key, value){
-        let item = _get(owner, key),
+    setValue(owner, key, value){
+        let item = __get(owner, key),
             old = null;
 
         if(_.isNull(item)){
@@ -46,19 +46,19 @@ export default class Store {
             item.value = value;
         }
         return old.value;
-    }
+    },
 
     /**
      * Finds all data stored by this owner
      * @param owner
      * @returns {Array.<Item>} | null
      */
-    static getAll(owner){
+    getAll(owner){
         var data = _Data.filter(function (item) {
             return owner === item.owner;
         });
         return data.length === 0 ? null : data;
-    }
+    },
 
     /**
      * Remove stored value from Storage if owner and key exists
@@ -66,13 +66,14 @@ export default class Store {
      * @param key
      * @returns {*} | null
      */
-    static remove(owner, key){
+    remove(owner, key){
         var index = _.findIndex(_Data, function(item){
             return item.key === key && item.owner === owner;
         });
         return index ? _.pullAt(_Data, index).value : null;
     }
-}
+};
+
 
 /**
  * Wrapper for data stored in collection
@@ -109,9 +110,9 @@ Store._data = _Data;
  * @returns {Item} | null
  * @private
  */
-function _get(owner, key){
-    var length = _Data.length;
-    for(var i=0;i<length;i++){
+function __get(owner, key){
+    let length = _Data.length;
+    for(let i = 0; i < length; i++){
         if(owner === _Data[i].owner && key === _Data[i].key){
             return _Data[i];
         }

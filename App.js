@@ -23,10 +23,6 @@ var _Controller = require('./Controller.js');
 
 var _Controller2 = _interopRequireDefault(_Controller);
 
-var _Debug = require('./Debug');
-
-var _Debug2 = _interopRequireDefault(_Debug);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -162,7 +158,9 @@ var App = function () {
         value: function finishCallback(isController, callback) {
             var message = isController ? this.activeController.name + ' loaded.' : 'Route does\'t have any controller.';
 
-            _Debug2.default.log(message);
+            if (process.env.NODE_ENV !== 'production') {
+                console.log(message);
+            }
             if (callback) {
                 callback(this.activeController || false);
             }

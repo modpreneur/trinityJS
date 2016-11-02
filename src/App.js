@@ -6,7 +6,6 @@
 import _ from 'lodash';
 import Router from './Router';
 import Controller from './Controller.js';
-import Debug from './Debug';
 
 const defaultSettings = {
     attributeName: 'data-ng-scope',
@@ -71,7 +70,7 @@ export default class App {
 
         // Create new active controller instance
         if(!this.controllers.hasOwnProperty(name)){
-            throw new Error('Controller '+ name
+            throw new Error('Controller ' + name
                 + ' does not exist, did you forget to run "buildControllers.js" script?'
                 + ' or did you write correct routes?'
             );
@@ -94,7 +93,7 @@ export default class App {
             instance[action](this.$scope);
             instance.afterAction(this.$scope);
         } else {
-            let err = new Error('Action "'+ action + '" doesn\'t exists');
+            let err = new Error('Action "' + action + '" doesn\'t exists');
             if(errorCallback){
                 return errorCallback(err);
             }
@@ -122,7 +121,9 @@ export default class App {
             this.activeController.name + ' loaded.'
             : 'Route does\'t have any controller.';
 
-        Debug.log(message);
+        if(process.env.NODE_ENV !== 'production'){
+            console.log(message);
+        }
         if(callback){
             callback(this.activeController || false);
         }
@@ -137,11 +138,11 @@ export default class App {
     parseScope(root){
         root = root || window.document;
         let attName = defaultSettings.attributeName,
-            elements = root.querySelectorAll('['+ attName +']');
+            elements = root.querySelectorAll('[' + attName + ']');
 
         let bag = {};
         _.each(elements, (el, i)=>{
-            let name = el.getAttribute(attName) || ''+el.name + i;
+            let name = el.getAttribute(attName) || '' + el.name + i;
             if(_.isUndefined(bag[name])) {
                 bag[name] = el;
             } else {

@@ -21,7 +21,7 @@ var _Events2 = _interopRequireDefault(_Events);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var isFroala = 'none';
+var froalaState = 'none';
 /**
  *
  * @param containers {HTMLElement[]|HTMLElement}
@@ -46,15 +46,15 @@ function startFroala(containers, froalaBundlePath) {
             (0, _jquery2.default)(container.children[0]).froalaEditor(JSON.parse(container.getAttribute('data-settings')));
         });
         callback();
-        isFroala = 'done';
+        froalaState = 'done';
     };
     var testFroala = function testFroala() {
-        switch (isFroala) {
+        switch (froalaState) {
             case 'none':
                 {
-                    isFroala = 'loading';
+                    froalaState = 'loading';
                     _jquery2.default.getScript(url).done(doneFn).fail(function () {
-                        isFroala = 'none';
+                        froalaState = 'none';
                     });
                 }
                 break;
@@ -85,11 +85,11 @@ function editFroala(containers, how) {
 }
 
 /**
- * @param $harmonicaConteiner {$}
+ * @param $harmonicaContainer {$}
  */
-function harmonicaPlugin($harmonicaConteiner) {
+function harmonicaPlugin($harmonicaContainer) {
     var harmonicaForms = [];
-    return _lodash2.default.map($harmonicaConteiner.find('input[id*=\'harmonica-global-\']'), function (radio) {
+    return _lodash2.default.map($harmonicaContainer.find('input[id*=\'harmonica-global-\']'), function (radio) {
         var $harmonicaForm = (0, _jquery2.default)(radio).next().find('form');
         harmonicaForms.push($harmonicaForm);
         if (!radio.checked) {

@@ -49,7 +49,7 @@ var Controller = function () {
 
     }, {
         key: 'beforeAction',
-        value: function beforeAction($scope) {}
+        value: function beforeAction() /*$scope*/{}
 
         /**
          * Hook after every action run
@@ -57,19 +57,17 @@ var Controller = function () {
 
     }, {
         key: 'afterAction',
-        value: function afterAction($scope) {}
+        value: function afterAction() /*$scope*/{}
 
         /**
          * Not implemented
          * @param serviceName
          */
-
-    }, {
-        key: 'getService',
-        value: function getService(serviceName) {
+        /*getService(serviceName){
             console.warn('Method not implemented');
             //TODO: should pull from app requested service, if exists, if not return null
-        }
+        }*/
+
     }, {
         key: 'request',
         get: function get() {

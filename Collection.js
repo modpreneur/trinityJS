@@ -396,17 +396,16 @@ function __initializeCollections(prototypeElements, prototypeDataSource) {
         return _lodash2.default.map(prototypeElements, function (el) {
             return _Store2.default.getValue(el, 'collection');
         });
-    } else {
-        // Init next level
-        return _lodash2.default.map(prototypeElements, function (el) {
-            var prototypeName = el.getAttribute('data-prototype'),
-                prototypeData = _lodash2.default.cloneDeep(_lodash2.default.find(prototypeDataSource, function (data) {
-                return data.options['prototype_name'] === prototypeName;
-            }));
-            prototypeData.prototype = __fillPlaceholders(_this5.parent.settings['prototype_name'], _this5.parent.settings.name, _this5.id, prototypeData.prototype);
-            return new Collection(el, _this5.parent.globalOptions, prototypeData, _this5.parent.layer + 1);
-        });
     }
+    // Init next level
+    return _lodash2.default.map(prototypeElements, function (el) {
+        var prototypeName = el.getAttribute('data-prototype'),
+            prototypeData = _lodash2.default.cloneDeep(_lodash2.default.find(prototypeDataSource, function (data) {
+            return data.options['prototype_name'] === prototypeName;
+        }));
+        prototypeData.prototype = __fillPlaceholders(_this5.parent.settings['prototype_name'], _this5.parent.settings.name, _this5.id, prototypeData.prototype);
+        return new Collection(el, _this5.parent.globalOptions, prototypeData, _this5.parent.layer + 1);
+    });
 }
 
 /**

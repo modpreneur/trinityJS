@@ -188,7 +188,7 @@ function __addRemoveBtn(child){
         // Update all other children
         this.children = _.filter(this.children, function(item){
             if(item.id > id){
-                item.setID(item.id -1);
+                item.setID(item.id - 1);
                 return true;
             }
             return !(item.id === id);
@@ -339,22 +339,21 @@ class CollectionChild {
 function __initializeCollections(prototypeElements, prototypeDataSource){
     if(!prototypeDataSource){
         return _.map(prototypeElements, el => Store.getValue(el, 'collection'));
-    } else {
-        // Init next level
-        return _.map(prototypeElements, (el)=>{
-            let prototypeName = el.getAttribute('data-prototype'),
-                prototypeData = _.cloneDeep(_.find(prototypeDataSource, (data)=>{
-                    return data.options['prototype_name'] === prototypeName;
-                }));
-            prototypeData.prototype = __fillPlaceholders(
-                this.parent.settings['prototype_name'],
-                this.parent.settings.name,
-                this.id,
-                prototypeData.prototype
-            );
-            return new Collection(el, this.parent.globalOptions, prototypeData, this.parent.layer + 1);
-        });
     }
+    // Init next level
+    return _.map(prototypeElements, (el)=>{
+        let prototypeName = el.getAttribute('data-prototype'),
+            prototypeData = _.cloneDeep(_.find(prototypeDataSource, (data)=>{
+                return data.options['prototype_name'] === prototypeName;
+            }));
+        prototypeData.prototype = __fillPlaceholders(
+            this.parent.settings['prototype_name'],
+            this.parent.settings.name,
+            this.id,
+            prototypeData.prototype
+        );
+        return new Collection(el, this.parent.globalOptions, prototypeData, this.parent.layer + 1);
+    });
 }
 
 /**
