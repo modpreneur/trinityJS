@@ -120,6 +120,8 @@ function __get(owner, key){
     return null;
 }
 
+export default Store;
+
 
 
 

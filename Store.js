@@ -3,6 +3,10 @@
  */
 'use strict';
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
 var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
@@ -129,3 +133,5 @@ function __get(owner, key) {
     }
     return null;
 }
+
+exports.default = Store;
