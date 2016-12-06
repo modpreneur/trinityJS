@@ -84,13 +84,10 @@ var App = function () {
                 return this.finishCallback(false, successCallback);
             }
 
-            var _controllerInfo$actio = controllerInfo.action.split('.');
-
-            var _controllerInfo$actio2 = _slicedToArray(_controllerInfo$actio, 2);
-
-            var name = _controllerInfo$actio2[0];
-            var action = _controllerInfo$actio2[1];
-
+            var _controllerInfo$actio = controllerInfo.action.split('.'),
+                _controllerInfo$actio2 = _slicedToArray(_controllerInfo$actio, 2),
+                name = _controllerInfo$actio2[0],
+                action = _controllerInfo$actio2[1];
 
             if (!name) {
                 var err = new Error('No Controller defined! did you forget to define controller in routes?');

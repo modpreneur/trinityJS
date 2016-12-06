@@ -56,7 +56,7 @@ export default class Collection {
             prototypeData = __parsePrototypeData(element);
             Store.setValue(element, 'collection', this);
         }
-        this.settings = _.defaultsDeep(globalOptions, prototypeData.options, defaultSettings);
+        this.settings = _.defaultsDeep({}, globalOptions, prototypeData.options, defaultSettings);
         //this.settings = _.extend(_.clone(defaultSettings), (globalOptions ? _.extend(prototypeData.options, globalOptions) : prototypeData.options));
         this.settings.addButton = Dom.htmlToDocumentFragment(this.settings.addButton.trim());
         this.settings.deleteButton = Dom.htmlToDocumentFragment(this.settings.deleteButton.trim());

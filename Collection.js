@@ -54,7 +54,7 @@ var defaultSettings = {
 
 var Collection = function () {
     function Collection(element) {
-        var globalOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+        var globalOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
         var prototypeData = arguments[2];
         var layer = arguments[3];
 
@@ -73,7 +73,7 @@ var Collection = function () {
             prototypeData = __parsePrototypeData(element);
             _Store2.default.setValue(element, 'collection', this);
         }
-        this.settings = _lodash2.default.defaultsDeep(globalOptions, prototypeData.options, defaultSettings);
+        this.settings = _lodash2.default.defaultsDeep({}, globalOptions, prototypeData.options, defaultSettings);
         //this.settings = _.extend(_.clone(defaultSettings), (globalOptions ? _.extend(prototypeData.options, globalOptions) : prototypeData.options));
         this.settings.addButton = _Dom2.default.htmlToDocumentFragment(this.settings.addButton.trim());
         this.settings.deleteButton = _Dom2.default.htmlToDocumentFragment(this.settings.deleteButton.trim());

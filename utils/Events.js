@@ -102,7 +102,7 @@ var Events = {
  * @private
  */
 function __listen(target, event, callback) {
-  var capture = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+  var capture = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
 
   target.addEventListener(event, callback, capture);
   return __removeListener.bind(null, target, event, callback, capture);
@@ -119,7 +119,7 @@ function __listen(target, event, callback) {
  * @returns {function}
  */
 function __listenOnce(target, event, callback) {
-  var capture = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+  var capture = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
 
   var wrapper = function () {
     return function (e) {
@@ -141,7 +141,7 @@ function __listenOnce(target, event, callback) {
  * @private
  */
 function __removeListener(target, event, callback) {
-  var capture = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+  var capture = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
 
   return target.removeEventListener(event, callback, capture);
 }
@@ -193,7 +193,7 @@ function __whichAnimationEvent(type) {
  * @private
  */
 function __onAnimation(element, type, callback) {
-  var capture = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+  var capture = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
 
   var eventName = __whichAnimationEvent(type);
   return __listen(element, eventName, callback, capture);
@@ -209,7 +209,7 @@ function __onAnimation(element, type, callback) {
  * @private
  */
 function __onceAnimation(element, type, callback) {
-  var capture = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+  var capture = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
 
   var eventName = __whichAnimationEvent(type);
   return __listenOnce(element, eventName, callback, capture);
@@ -225,7 +225,7 @@ function __onceAnimation(element, type, callback) {
  * @private
  */
 function __offAnimation(element, type, callback) {
-  var capture = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+  var capture = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
 
   var eventName = __whichAnimationEvent(type);
   return __removeListener(element, eventName, callback, capture);

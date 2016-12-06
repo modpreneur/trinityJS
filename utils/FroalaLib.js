@@ -32,7 +32,7 @@ var froalaState = 'none';
  * Created by rockuo on 24.8.16.
  */
 function startFroala(containers, froalaBundlePath) {
-    var callback = arguments.length <= 2 || arguments[2] === undefined ? function () {} : arguments[2];
+    var callback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : function () {};
 
     var url = froalaBundlePath;
     if (!url) {
