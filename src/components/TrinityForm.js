@@ -325,11 +325,14 @@ export default class TrinityForm extends EventEmitter {
         this.lock();
         this.state = 'loading';
 
+        let editableForm = _.extend({},this.form);
+        this.emit('before-submit', editableForm);
+
         /** Parse and send Data **/
         let data = IS_FORM_DATA ?
-                serializeFrom(this.form, this.activeBtn) : __parseSymfonyForm(this.form, this.activeBtn),
-            url = this.form.action.trim(),
-            method = (data.hasOwnProperty('_method') ? data['_method'] : this.form.method).toUpperCase(),
+                serializeFrom(editableForm, this.activeBtn) : __parseSymfonyForm(editableForm, this.activeBtn),
+            url = editableForm.action.trim(),
+            method = (data.hasOwnProperty('_method') ? data['_method'] : editableForm.method).toUpperCase(),
             submitEvent = new TrinityEvent({
                 url,
                 method,
