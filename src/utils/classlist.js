@@ -109,7 +109,7 @@ classlist.removeAll = function(element, classesToRemove){
     element.className = _.filter(classlist.get(element), (className)=>{
         // If this class is not one we are trying to remove,
         // add it to the array of new class names.
-        return !_.contains(classesToRemove, className);
+        return classesToRemove.indexOf(className) === -1;
     }).join(' ');
 };
 
