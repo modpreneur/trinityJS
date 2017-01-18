@@ -3,7 +3,7 @@
  */
 'use strict';
 
-import _ from 'lodash';
+import _ from './utils/lodash';
 
 /**
  * Private cache data storage

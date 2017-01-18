@@ -1,6 +1,6 @@
 'use strict';
 
-import _ from 'lodash';
+import _ from '../utils/lodash';
 import Request from 'superagent';
 import {EventEmitter} from 'fbemitter';
 import Events from '../utils/Events';

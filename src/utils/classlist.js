@@ -1,7 +1,7 @@
 /**
  * Created by fisa on 10/26/15.
  */
-import _ from 'lodash';
+import _ from './lodash';
 
 let classlist = {};
 export default classlist;
