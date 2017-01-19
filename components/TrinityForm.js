@@ -643,7 +643,30 @@ var nameRegExp = /\w+/g;
 
 function serializeFrom(form, button) {
     var formData = new FormData();
-    (0, _lodash2.default)(form).filter(function (el) {
+    // _(form).filter(el => {
+    //
+    //     if(!el.name){
+    //         return false;
+    //     }
+    //
+    //     let isValid = false;
+    //
+    //     switch (el.type) {
+    //         case 'submit' : {
+    //             isValid = el === button;
+    //         } break;
+    //         case 'radio' :
+    //         case 'checkbox' : {
+    //             isValid = el.checked;
+    //         } break;
+    //         default: {
+    //             isValid = el.value && el.value.length !== 0;
+    //         } break;
+    //     }
+    //
+    //     return isValid;
+    // }).each(el => formData.append(el.name, el.value));
+    _lodash2.default.each(_lodash2.default.filter(form, function (el) {
 
         if (!el.name) {
             return false;
@@ -668,7 +691,7 @@ function serializeFrom(form, button) {
         }
 
         return isValid;
-    }).each(function (el) {
+    }), function (el) {
         return formData.append(el.name, el.value);
     });
     return formData;

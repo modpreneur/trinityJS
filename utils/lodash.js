@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _lodashEs = require('lodash-es');
 
-exports.default = {
+var lodash = {
     each: _lodashEs.each,
     map: _lodashEs.map,
     defaultsDeep: _lodashEs.defaultsDeep,
@@ -26,5 +26,8 @@ exports.default = {
     remove: _lodashEs.remove,
     cloneDeep: _lodashEs.cloneDeep
 };
+
+lodash.default = lodash;
+exports.default = lodash;
 
 // (_\.)(?!|isString|contains|filter|includes|pullAt|noop|isFunction|some|remove|cloneDeep)

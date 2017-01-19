@@ -160,13 +160,20 @@ function __initialize(data) {
     __addCreateBtn.call(this);
 
     // Add class and delete button to children
-    this.children = (0, _lodash2.default)(this.collectionHolder.children).filter(function (node) {
+    // this.children  = _(this.collectionHolder.children)
+    //     .filter(node => Dom.classlist.contains(node, 'row'))
+    //     .map((child, index) => {
+    //         let newChild = new CollectionChild(child, index, this);
+    //         __addRemoveBtn.call(this, newChild);
+    //         return newChild;
+    //     }).value();
+    this.children = _lodash2.default.map(_lodash2.default.filter(function (node) {
         return _Dom2.default.classlist.contains(node, 'row');
-    }).map(function (child, index) {
+    }), function (child, index) {
         var newChild = new CollectionChild(child, index, _this);
         __addRemoveBtn.call(_this, newChild);
         return newChild;
-    }).value();
+    });
 
     //Add first?
     if (this.children.length === 0 && this.settings.addFirst) {
