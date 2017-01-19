@@ -17,7 +17,6 @@ exports.default = {
     isUndefined: _lodashEs.isUndefined,
     isArray: _lodashEs.isArray,
     isString: _lodashEs.isString,
-    contains: _lodashEs.contains,
     filter: _lodashEs.filter,
     includes: _lodashEs.includes,
     pullAt: _lodashEs.pullAt,
