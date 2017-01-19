@@ -130,13 +130,21 @@ function __initialize(data){
     __addCreateBtn.call(this);
 
     // Add class and delete button to children
-    this.children  = _(this.collectionHolder.children)
-        .filter(node => Dom.classlist.contains(node, 'row'))
-        .map((child, index) => {
-            let newChild = new CollectionChild(child, index, this);
-            __addRemoveBtn.call(this, newChild);
-            return newChild;
-        }).value();
+    // this.children  = _(this.collectionHolder.children)
+    //     .filter(node => Dom.classlist.contains(node, 'row'))
+    //     .map((child, index) => {
+    //         let newChild = new CollectionChild(child, index, this);
+    //         __addRemoveBtn.call(this, newChild);
+    //         return newChild;
+    //     }).value();
+    this.children = _.map(
+        _.filter(node => Dom.classlist.contains(node, 'row')),
+        (child, index) => {
+                let newChild = new CollectionChild(child, index, this);
+                __addRemoveBtn.call(this, newChild);
+                return newChild;
+            })
+    ;
 
     //Add first?
     if(this.children.length === 0 && this.settings.addFirst){

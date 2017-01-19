@@ -524,29 +524,55 @@ const nameRegExp = /\w+/g;
 
 function serializeFrom(form, button){
     let formData = new FormData();
-    _(form).filter(el => {
+    // _(form).filter(el => {
+    //
+    //     if(!el.name){
+    //         return false;
+    //     }
+    //
+    //     let isValid = false;
+    //
+    //     switch (el.type) {
+    //         case 'submit' : {
+    //             isValid = el === button;
+    //         } break;
+    //         case 'radio' :
+    //         case 'checkbox' : {
+    //             isValid = el.checked;
+    //         } break;
+    //         default: {
+    //             isValid = el.value && el.value.length !== 0;
+    //         } break;
+    //     }
+    //
+    //     return isValid;
+    // }).each(el => formData.append(el.name, el.value));
+    _.each(
+        _.filter(form, el => {
 
-        if(!el.name){
-            return false;
-        }
+            if(!el.name){
+                return false;
+            }
 
-        let isValid = false;
+            let isValid = false;
 
-        switch (el.type) {
-            case 'submit' : {
-                isValid = el === button;
-            } break;
-            case 'radio' :
-            case 'checkbox' : {
-                isValid = el.checked;
-            } break;
-            default: {
-                isValid = el.value && el.value.length !== 0;
-            } break;
-        }
+            switch (el.type) {
+                case 'submit' : {
+                    isValid = el === button;
+                } break;
+                case 'radio' :
+                case 'checkbox' : {
+                    isValid = el.checked;
+                } break;
+                default: {
+                    isValid = el.value && el.value.length !== 0;
+                } break;
+            }
 
-        return isValid;
-    }).each(el => formData.append(el.name, el.value));
+            return isValid;
+        })
+        ,el => formData.append(el.name, el.value)
+    );
     return formData;
 }
 
