@@ -1,7 +1,7 @@
 /**
  * Created by fisa on 10/26/15.
  */
-import _ from './lodash';
+import _ from 'lodash';
 
 let classlist = {};
 export default classlist;
@@ -109,7 +109,7 @@ classlist.removeAll = function(element, classesToRemove){
     element.className = _.filter(classlist.get(element), (className)=>{
         // If this class is not one we are trying to remove,
         // add it to the array of new class names.
-        return classesToRemove.indexOf(className) === -1;
+        return !_.contains(classesToRemove, className);
     }).join(' ');
 };
 

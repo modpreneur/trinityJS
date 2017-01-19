@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _lodash = require('./lodash');
+var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -120,7 +120,7 @@ classlist.removeAll = function (element, classesToRemove) {
     element.className = _lodash2.default.filter(classlist.get(element), function (className) {
         // If this class is not one we are trying to remove,
         // add it to the array of new class names.
-        return classesToRemove.indexOf(className) === -1;
+        return !_lodash2.default.contains(classesToRemove, className);
     }).join(' ');
 };
 

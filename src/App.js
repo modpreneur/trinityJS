@@ -3,7 +3,7 @@
  */
 'use strict';
 
-import _ from './utils/lodash';
+import _ from 'lodash';
 import Router from './Router';
 import Controller from './Controller.js';
 

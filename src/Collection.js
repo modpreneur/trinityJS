@@ -3,7 +3,7 @@
  */
 'use strict';
 
-import _ from './utils/lodash';
+import _ from 'lodash';
 import Dom from './utils/Dom';
 import Events from './utils/Events';
 import Store from './Store';

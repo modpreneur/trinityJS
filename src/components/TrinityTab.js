@@ -1,6 +1,6 @@
 'use strict';
 
-import _ from '../utils/lodash';
+import _ from 'lodash';
 import Dom from  'trinity/utils/Dom';
 import {EventEmitter} from 'fbemitter';
 import Gateway from 'trinity/Gateway';

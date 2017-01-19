@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.configure = undefined;
 
-var _lodash = require('./utils/lodash');
+var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 

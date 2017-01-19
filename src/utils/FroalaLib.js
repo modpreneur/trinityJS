@@ -1,7 +1,7 @@
 /**
  * Created by rockuo on 24.8.16.
  */
-import _ from './lodash';
+import _ from 'lodash';
 import $ from 'jquery';
 import Events from 'trinity/utils/Events';
 
@@ -63,7 +63,7 @@ export function editFroala(containers, how) {
 }
 
 /**
- * @param $harmonicaContainer {object}
+ * @param $harmonicaContainer {$}
  */
 export function harmonicaPlugin($harmonicaContainer) {
     let harmonicaForms = [];

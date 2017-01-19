@@ -7,7 +7,7 @@ exports.startFroala = startFroala;
 exports.editFroala = editFroala;
 exports.harmonicaPlugin = harmonicaPlugin;
 
-var _lodash = require('./lodash');
+var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -85,7 +85,7 @@ function editFroala(containers, how) {
 }
 
 /**
- * @param $harmonicaContainer {object}
+ * @param $harmonicaContainer {$}
  */
 function harmonicaPlugin($harmonicaContainer) {
     var harmonicaForms = [];
