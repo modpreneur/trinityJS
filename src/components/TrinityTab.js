@@ -78,12 +78,16 @@ export default class TrinityTab extends EventEmitter {
         this.tabs[activeHead.id] = new Tab(activeHead, this);
 
         /** Attach click event Listeners to other heads **/
-        _.map(this.heads, (head)=> {
-            head.addEventListener('click', __handleTabClick.bind(this, head));
-        });
+        this.attachHeadClickEvents();
 
         // Navigation
         window.addEventListener('popstate', __handleNavigation.bind(this));
+    }
+
+    attachHeadClickEvents(){
+        _.each(this.heads, (head)=> {
+            head.addEventListener('click', __handleTabClick.bind(this, head));
+        });
     }
 
     /**
