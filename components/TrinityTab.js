@@ -117,24 +117,31 @@ var TrinityTab = function (_EventEmitter) {
         _this.tabs[activeHead.id] = new Tab(activeHead, _this);
 
         /** Attach click event Listeners to other heads **/
-        _lodash2.default.map(_this.heads, function (head) {
-            head.addEventListener('click', __handleTabClick.bind(_this, head));
-        });
+        _this.attachHeadClickEvents();
 
         // Navigation
         window.addEventListener('popstate', __handleNavigation.bind(_this));
         return _this;
     }
 
-    /**
-     * Set active Tab by provided tabID
-     * @param tabName {string}
-     * @throws {Error} if tab with provided ID does't exit
-     * @public
-     */
-
-
     _createClass(TrinityTab, [{
+        key: 'attachHeadClickEvents',
+        value: function attachHeadClickEvents() {
+            var _this2 = this;
+
+            _lodash2.default.each(this.heads, function (head) {
+                head.addEventListener('click', __handleTabClick.bind(_this2, head));
+            });
+        }
+
+        /**
+         * Set active Tab by provided tabID
+         * @param tabName {string}
+         * @throws {Error} if tab with provided ID does't exit
+         * @public
+         */
+
+    }, {
         key: 'setActiveTab',
         value: function setActiveTab(tabName) {
             tabName = tabName ? this.aliasIdPairs.alToId[tabName] || tabName : this.heads[0].id;
@@ -197,11 +204,11 @@ var TrinityTab = function (_EventEmitter) {
     }, {
         key: 'reload',
         value: function reload(tabName) {
-            var _this2 = this;
+            var _this3 = this;
 
             tabName = this.aliasIdPairs.alToId[tabName] || tabName;
             var __reload = function __reload(name) {
-                var tab = _this2.tabs[name];
+                var tab = _this3.tabs[name];
                 if (tab) {
                     tab.reloadContent();
                 }
@@ -320,7 +327,7 @@ var Tab = function () {
 }();
 
 function __requestWidget(link, tab, timeout_i, callback) {
-    var _this3 = this;
+    var _this4 = this;
 
     if (!tab.isLoading) {
         tab.isLoading = true;
@@ -362,7 +369,7 @@ function __requestWidget(link, tab, timeout_i, callback) {
             }
             // IF callback provided
             if (callback) {
-                callback.call(tab, _this3.bodyElement);
+                callback.call(tab, _this4.bodyElement);
             }
             tab.isLoading = false;
         }, function (error) {
