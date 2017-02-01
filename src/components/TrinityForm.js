@@ -76,6 +76,22 @@ export default class TrinityForm extends EventEmitter {
         this.unlistenValueChange = Events.listen(formElement, 'change', this.onInputChange.bind(this));
     }
 
+    /**
+     *
+     * @param element {HTMLElement}
+     */
+    addInput(element) {
+        this.__inputs[element.name] = new FormInput(element);
+    }
+
+    /**
+     *
+     * @param element {HTMLElement || string} - name of input or input itself
+     */
+    removeInput(element) {
+        let name = _.isString(element)?element:element.name;
+        delete this.__inputs[name];
+    }
 
     /**
      * Sets new form state
