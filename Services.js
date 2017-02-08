@@ -85,4 +85,8 @@ function messageService(message, type) {
             }, 2000);
         })();
     }
+    return {
+        ajaxInput: ajaxInput,
+        ajaxAlert: ajaxAlert
+    };
 }

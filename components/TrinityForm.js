@@ -120,14 +120,37 @@ var TrinityForm = function (_EventEmitter) {
     }
 
     /**
-     * Sets new form state
-     *  - add state classes to button
-     *  - emit "state-change" event
-     * @param newState
+     *
+     * @param element {HTMLElement}
      */
 
 
     _createClass(TrinityForm, [{
+        key: 'addInput',
+        value: function addInput(element) {
+            this.__inputs[element.name] = new _FormInput2.default(element);
+        }
+
+        /**
+         *
+         * @param element {HTMLElement || string} - name of input or input itself
+         */
+
+    }, {
+        key: 'removeInput',
+        value: function removeInput(element) {
+            var name = _lodash2.default.isString(element) ? element : element.name;
+            delete this.__inputs[name];
+        }
+
+        /**
+         * Sets new form state
+         *  - add state classes to button
+         *  - emit "state-change" event
+         * @param newState
+         */
+
+    }, {
         key: 'lock',
 
 
