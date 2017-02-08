@@ -75,4 +75,8 @@ export function messageService(message, type) {
             clearTimeout(timeOutId); // just to be sure
         }, 2000);
     }
+    return {
+        ajaxInput,
+        ajaxAlert
+    };
 }
