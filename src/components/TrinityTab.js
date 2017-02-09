@@ -35,6 +35,7 @@ export default class TrinityTab extends EventEmitter {
 
         this.tabs = {};
         this.__activeTabName = null;
+        this.__prevTabName = null;
 
 
         //Check which tab to load first
@@ -115,6 +116,7 @@ export default class TrinityTab extends EventEmitter {
             return;
         }
         let prevTab = this.__activeTabName;
+        this.__prevTabName = prevTab;
 
         this.__activeTabName = tabName;
         this.tabs[prevTab].head.removeAttribute('checked');
@@ -125,13 +127,10 @@ export default class TrinityTab extends EventEmitter {
         //Update Hash URL
         __pushHistory(this.aliasIdPairs.idToAl[tabName] || tabName);
 
-        // Emit change
-        this.emit('tab-changed', {
-            previous: prevTab,
-            id: tabName,
-            alias: this.aliasIdPairs.idToAl[tabName],
-            tab: this.tabs[tabName]
-        });
+        // Emit only when not loading yet
+        if(!this.tabs[tabName].isLoading){
+            this.emitTabChanged();
+        }
     }
 
     /**
@@ -177,6 +176,16 @@ export default class TrinityTab extends EventEmitter {
 
     onLoad(tabID, callback, context) {
         this.addListener(tabID, callback, context);
+    }
+
+    emitTabChanged(){
+        // Emit change
+        this.emit('tab-changed', {
+            previous: this.__prevTabName,
+            id: this.__activeTabName,
+            alias: this.aliasIdPairs.idToAl[this.__activeTabName],
+            tab: this.tabs[this.__activeTabName]
+        });
     }
 
 }
@@ -283,6 +292,9 @@ function __requestWidget(link, tab, timeout_i, callback) {
                 tab: tab,
                 element: tab.bodyElement
             });
+
+            // emit info about change
+            tab.parent.emitTabChanged();
 
             // If id has any content then emit another event
             let contentID = tab.root.id;
