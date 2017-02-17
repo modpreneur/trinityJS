@@ -12,20 +12,20 @@ let config = {
 let Gateway = {
     /**
      *  normal GET request to defined URL
-     * @param url
-     * @param data
-     * @param successCallback
-     * @param errorCallback
+     * @param url {string}
+     * @param data [object]
+     * @param successCallback [function]
+     * @param errorCallback [function]
      */
     get: function get(url, data, successCallback, errorCallback){
         __send(url,'GET', data, successCallback, errorCallback);
     },
     /**
      * JSON GET request
-     * @param url
-     * @param data
-     * @param successCallback
-     * @param errorCallback
+     * @param url {string}
+     * @param data [object]
+     * @param successCallback [function]
+     * @param errorCallback [function]
      */
     getJSON: function getJSON(url, data, successCallback, errorCallback){
         __sendJSON(url, 'GET',  data, successCallback, errorCallback);
@@ -33,51 +33,51 @@ let Gateway = {
 
     /**
      * normal POST request
-     * @param url
-     * @param data
-     * @param successCallback
-     * @param errorCallback
+     * @param url {string}
+     * @param data [object]
+     * @param successCallback [function]
+     * @param errorCallback [function]
      */
     post: function post(url, data, successCallback, errorCallback){
-        __send(url,'POST', data, successCallback, errorCallback);
+        __send(url, 'POST', data, successCallback, errorCallback);
     },
     /**
      * JSON POST request
-     * @param url
-     * @param data
-     * @param successCallback
-     * @param errorCallback
+     * @param url {string}
+     * @param data [object]
+     * @param successCallback [function]
+     * @param errorCallback [function]
      */
     postJSON: function postJSON(url, data, successCallback, errorCallback){
         __sendJSON(url, 'POST',  data, successCallback, errorCallback);
     },
     /**
      * normal PUT request
-     * @param url
-     * @param data
-     * @param successCallback
-     * @param errorCallback
+     * @param url {string}
+     * @param data [object]
+     * @param successCallback [function]
+     * @param errorCallback [function]
      */
     put: function put(url, data, successCallback, errorCallback){
         __send(url,'PUT', data, successCallback, errorCallback);
     },
     /**
      * JSON PUT request
-     * @param url
-     * @param data
-     * @param successCallback
-     * @param errorCallback
+     * @param url {string}
+     * @param data [object]
+     * @param successCallback [function]
+     * @param errorCallback [function]
      */
     putJSON: function putJSON(url, data, successCallback, errorCallback){
         __sendJSON(url, 'PUT',  data, successCallback, errorCallback);
     },
 
     /**
-     * JSON PUT request
-     * @param url
-     * @param data
-     * @param successCallback
-     * @param errorCallback
+     * JSON DELETE request
+     * @param url {string}
+     * @param data [object]
+     * @param successCallback [function]
+     * @param errorCallback [function]
      */
     deleteJSON: function deleteJSON(url, data, successCallback, errorCallback) {
         __sendJSON(url, 'DELETE', data, successCallback, errorCallback);
@@ -85,34 +85,33 @@ let Gateway = {
 
     /**
      * Same as others, just allow specify method.
-     * @param url
-     * @param method
-     * @param data
-     * @param successCallback
-     * @param errorCallback
+     * @param url {string}
+     * @param method {string}
+     * @param data [object]
+     * @param successCallback [function]
+     * @param errorCallback [function]
      */
     send: __send,
 
     /**
      * Send JSON request and accepts only json
-     * @param url
-     * @param method
-     * @param data
-     * @param successCallback
-     * @param errorCallback
+     * @param url {string}
+     * @param method {string}
+     * @param data [object]
+     * @param successCallback [function]
+     * @param errorCallback [function]
      */
     sendJSON: __sendJSON,
 
     /**
      * Send file fnc
-     * @param url
-     * @param method
-     * @param file
-     * @param fieldName
-     * @param successCallback
-     * @param errorCallback
-     * @param progressCallback
-     * @private
+     * @param url {string}
+     * @param method {string}
+     * @param file {object}
+     * @param fieldName [string]
+     * @param successCallback [function]
+     * @param errorCallback [function]
+     * @param progressCallback [function]
      */
     sendFile: __sendFile,
 
@@ -194,13 +193,13 @@ function __sendJSON(url, method, data, successCallback, errorCallback, isManual)
 
 /**
  * Send file fnc
- * @param url
- * @param method
- * @param file
- * @param fieldName
- * @param successCallback
- * @param errorCallback
- * @param progressCallback
+ * @param url {string}
+ * @param method {string}
+ * @param file {object}
+ * @param fieldName [string]
+ * @param successCallback [function]
+ * @param errorCallback [function]
+ * @param progressCallback [function]
  * @private
  */
 function __sendFile(url, method, file, fieldName, successCallback, errorCallback, progressCallback){
@@ -226,6 +225,13 @@ function __sendFile(url, method, file, fieldName, successCallback, errorCallback
     r.end(__responseHandler(successCallback, errorCallback));
 }
 
+/**
+ * Abstract response handler
+ * @param successCallback {function}
+ * @param errorCallback {function}
+ * @returns {function}
+ * @private
+ */
 function __responseHandler(successCallback, errorCallback){
     return function __abstractHandler(err, response){
         if(response && response.status === 302) {
