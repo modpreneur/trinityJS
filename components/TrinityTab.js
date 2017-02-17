@@ -76,12 +76,10 @@ var TrinityTab = function (_EventEmitter) {
 
         if (tabName.length > 0) {
             if (_this.aliasIdPairs.alToId[tabName]) {
-                (function () {
-                    var tabId = _this.aliasIdPairs.alToId[tabName];
-                    activeHead = _lodash2.default.find(_this.heads, function (head) {
-                        return head.id === tabId;
-                    });
-                })();
+                var tabId = _this.aliasIdPairs.alToId[tabName];
+                activeHead = _lodash2.default.find(_this.heads, function (head) {
+                    return head.id === tabId;
+                });
             } else {
                 activeHead = _lodash2.default.find(_this.heads, function (head) {
                     return head.id === tabName;
@@ -393,13 +391,11 @@ function __requestWidget(link, tab, timeout_i, callback) {
                     tab.parent.emit('error', { message: 'REQUEST TIMED OUT', timeout: true });
                     __tabNotLoaded(link, tab);
                 } else {
-                    (function () {
-                        console.warn('Request timed out, trying again in 2 sec');
-                        var id = setTimeout(function () {
-                            __requestWidget(link, tab, timeout_i + 1 || 1);
-                            clearTimeout(id);
-                        }, 2000);
-                    })();
+                    console.warn('Request timed out, trying again in 2 sec');
+                    var id = setTimeout(function () {
+                        __requestWidget(link, tab, timeout_i + 1 || 1);
+                        clearTimeout(id);
+                    }, 2000);
                 }
             } else {
                 console.error(error);

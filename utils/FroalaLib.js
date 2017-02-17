@@ -19,17 +19,22 @@ var _Events = require('trinity/utils/Events');
 
 var _Events2 = _interopRequireDefault(_Events);
 
+var _Gateway = require('trinity/Gateway');
+
+var _Gateway2 = _interopRequireDefault(_Gateway);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * Created by rockuo on 24.8.16.
+ */
 var froalaState = 'none';
 /**
  *
  * @param containers {HTMLElement[]|HTMLElement}
  * @param froalaBundlePath {String}
  * @param callback {Function}
- */
-/**
- * Created by rockuo on 24.8.16.
+ * @param packages
  */
 function startFroala(containers, froalaBundlePath) {
     var callback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : function () {};
@@ -43,7 +48,9 @@ function startFroala(containers, froalaBundlePath) {
     }
     var doneFn = function doneFn() {
         _lodash2.default.each([].concat(containers), function (container) {
-            (0, _jquery2.default)(container.children[0]).froalaEditor(JSON.parse(container.getAttribute('data-settings')));
+            var settings = JSON.parse(container.getAttribute('data-settings')),
+                froala = (0, _jquery2.default)(container.children[0]).froalaEditor(settings);
+            manageFroala(froala, settings);
         });
         callback();
         froalaState = 'done';
@@ -70,6 +77,26 @@ function startFroala(containers, froalaBundlePath) {
         }
     };
     testFroala();
+}
+
+function manageFroala(froala, settings) {
+    _lodash2.default.each(settings, function (value, key) {
+        if (key === 'imageDeleteURL') {
+            froala.on('froalaEditor.image.removed', function (e, editor, $img) {
+                _Gateway2.default.post(value, {
+                    src: $img.attr('src')
+                }, function (response) {
+                    if (DEVELOPMENT) {
+                        console.log(response);
+                    }
+                }, function (error) {
+                    if (DEVELOPMENT) {
+                        console.log(error);
+                    }
+                });
+            });
+        }
+    });
 }
 
 /**
