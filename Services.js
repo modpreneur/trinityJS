@@ -77,13 +77,11 @@ function messageService(message, type) {
     box.appendChild(ajaxAlert);
 
     if (type == 'success') {
-        (function () {
-            var timeOutId = setTimeout(function () {
-                _Dom2.default.removeNode(ajaxInput);
-                _Dom2.default.removeNode(ajaxAlert);
-                clearTimeout(timeOutId); // just to be sure
-            }, 2000);
-        })();
+        var timeOutId = setTimeout(function () {
+            _Dom2.default.removeNode(ajaxInput);
+            _Dom2.default.removeNode(ajaxAlert);
+            clearTimeout(timeOutId); // just to be sure
+        }, 2000);
     }
     return {
         ajaxInput: ajaxInput,

@@ -4,6 +4,7 @@
 import _ from 'lodash';
 import $ from 'jquery';
 import Events from 'trinity/utils/Events';
+import Gateway from 'trinity/Gateway';
 
 let froalaState = 'none';
 /**
@@ -11,23 +12,27 @@ let froalaState = 'none';
  * @param containers {HTMLElement[]|HTMLElement}
  * @param froalaBundlePath {String}
  * @param callback {Function}
+ * @param packages
  */
-export function startFroala(containers, froalaBundlePath, callback = () => {}) {
+export function startFroala(containers, froalaBundlePath, callback = () => {
+}) {
     let url = froalaBundlePath;
-    if(!url) {
+    if (!url) {
         url = '/js/dist/froala.bundle.min.js';
         if (process.env.NODE_ENV !== 'production') {
             url = '/js/dist/froala.bundle.js';
         }
     }
     let doneFn = () => {
-        _.each([].concat(containers), container=> {
-            $(container.children[0]).froalaEditor(JSON.parse(container.getAttribute('data-settings')));
+        _.each([].concat(containers), container => {
+            let settings = JSON.parse(container.getAttribute('data-settings')),
+                froala = $(container.children[0]).froalaEditor(settings);
+            manageFroala(froala, settings);
         });
         callback();
         froalaState = 'done';
     };
-    let testFroala =  () => {
+    let testFroala = () => {
         switch (froalaState) {
             case 'none' : {
                 froalaState = 'loading';
@@ -39,7 +44,7 @@ export function startFroala(containers, froalaBundlePath, callback = () => {}) {
             }
                 break;
             case 'loading': {
-                setTimeout(testFroala,100);
+                setTimeout(testFroala, 100);
             }
                 break;
             default: {
@@ -48,6 +53,31 @@ export function startFroala(containers, froalaBundlePath, callback = () => {}) {
         }
     };
     testFroala();
+}
+
+function manageFroala(froala, settings) {
+    _.each(settings, (value, key) => {
+        if (key === 'imageDeleteURL') {
+            froala.on('froalaEditor.image.removed', function (e, editor, $img) {
+                Gateway.post(
+                    value,
+                    {
+                        src: $img.attr('src')
+                    },
+                    response=>{
+                        if (DEVELOPMENT){
+                            console.log(response);
+                        }
+                    },
+                    error=>{
+                        if (DEVELOPMENT){
+                            console.log(error);
+                        }
+                    }
+                );
+            })
+        }
+    });
 }
 
 /**
