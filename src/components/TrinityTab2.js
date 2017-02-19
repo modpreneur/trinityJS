@@ -36,8 +36,14 @@ export default class TrinityTab extends EventEmitter {
         this.__activeTabName = null;
         this.__prevTabName = null;
 
+        // Create tabs
+        _.each(tabHeads, head => {
+            this.tabs[head.id] = new Tab(head);
+            this.configuration[head.id] = this.configuration[head.id] || {};
+        });
 
-        //Check which tab to load first
+        // Find active Head
+        // Check which tab to load first
         let tabName = location.hash.substring(1),
             activeHead = null;
 
@@ -73,62 +79,119 @@ export default class TrinityTab extends EventEmitter {
             // Replace history string
             window.history.replaceState(null, tabName, '#' + tabName);
         }
+        // Got active head
         this.__activeTabName = activeHead.id;
-        // Add new Tab to tabs
-        this.tabs[activeHead.id] = new Tab(activeHead, this);
+
+        // Request content for active tab
+        this.tabs[activeHead.id].loadContent(this.__onTabLoad.bind(this));
 
         /** Attach click event Listeners to other heads **/
-        this.attachHeadClickEvents();
+        _.each(this.heads, (head) => {
+            head.addEventListener('click', this.setActiveTab.bind(this, head.id));
+        });
 
         // Navigation
         window.addEventListener('popstate', __handleNavigation.bind(this));
     }
 
-    attachHeadClickEvents(){
-        _.each(this.heads, (head) => {
-            head.addEventListener('click', this.setActiveTab.bind(this, head.id));
+    /**
+     * Private callback, called when tab is loaded
+     * @param err {object} can be null
+     * @param tab {Tab} object
+     * @private
+     */
+    __onTabLoad(err, tab){
+        if(err) {
+            // TODO: something with error
+            return;
+        }
+        let tabId = tab.id;
+
+        // No error
+        // Call onLoad callback if set
+        if(_.isFunction(this.configuration[tabId].onLoad)){
+            this.configuration[tabId].onLoad(tab.root);
+        }
+        // Emit event
+        this.emit('tab-load', {
+            id: tabId,
+            alias: tab.alias,
+            element: tab.body,
+            tab
         });
+
+        // if loaded tab is also active tab -> call Active callbacks
+        if(tabId === this.__activeTabName){
+            // On Active callback
+            let onActiveCallback = this.configuration[tabId].onActive;
+            if(_.isFunction(onActiveCallback)){
+                onActiveCallback(tab.body, this.__prevTabName);
+            }
+            // Emit event
+            this.emit('tab-changed', {
+                id: tabId,
+                alias: tab.alias,
+                tab: tab,
+                previous: this.__prevTabName,
+            });
+        }
     }
 
     /**
      * Set active Tab by provided tabID
-     * @param tabName {string}
+     * @param tabId {string}
      * @throws {Error} if tab with provided ID does't exit
      * @public
      */
-    setActiveTab(tabName) {
-        tabName = tabName ? (this.aliasIdPairs.alToId[tabName] || tabName) : this.heads[0].id;
+    setActiveTab(tabId) {
+        tabId = tabId ? (this.aliasIdPairs.alToId[tabId] || tabId) : this.heads[0].id;
 
-        // If undefined -> Create and Set as Active
-        if (!this.tabs[tabName]) {
-            let head = _.find(this.heads, el => el.id === tabName);
-            if (!head) {
-                if (process.env.NODE_ENV !== 'production') {
-                    throw new Error('Tab with id or alias: ' + tabName + ' does not exist!');
-                }
-                return false;
+        let tab = this.tabs[tabId];
+        if(!tab){
+            if (process.env.NODE_ENV !== 'production') {
+                throw new Error('Tab with id or alias: ' + tabId + ' does not exist!');
             }
-            this.tabs[tabName] = new Tab(head, this);
+            return false;
         }
 
-        if (tabName === this.__activeTabName) {
+
+        // If not loaded -> Load it
+        if (!tab.loaded) {
+            tab.loadContent(this.__onTabLoad.bind(this));
+        }
+
+        if (tabId === this.__activeTabName) {
             return;
         }
-        let prevTab = this.__activeTabName;
-        this.__prevTabName = prevTab;
+        this.__prevTabName = this.__activeTabName;
+        this.__activeTabName = tabId;
 
-        this.__activeTabName = tabName;
-        this.tabs[prevTab].head.removeAttribute('checked');
-        this.tabs[prevTab].head.checked = false;
-        this.tabs[tabName].head.setAttribute('checked', 'checked');
-        this.tabs[tabName].head.checked = true;
+        // Select prevTab instance
+        let prevTab = this.tabs[this.__prevTabName];
+
+        // Switch checked attribute
+        prevTab.head.removeAttribute('checked');
+        prevTab.head.checked = false;
+        tab.head.setAttribute('checked', 'checked');
+        tab.head.checked = true;
 
         //Update Hash URL
-        __pushHistory(this.aliasIdPairs.idToAl[tabName] || tabName);
+        __pushHistory(tab.alias || tabId);
 
-        // Emit only when not loading yet
-        if(!this.tabs[tabName].isLoading){
-            this.__emitTabChanged();
+        // Emit only when is already fetched
+        if(!tab.isFetching){
+            // On Active callback
+            let onActiveCallback = this.configuration[tabId].onActive;
+            if(_.isFunction(onActiveCallback)){
+                onActiveCallback(tab.body, this.__prevTabName);
+            }
+            // Emit event
+            this.emit('tab-changed', {
+                id: tabId,
+                alias: tab.alias,
+                tab: tab,
+                previous: this.__prevTabName,
+            });
         }
     }
 
@@ -144,23 +207,16 @@ export default class TrinityTab extends EventEmitter {
 
     /**
      * Reloads content of tab
-     * @param tabName {string || Array<string>}
+     * @param tabId {string || Array<string>}
      */
-    reload(tabName) {
-        tabName = this.aliasIdPairs.alToId[tabName] || tabName;
-        let __reload = name => {
-            let tab = this.tabs[name];
-            if (tab) {
-                tab.reloadContent();
+    reload(tabId) {
+        let tabs = [].concat(tabId);
+        _.each(tabs, (tmpTabId) => {
+            let tab  = this.tabs[(this.aliasIdPairs.alToId[tmpTabId] || tmpTabId)];
+            if(tab){
+                this.__reloadTab(tab);
             }
-        };
-        if (!_.isArray(tabName)) {
-            __reload(tabName);
-        } else {
-            _.each(tabName, name => {
-                __reload(name);
-            });
-        }
+        });
     }
 
 
@@ -168,9 +224,28 @@ export default class TrinityTab extends EventEmitter {
      * Reload content of all tabs
      */
     reloadAll() {
-        _.each(this.tabs, (t) => {
-            t.reloadContent();
+        _.each(this.tabs, (tab) => this.__reloadTab(tab));
+    }
+
+    /**
+     * Emits "tab-unload" event and call callback onDelete function
+     * If callback returns false, then do not reload content
+     * This is inner function, should not be called from outside
+     * @param tab {Tab}
+     * @private
+     */
+    __reloadTab(tab) {
+        let callbackFunction = this.configuration[tab.id].onDelete;
+        if(_.isFunction(callbackFunction) && callbackFunction(tab.body) === false){
+            return;
+        }
+        this.emit('tab-unload', {
+            id: tab.id,
+            alias: tab.alias,
+            tab: tab,
+            element: tab.body
         });
+        tab.reloadContent(this.__onTabLoad.bind(this));
     }
 
     /**
@@ -182,18 +257,6 @@ export default class TrinityTab extends EventEmitter {
     onLoad(tabID, callback, context) {
         this.addListener(tabID, callback, context);
     }
-
-
-    __emitTabChanged(){
-        // Emit change
-        this.emit('tab-changed', {
-            previous: this.__prevTabName,
-            id: this.__activeTabName,
-            alias: this.aliasIdPairs.idToAl[this.__activeTabName],
-            tab: this.tabs[this.__activeTabName]
-        });
-    }
-
 }
 
 /**

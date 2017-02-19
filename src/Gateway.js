@@ -141,14 +141,14 @@ function __send(url, method, data, successCallback, errorCallback, isManual){
         .timeout(Gateway.settings.timeout);
 
     if(data){
-        if(method === 'GET' && ( !(window.FormData && data instanceof window.FormData))){
+        if(method === 'GET' && !(window.FormData && data instanceof window.FormData)){
             r.query(data);
         } else {
             r.send(data);
         }
     }
 
-    r.finish = ()=>r.end(__responseHandler(successCallback, errorCallback));
+    r.finish = () => r.end(__responseHandler(successCallback, errorCallback));
     if(isManual){
         return r;
     }
@@ -184,7 +184,7 @@ function __sendJSON(url, method, data, successCallback, errorCallback, isManual)
         }
     }
 
-    r.finish = ()=>r.end(__responseHandler(successCallback, errorCallback));
+    r.finish = () => r.end(__responseHandler(successCallback, errorCallback));
     if(isManual){
         return r;
     }
@@ -213,7 +213,7 @@ function __sendFile(url, method, file, fieldName, successCallback, errorCallback
         .timeout(config.fileTimeout);
 
     if(_.isArrayLike(file)){
-        _.each(file, (f)=>{
+        _.each(file, f => {
             r.attach(fieldName, f);
         });
     } else {

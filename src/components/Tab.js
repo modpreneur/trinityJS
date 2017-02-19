@@ -11,114 +11,106 @@ const MAX_TRY = 3;
  * Tab class
  */
 export default class Tab {
-    constructor(head, parent) {
+    constructor(head) {
         this.alias = head.alias;
         this.id = head.id;
         this.head = head;
-        this.parent = parent;
         this.root = null;
-        this.isLoading = false;
-        // this.forms = []; --never used
+        this.loaded = false;
+        this.isFetching = false;
 
         // Tab body
-        this.bodyElement = document.getElementById(head.id.replace('tab', 'tab-body-'));
-
-        __showLoading(this.bodyElement);
+        this.body = document.getElementById(head.id.replace('tab', 'tab-body-'));
 
         //link of body for root child
-        this.dataSource = this.bodyElement.getAttribute('data-source');
-        this.loadContent();
+        this.sourceUrl = this.body.getAttribute('data-source');
     }
 
-    loadContent() {
-        __requestWidget(this.dataSource, this, null);
-    }
-
-    reloadContent() {
-        __showLoading(this.bodyElement);
-        this.parent.emit('tab-unload', {
-            id: this.id,
-            alias: this.alias,
-            tab: this,
-            element: this.bodyElement
-        });
+    /**
+     * Removes actual content from Dom and repeat request
+     * @note its crucial to remove all event listeners from Dom which will be remove before calling function
+     * otherwise it can cause memory leak, especially if you are using jQuery event system
+     * @param callback [function]
+     */
+    reloadContent(callback) {
         Dom.removeNode(this.root);
-        __requestWidget(this.dataSource, this, null);
+        this.loadContent(callback);
     }
-}
 
-function __requestWidget(link, tab, timeout_i, callback) {
-    if (!tab.isLoading) {
-        tab.isLoading = true;
-        Gateway.get(link, null, res => {
+    /**
+     * Loads content of Tab
+     * @param callback [function]
+     */
+    loadContent(callback) {
+        if(!this.isFetching){
+            this.__requestWidget(this.sourceUrl, callback);
+        }
+    }
+
+    /**
+     * Sends request for content html and attach it to Dom
+     * @param url {string}
+     * @param callback [function]
+     * @param numTry [number]
+     * @private
+     */
+    __requestWidget(url, callback, numTry = 0){
+        this.isFetching = true;
+        __showLoading(this.body);
+
+        Gateway.get(url, null, res => {
             if (res.type !== 'text/html') {
+                this.isFetching = false; // To be sure it will work after error
                 throw new Error('Unexpected response!: ', res);
             }
+
             let data = res.text,
                 tmpDiv = Dom.createDom('div', null, data.trim());
 
-            tab.root = tmpDiv.children.length === 1 ? tmpDiv.children[0] : tmpDiv;
+            // It can be more elements, not wrapped in root div, so we have to wrap them
+            this.root = tmpDiv.children.length === 1 ? tmpDiv.children[0] : tmpDiv;
 
-            __hideLoading(tab.bodyElement);
-            tab.bodyElement.appendChild(tab.root);
+            // hide loading icon and append new HTML to body
+            __hideLoading(this.body);
+            this.body.appendChild(this.root);
 
-            // Dispatch global event
-            // tab doesn't inherit from EventEmitter class, but his parent does
-
-            tab.parent.emit('tab-load', {
-                id: tab.id,
-                alias: tab.alias,
-                tab: tab,
-                element: tab.bodyElement
-            });
-
-            // Dispatch tabID-specific event
-            tab.parent.emit(tab.name, {
-                tab: tab,
-                element: tab.bodyElement
-            });
-
-            // emit info about change
-            tab.parent.__emitTabChanged();
-
-            // If id has any content then emit another event
-            let contentID = tab.root.id;
-            if (contentID) {
-                tab.parent.emit(contentID, {
-                    tab: tab,
-                    element: tab.bodyElement
-                });
-            }
-            // IF callback provided
-            if (callback) {
-                callback.call(tab, this.bodyElement);
-            }
-            tab.isLoading = false;
+            // set flags
+            this.isFetching = false;
+            this.loaded = true;
+            // Success
+            callback(null, this);
         }, error => {
             if (error.timeout) {
-                if (timeout_i && timeout_i === MAX_TRY) {
+                if (numTry && numTry === MAX_TRY) {
                     // TODO: Logger service?
                     console.error('Call for maintenance');
-                    tab.parent.emit('error', {message: 'REQUEST TIMED OUT', timeout: true});
-                    __tabNotLoaded(link, tab);
+                    this.isFetching = false;
+                    __tabNotLoaded(this, callback);
+                    callback({timeout: true, message: 'Request timed out'});
                 } else {
                     console.warn('Request timed out, trying again in 2 sec');
                     let id = setTimeout(() => {
-                        __requestWidget(link, tab, (timeout_i + 1) || 1);
+                        this.__requestWidget(url, callback, (numTry + 1));
                         clearTimeout(id);
                     }, 2000);
                 }
             } else {
                 console.error(error);
-                tab.parent.emit('error', error);
-                __tabNotLoaded(link, tab);
+                this.isFetching = false;
+                __tabNotLoaded(this, callback);
+                callback(error);
             }
-            tab.isLoading = false;
         });
     }
 }
 
-function __tabNotLoaded(link, tab) {
+/**
+ * Temporary solution for Error-like page
+ * @param tab {Tab}
+ * @param callback [function]
+ * @private
+ */
+function __tabNotLoaded(tab, callback) {
     let wrapper = document.createElement('div'),
         button = document.createElement('input');
     button.type = 'submit';
@@ -130,12 +122,12 @@ function __tabNotLoaded(link, tab) {
     wrapper.appendChild(button);
 
 
-    __hideLoading(tab.bodyElement);
-    tab.bodyElement.appendChild(wrapper);
+    __hideLoading(tab.body);
+    tab.body.appendChild(wrapper);
     Events.listenOnce(button, 'click', () => {
-        tab.bodyElement.removeChild(wrapper);
-        __showLoading(tab.bodyElement);
-        __requestWidget(link, tab, null);
+        tab.body.removeChild(wrapper);
+        __showLoading(tab.body);
+        tab.__requestWidget(tab.sourceUrl, callback);
     });
 }
 
