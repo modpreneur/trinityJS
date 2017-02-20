@@ -58,7 +58,7 @@ export default class TrinityTab extends EventEmitter {
         if (activeHead) {
             activeHead.setAttribute('checked', 'checked'); //sets head from url as active
         } else {
-            activeHead = _.find(this.heads, (tab)=> {
+            activeHead = _.find(this.heads, (tab) => {
                 let checked = false;
                 if (_.isUndefined(tab.checked)) {
                     checked = !_.isNull(tab.getAttribute('checked'));
@@ -86,7 +86,7 @@ export default class TrinityTab extends EventEmitter {
     }
 
     attachHeadClickEvents(){
-        _.each(this.heads, (head)=> {
+        _.each(this.heads, (head) => {
             head.addEventListener('click', __handleTabClick.bind(this, head));
         });
     }
@@ -158,7 +158,7 @@ export default class TrinityTab extends EventEmitter {
         if (!_.isArray(tabName)) {
             __reload(tabName);
         } else {
-            _.each(tabName, name=> {
+            _.each(tabName, name => {
                 __reload(name);
             });
         }
@@ -169,7 +169,7 @@ export default class TrinityTab extends EventEmitter {
      * Reload content of all tabs
      */
     reloadAll() {
-        _.each(this.tabs, (t)=> {
+        _.each(this.tabs, t => {
             t.reloadContent();
         });
     }
@@ -318,7 +318,7 @@ function __requestWidget(link, tab, timeout_i, callback) {
                     __tabNotLoaded(link, tab);
                 } else {
                     console.warn('Request timed out, trying again in 2 sec');
-                    let id = setTimeout(()=> {
+                    let id = setTimeout(() => {
                         __requestWidget(link, tab, (timeout_i + 1) || 1);
                         clearTimeout(id);
                     }, 2000);
@@ -347,7 +347,7 @@ function __tabNotLoaded(link, tab) {
 
     __hideLoading(tab.bodyElement);
     tab.bodyElement.appendChild(wrapper);
-    Events.listenOnce(button, 'click', ()=> {
+    Events.listenOnce(button, 'click', () => {
         tab.bodyElement.removeChild(wrapper);
         __showLoading(tab.bodyElement);
         __requestWidget(link, tab, null);

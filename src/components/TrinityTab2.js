@@ -3,7 +3,15 @@
 import _ from 'lodash';
 import {EventEmitter} from 'fbemitter';
 import Tab from './Tab';
+import Events from '../utils/Events';
 
+/**
+ * Event name constants
+ * @type {string}
+ */
+const TAB_LOAD = 'tab-load',
+    TAB_CHANGED = 'tab-changed',
+    TAB_UNLOAD = 'tab-unload';
 
 /**
  * Trinity Tab
@@ -86,12 +94,19 @@ export default class TrinityTab extends EventEmitter {
         this.tabs[activeHead.id].loadContent(this.__onTabLoad.bind(this));
 
         /** Attach click event Listeners to other heads **/
-        _.each(this.heads, (head) => {
-            head.addEventListener('click', this.setActiveTab.bind(this, head.id));
-        });
+        this.__listeners = this.__attachHeadClickEvents();
 
         // Navigation
         window.addEventListener('popstate', __handleNavigation.bind(this));
+    }
+
+    /**
+     * Attach onClick events to tab heads
+     * @returns Array<function> - unlisteners
+     * @private
+     */
+    __attachHeadClickEvents(){
+        return _.map(this.heads, head => Events.listen(head, 'click', this.setActiveTab.bind(this, head.id)));
     }
 
     /**
@@ -102,7 +117,7 @@ export default class TrinityTab extends EventEmitter {
      */
     __onTabLoad(err, tab){
         if(err) {
-            // TODO: something with error
+            this.emit('error', err);
             return;
         }
         let tabId = tab.id;
@@ -110,30 +125,20 @@ export default class TrinityTab extends EventEmitter {
         // No error
         // Call onLoad callback if set
         if(_.isFunction(this.configuration[tabId].onLoad)){
-            this.configuration[tabId].onLoad(tab.root);
+            this.configuration[tabId].onLoad(tab);
         }
         // Emit event
-        this.emit('tab-load', {
-            id: tabId,
-            alias: tab.alias,
-            element: tab.body,
-            tab
-        });
+        this.emit(TAB_LOAD, tab);
 
         // if loaded tab is also active tab -> call Active callbacks
         if(tabId === this.__activeTabName){
             // On Active callback
             let onActiveCallback = this.configuration[tabId].onActive;
             if(_.isFunction(onActiveCallback)){
-                onActiveCallback(tab.body, this.__prevTabName);
+                onActiveCallback(tab, this.__prevTabName);
             }
             // Emit event
-            this.emit('tab-changed', {
-                id: tabId,
-                alias: tab.alias,
-                tab: tab,
-                previous: this.__prevTabName,
-            });
+            this.emit(TAB_CHANGED, tab, this.__prevTabName);
         }
     }
 
@@ -183,15 +188,10 @@ export default class TrinityTab extends EventEmitter {
             // On Active callback
             let onActiveCallback = this.configuration[tabId].onActive;
             if(_.isFunction(onActiveCallback)){
-                onActiveCallback(tab.body, this.__prevTabName);
+                onActiveCallback(tab, this.__prevTabName);
             }
             // Emit event
-            this.emit('tab-changed', {
-                id: tabId,
-                alias: tab.alias,
-                tab: tab,
-                previous: this.__prevTabName,
-            });
+            this.emit(TAB_CHANGED, tab, this.__prevTabName);
         }
     }
 
@@ -228,6 +228,27 @@ export default class TrinityTab extends EventEmitter {
     }
 
     /**
+     * Destroy all tabs and unload trinityTab so it can be garbage collected,
+     * Also emits tab-unload event and calls delete callback, but cannot be prevented
+     */
+    destroy(){
+        // unload listeners
+        _.each(this.__listeners, f => f());
+        // Delete tabs
+        _.each(this.tabs, (tab) => {
+            // life cycle hook
+            let onDeleteCallback = this.configuration[tab.id].onDelete;
+            _.isFunction(onDeleteCallback) && onDeleteCallback(tab, true);
+
+            // global event
+            this.emit(TAB_UNLOAD, tab);
+
+            // call destroy to Tab
+            tab.destroy();
+        });
+    }
+
+    /**
      * Emits "tab-unload" event and call callback onDelete function
      * If callback returns false, then do not reload content
      * This is inner function, should not be called from outside
@@ -236,15 +257,10 @@ export default class TrinityTab extends EventEmitter {
      */
     __reloadTab(tab) {
         let callbackFunction = this.configuration[tab.id].onDelete;
-        if(_.isFunction(callbackFunction) && callbackFunction(tab.body) === false){
+        if(_.isFunction(callbackFunction) && callbackFunction(tab, false) === false){
             return;
         }
-        this.emit('tab-unload', {
-            id: tab.id,
-            alias: tab.alias,
-            tab: tab,
-            element: tab.body
-        });
+        this.emit(TAB_UNLOAD, tab);
         tab.reloadContent(this.__onTabLoad.bind(this));
     }
 

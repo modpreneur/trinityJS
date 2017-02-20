@@ -33,7 +33,7 @@ export default class Tab {
      * @param callback [function]
      */
     reloadContent(callback) {
-        Dom.removeNode(this.root);
+        this.destroy();
         this.loadContent(callback);
     }
 
@@ -45,6 +45,13 @@ export default class Tab {
         if(!this.isFetching){
             this.__requestWidget(this.sourceUrl, callback);
         }
+    }
+
+    /**
+     * Remove content of tab from DOM
+     */
+    destroy(){
+        Dom.removeNode(this.root);
     }
 
     /**
