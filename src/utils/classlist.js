@@ -50,19 +50,19 @@ classlist.add = function(element, className){
  */
 classlist.addAll = function(element, classesToAdd){
     if (element.classList) {
-        _.each(classesToAdd, (c)=>{ element.classList.add(c); });
+        _.each(classesToAdd, (c) => element.classList.add(c));
         return;
     }
 
     let classMap = {};
 
     // Get all current class names into a map.
-    _.each(classlist.get(element), (className)=>{
+    _.each(classlist.get(element), (className) => {
         classMap[className] = true;
     });
 
     // Add new class names to the map.
-    _.each(classesToAdd,(className)=>{
+    _.each(classesToAdd,(className) => {
         classMap[className] = true;
     });
 
@@ -89,9 +89,7 @@ classlist.remove = function(element, className){
 
     if (classlist.contains(element, className)) {
         // Filter out the class name.
-        element.className = _.filter(classlist.get(element), (c)=>{
-            return c != className;
-        }).join(' ');
+        element.className = _.filter(classlist.get(element), c => c != className).join(' ');
     }
 };
 
@@ -102,11 +100,11 @@ classlist.remove = function(element, className){
  */
 classlist.removeAll = function(element, classesToRemove){
     if (element.classList) {
-        _.each(classesToRemove, (c)=>{ element.classList.remove(c); });
+        _.each(classesToRemove, c => element.classList.remove(c));
         return;
     }
     // Filter out those classes in classesToRemove.
-    element.className = _.filter(classlist.get(element), (className)=>{
+    element.className = _.filter(classlist.get(element), (className) => {
         // If this class is not one we are trying to remove,
         // add it to the array of new class names.
         return !_.contains(classesToRemove, className);

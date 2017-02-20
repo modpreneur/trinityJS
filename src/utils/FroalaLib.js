@@ -58,24 +58,24 @@ export function startFroala(containers, froalaBundlePath, callback = () => {
 function manageFroala(froala, settings) {
     _.each(settings, (value, key) => {
         if (key === 'imageDeleteURL') {
-            froala.on('froalaEditor.image.removed', function (e, editor, $img) {
+            froala.on('froalaEditor.image.removed', function(e, editor, $img) {
                 Gateway.post(
                     value,
                     {
                         src: $img.attr('src')
                     },
-                    response=>{
-                        if (DEVELOPMENT){
+                    response => {
+                        if (process.env.NODE_ENV !== 'production'){
                             console.log(response);
                         }
                     },
-                    error=>{
-                        if (DEVELOPMENT){
+                    error => {
+                        if (process.env.NODE_ENV !== 'production'){
                             console.log(error);
                         }
                     }
                 );
-            })
+            });
         }
     });
 }

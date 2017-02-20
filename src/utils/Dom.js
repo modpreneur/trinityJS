@@ -61,13 +61,12 @@ export function htmlToDocumentFragment(htmlString){
 
     if (tempDiv.childNodes.length == 1) {
         return tempDiv.removeChild(tempDiv.firstChild);
-    } else {
-        let fragment = document.createDocumentFragment();
-        while (tempDiv.firstChild) {
-            fragment.appendChild(tempDiv.firstChild);
-        }
-        return fragment;
     }
+    let fragment = document.createDocumentFragment();
+    while (tempDiv.firstChild) {
+        fragment.appendChild(tempDiv.firstChild);
+    }
+    return fragment;
 }
 
 /**
@@ -97,7 +96,7 @@ export function createDom(tagName, elementAttributes, innerHTML){
         let attKeys = Object.keys(elementAttributes),
             keysLength = attKeys.length;
 
-        for(let i=0; i<keysLength; i++){
+        for(let i = 0; i < keysLength; i++){
             tmpElement.setAttribute(attKeys[i], elementAttributes[attKeys[i]]);
         }
     }

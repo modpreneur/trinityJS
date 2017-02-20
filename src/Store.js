@@ -54,7 +54,7 @@ const Store = {
      * @returns {Array.<Item>} | null
      */
     getAll(owner){
-        var data = _Data.filter(function (item) {
+        let data = _Data.filter(function(item) {
             return owner === item.owner;
         });
         return data.length === 0 ? null : data;
@@ -67,7 +67,7 @@ const Store = {
      * @returns {*} | null
      */
     remove(owner, key){
-        var index = _.findIndex(_Data, function(item){
+        let index = _.findIndex(_Data, function(item){
             return item.key === key && item.owner === owner;
         });
         return index ? _.pullAt(_Data, index).value : null;

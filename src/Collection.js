@@ -174,7 +174,7 @@ function __addRemoveBtn(child){
     // right ID to delete button
     removeButton.setAttribute('id', [removeButton.getAttribute('id'), child.node.getAttribute('id')].join('_'));
 
-    child.unlistenRemoveButton = Events.listenOnce(removeButton, 'click', (e)=>{
+    child.unlistenRemoveButton = Events.listenOnce(removeButton, 'click', (e) => {
         // prevent the link from creating a "#" on the URL
         e.preventDefault();
 
@@ -205,7 +205,7 @@ function __addRemoveBtn(child){
  */
 function __addCreateBtn(){
     let sett = this.settings;
-    this.unlistenAddButton = Events.listen(sett.addButton, 'click', (e)=>{
+    this.unlistenAddButton = Events.listen(sett.addButton, 'click', (e) => {
         e.preventDefault();
         // add a new tag form (see next code block)
         this.add();
@@ -316,7 +316,7 @@ class CollectionChild {
     setID(id){
         let layer = this.parent.layer;
         this.id = id;
-        _.each(SELECT_MAP, (selector, key)=>{
+        _.each(SELECT_MAP, (selector, key) => {
             _.each(this.node.querySelectorAll(selector), el => __updateAttribute(el, id, layer, key));
         });
         // change to self
@@ -341,9 +341,9 @@ function __initializeCollections(prototypeElements, prototypeDataSource){
         return _.map(prototypeElements, el => Store.getValue(el, 'collection'));
     }
     // Init next level
-    return _.map(prototypeElements, (el)=>{
+    return _.map(prototypeElements, (el) => {
         let prototypeName = el.getAttribute('data-prototype'),
-            prototypeData = _.cloneDeep(_.find(prototypeDataSource, (data)=>{
+            prototypeData = _.cloneDeep(_.find(prototypeDataSource, (data) => {
                 return data.options['prototype_name'] === prototypeName;
             }));
         prototypeData.prototype = __fillPlaceholders(

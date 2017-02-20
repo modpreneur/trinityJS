@@ -10,6 +10,7 @@
 'use strict';
 
 /** Preparation - ES5 (IE 9+, others) or IE8 **/
+/* eslint-disable */
 
 Object.defineProperty(exports, "__esModule", {
     value: true
@@ -21,6 +22,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var XhrFactory = window.XMLHttpRequest || ActiveXObject;
 var isES5 = typeof Object.keys === 'function';
+/* eslint-enable */
 /**
  * Wrapper of browser xhr request object
  */

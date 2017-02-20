@@ -58,7 +58,7 @@ export default class TrinityForm extends EventEmitter {
 
         //Main initialize
         // Create inputs
-        _.each(this.form, (el)=> {
+        _.each(this.form, (el) => {
             if (el.name && !~INPUT_TYPE_FILTER.indexOf(el.type)) {
                 this.__inputs[el.name] = new FormInput(el);
             }
@@ -89,7 +89,7 @@ export default class TrinityForm extends EventEmitter {
      * @param element {HTMLElement || string} - name of input or input itself
      */
     removeInput(element) {
-        let name = _.isString(element)?element:element.name;
+        let name = _.isString(element) ? element : element.name;
         delete this.__inputs[name];
     }
 
@@ -108,7 +108,7 @@ export default class TrinityForm extends EventEmitter {
 
         if (newState === 'error' || newState === 'ready') {
             // For all btns
-            _.each(this.buttons, (btn)=> {
+            _.each(this.buttons, (btn) => {
                 Dom.classlist.removeAll(btn, this.settings.button[oldState].split(' '));
                 Dom.classlist.addAll(btn, this.settings.button[newState].split(' '));
             });
@@ -366,13 +366,13 @@ export default class TrinityForm extends EventEmitter {
             })
             .timeout(this.settings.requestTimeout)
             .send(data)
-            .on('progress', (e)=> {
+            .on('progress', (e) => {
                 this.emit('progress', e);
             });
 
         this.emit('before-request', req);
 
-        req.end((err, response)=> {
+        req.end((err, response) => {
             // Redirect ?
             if (response && response.status === 302) {
                 let redirectTo = response.body.location;
@@ -439,11 +439,11 @@ export default class TrinityForm extends EventEmitter {
     setSubmitButtons(buttons) {
         /** Add ready class to all buttons **/
         let btnReadyClass = this.settings.button['ready'].split(' ');
-        _.each(this.buttons, (btn)=> {
+        _.each(this.buttons, (btn) => {
             Dom.classlist.removeAll(btn, btnReadyClass);
         });
         this.buttons = buttons;
-        _.each(this.buttons, (btn)=> {
+        _.each(this.buttons, (btn) => {
             Dom.classlist.addAll(btn, btnReadyClass);
         });
     }
@@ -473,7 +473,7 @@ export default class TrinityForm extends EventEmitter {
         this.emit('success', event);
 
         this.unlock();
-        let id = setTimeout(()=> {
+        let id = setTimeout(() => {
             this.state = 'ready';
             clearTimeout(id);
         }, this.settings.successTimeout);
@@ -490,7 +490,7 @@ export default class TrinityForm extends EventEmitter {
     __errorHandler(error) {
         if (error.timeout) {
             this.state = 'timeout';
-            let id = setTimeout(()=> {
+            let id = setTimeout(() => {
                 this.unlock();
                 this.state = 'ready';
                 clearTimeout(id);

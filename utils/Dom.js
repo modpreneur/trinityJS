@@ -79,13 +79,12 @@ function htmlToDocumentFragment(htmlString) {
 
     if (tempDiv.childNodes.length == 1) {
         return tempDiv.removeChild(tempDiv.firstChild);
-    } else {
-        var fragment = document.createDocumentFragment();
-        while (tempDiv.firstChild) {
-            fragment.appendChild(tempDiv.firstChild);
-        }
-        return fragment;
     }
+    var fragment = document.createDocumentFragment();
+    while (tempDiv.firstChild) {
+        fragment.appendChild(tempDiv.firstChild);
+    }
+    return fragment;
 }
 
 /**

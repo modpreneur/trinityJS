@@ -22,7 +22,7 @@ let optionalParam = /\((.*?)\)/g,
  * @constructor
  */
 function Router(routes) {
-    this.routes = routes.map(function (route) {
+    this.routes = routes.map(function(route) {
         route.regx = _routeToRegExp(route.path);
         return route;
     }, this);
@@ -70,7 +70,7 @@ Router.prototype.findController = function findController(route) {
         cache,
         controllerInfo;
 
-    controllerInfo = _.find(this.routes, function (el) {
+    controllerInfo = _.find(this.routes, function(el) {
         cache = el.regx.exec(route);
         if(cache){
             data = cache;
@@ -156,7 +156,7 @@ function _getQueryObj(str){
 function _routeToRegExp(route) {
     route = route.replace(escapeRegExp, '\\$&')
         .replace(optionalParam, '(?:$1)?')
-        .replace(namedParam, function (match, optional) {
+        .replace(namedParam, function(match, optional) {
             return optional ? match : '([^/?]+)';
         })
         .replace(splatParam, '([^?]*?)');

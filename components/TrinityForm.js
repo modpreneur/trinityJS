@@ -570,12 +570,14 @@ var TrinityForm = function (_EventEmitter) {
             var _this4 = this;
 
             if (error.timeout) {
-                this.state = 'timeout';
-                var id = setTimeout(function () {
-                    _this4.unlock();
-                    _this4.state = 'ready';
-                    clearTimeout(id);
-                }, this.settings.timeoutTimeout);
+                (function () {
+                    _this4.state = 'timeout';
+                    var id = setTimeout(function () {
+                        _this4.unlock();
+                        _this4.state = 'ready';
+                        clearTimeout(id);
+                    }, _this4.settings.timeoutTimeout);
+                })();
             } else {
                 this.state = 'error';
             }

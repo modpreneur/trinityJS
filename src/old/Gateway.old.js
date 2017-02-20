@@ -4,7 +4,7 @@
 /**
  * @deprecated
  */
-import Xhr from './utils/Xhr.js';
+import Xhr from '../utils/Xhr.js';
 import Debug from './Debug';
 
 /**
@@ -132,7 +132,7 @@ export default Gateway;
  * @private
  */
 function _send(url, method, data, successCallback, errorCallback){
-    if(method.toUpperCase() ==='GET' && data){
+    if(method.toUpperCase() === 'GET' && data){
         url = [url.trim(), _createQuery(data)].join('');
         data = null;
     }
@@ -152,7 +152,7 @@ function _send(url, method, data, successCallback, errorCallback){
  * @private
  */
 function _sendJSON(url, method, data, successCallback, errorCallback){
-    if(method.toUpperCase() ==='GET' && data){
+    if(method.toUpperCase() === 'GET' && data){
         url = [url.trim(), _createQuery(data)].join('');
         data = null;
     }
@@ -178,7 +178,7 @@ function _sendFile(url, method, file, fieldName, successCallback, errorCallback,
     let formData = new FormData();
     if(Array.isArray(file) || file['length'] !== undefined){
         let fLength = file.length;
-        for(let i=0; i < fLength; i++){
+        for(let i = 0; i < fLength; i++){
             formData.append(fieldName || file[i].name, file[i]);
         }
     } else {
@@ -268,7 +268,7 @@ function _createRequest(url, method, sC, eC){
         } else {
             if(process.env.NODE_ENV !== 'production'){
                 Debug.error('RESPONSE:', this.getResponse());
-                _dumpOnScreen(this.getResponse())
+                _dumpOnScreen(this.getResponse());
             }
 
             eC(this.getResponseJson());
@@ -344,10 +344,10 @@ function _createQuery(data){
     var keys = Object.keys(data),
         keysLength = keys.length,
         query = new Array(keysLength);
-    for(let i=0; i< keysLength; i++){
+    for(let i = 0; i < keysLength; i++){
         query[i] = keys[i] + '=' + data[keys[i]];
     }
-    return '?'+ query.join('&');
+    return '?' + query.join('&');
 }
 
 /**

@@ -86,11 +86,11 @@ function manageFroala(froala, settings) {
                 _Gateway2.default.post(value, {
                     src: $img.attr('src')
                 }, function (response) {
-                    if (DEVELOPMENT) {
+                    if (process.env.NODE_ENV !== 'production') {
                         console.log(response);
                     }
                 }, function (error) {
-                    if (DEVELOPMENT) {
+                    if (process.env.NODE_ENV !== 'production') {
                         console.log(error);
                     }
                 });

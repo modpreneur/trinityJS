@@ -69,7 +69,7 @@ export function messageService(message, type) {
     box.appendChild(ajaxAlert);
 
     if (type == 'success') {
-        let timeOutId = setTimeout(()=> {
+        let timeOutId = setTimeout(() => {
             Dom.removeNode(ajaxInput);
             Dom.removeNode(ajaxAlert);
             clearTimeout(timeOutId); // just to be sure

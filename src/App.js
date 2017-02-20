@@ -141,7 +141,7 @@ export default class App {
             elements = root.querySelectorAll('[' + attName + ']');
 
         let bag = {};
-        _.each(elements, (el, i)=>{
+        _.each(elements, (el, i) => {
             let name = el.getAttribute(attName) || '' + el.name + i;
             if(_.isUndefined(bag[name])) {
                 bag[name] = el;

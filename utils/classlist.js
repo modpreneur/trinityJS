@@ -60,7 +60,7 @@ classlist.add = function (element, className) {
 classlist.addAll = function (element, classesToAdd) {
     if (element.classList) {
         _lodash2.default.each(classesToAdd, function (c) {
-            element.classList.add(c);
+            return element.classList.add(c);
         });
         return;
     }
@@ -112,7 +112,7 @@ classlist.remove = function (element, className) {
 classlist.removeAll = function (element, classesToRemove) {
     if (element.classList) {
         _lodash2.default.each(classesToRemove, function (c) {
-            element.classList.remove(c);
+            return element.classList.remove(c);
         });
         return;
     }
