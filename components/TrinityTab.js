@@ -78,7 +78,7 @@ var TrinityTab = function (_EventEmitter) {
         _lodash2.default.each(tabHeads, function (head) {
             _this.tabs[head.id] = new _Tab2.default(head);
             // If no config is provided, try look also for _other
-            _this.configuration[head.id] = _this.configuration[head.id] || _this.configuration['_other'] || {};
+            _this.configuration[head.id] = _lodash2.default.extend({}, _this.configuration['_default'], _this.configuration[head.id]);
         });
 
         // Find active Head

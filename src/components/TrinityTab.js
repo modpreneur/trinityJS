@@ -48,7 +48,7 @@ export default class TrinityTab extends EventEmitter {
         _.each(tabHeads, head => {
             this.tabs[head.id] = new Tab(head);
             // If no config is provided, try look also for _other
-            this.configuration[head.id] = this.configuration[head.id] || this.configuration['_other'] || {};
+            this.configuration[head.id] = _.extend({}, this.configuration['_default'], this.configuration[head.id]);
         });
 
         // Find active Head
