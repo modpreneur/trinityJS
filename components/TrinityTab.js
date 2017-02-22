@@ -77,7 +77,8 @@ var TrinityTab = function (_EventEmitter) {
         // Create tabs
         _lodash2.default.each(tabHeads, function (head) {
             _this.tabs[head.id] = new _Tab2.default(head);
-            _this.configuration[head.id] = _this.configuration[head.id] || {};
+            // If no config is provided, try look also for _other
+            _this.configuration[head.id] = _this.configuration[head.id] || _this.configuration['_other'] || {};
         });
 
         // Find active Head
@@ -173,8 +174,9 @@ var TrinityTab = function (_EventEmitter) {
 
             // No error
             // Call onLoad callback if set
-            if (_lodash2.default.isFunction(this.configuration[tabId].onLoad)) {
-                this.configuration[tabId].onLoad(tab);
+            var onLoadCallback = this.configuration[tabId].onLoad;
+            if (_lodash2.default.isFunction(onLoadCallback)) {
+                onLoadCallback(tab);
             }
             // Emit event
             this.emit(TAB_LOAD, tab);
@@ -313,7 +315,7 @@ var TrinityTab = function (_EventEmitter) {
                 _lodash2.default.isFunction(onDeleteCallback) && onDeleteCallback(tab, true);
 
                 // global event
-                _this5.emit(TAB_UNLOAD, tab);
+                _this5.emit(TAB_UNLOAD, tab, true);
 
                 // call destroy to Tab
                 tab.destroy();

@@ -47,7 +47,8 @@ export default class TrinityTab extends EventEmitter {
         // Create tabs
         _.each(tabHeads, head => {
             this.tabs[head.id] = new Tab(head);
-            this.configuration[head.id] = this.configuration[head.id] || {};
+            // If no config is provided, try look also for _other
+            this.configuration[head.id] = this.configuration[head.id] || this.configuration['_other'] || {};
         });
 
         // Find active Head
@@ -124,8 +125,9 @@ export default class TrinityTab extends EventEmitter {
 
         // No error
         // Call onLoad callback if set
-        if(_.isFunction(this.configuration[tabId].onLoad)){
-            this.configuration[tabId].onLoad(tab);
+        let onLoadCallback = this.configuration[tabId].onLoad;
+        if(_.isFunction(onLoadCallback)){
+            onLoadCallback(tab);
         }
         // Emit event
         this.emit(TAB_LOAD, tab);
@@ -241,7 +243,7 @@ export default class TrinityTab extends EventEmitter {
             _.isFunction(onDeleteCallback) && onDeleteCallback(tab, true);
 
             // global event
-            this.emit(TAB_UNLOAD, tab);
+            this.emit(TAB_UNLOAD, tab, true);
 
             // call destroy to Tab
             tab.destroy();
