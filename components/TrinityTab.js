@@ -333,12 +333,15 @@ var TrinityTab = function (_EventEmitter) {
     }, {
         key: '__reloadTab',
         value: function __reloadTab(tab) {
-            var callbackFunction = this.configuration[tab.id].onDelete;
-            if (_lodash2.default.isFunction(callbackFunction) && callbackFunction(tab, false) === false) {
-                return;
+            // reload only if there is what to reload
+            if (tab.loaded) {
+                var callbackFunction = this.configuration[tab.id].onDelete;
+                if (_lodash2.default.isFunction(callbackFunction) && callbackFunction(tab, false) === false) {
+                    return;
+                }
+                this.emit(TAB_UNLOAD, tab);
+                tab.reloadContent(this.__onTabLoad.bind(this));
             }
-            this.emit(TAB_UNLOAD, tab);
-            tab.reloadContent(this.__onTabLoad.bind(this));
         }
 
         /**

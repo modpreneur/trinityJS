@@ -258,12 +258,15 @@ export default class TrinityTab extends EventEmitter {
      * @private
      */
     __reloadTab(tab) {
-        let callbackFunction = this.configuration[tab.id].onDelete;
-        if(_.isFunction(callbackFunction) && callbackFunction(tab, false) === false){
-            return;
+        // reload only if there is what to reload
+        if(tab.loaded){
+            let callbackFunction = this.configuration[tab.id].onDelete;
+            if(_.isFunction(callbackFunction) && callbackFunction(tab, false) === false){
+                return;
+            }
+            this.emit(TAB_UNLOAD, tab);
+            tab.reloadContent(this.__onTabLoad.bind(this));
         }
-        this.emit(TAB_UNLOAD, tab);
-        tab.reloadContent(this.__onTabLoad.bind(this));
     }
 
     /**
