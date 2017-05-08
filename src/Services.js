@@ -9,6 +9,11 @@ import Dom from './utils/Dom.js';
  * Flash messages
  * @param message
  * @param type
+ *
+ * todo: Only 'success' alert is cleared form DOM, other messages stays there
+ * This is kind of memory leak, as it is expected to delete message on close button
+ * This should be fixed, also whole service should be upgraded to have some message management, and handle
+ * all events in once place
  */
 export function messageService(message, type) {
     type = type || 'info';
