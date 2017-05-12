@@ -136,13 +136,11 @@ var Tab = function () {
                         __tabNotLoaded(_this, callback);
                         callback({ timeout: true, message: 'Request timed out' });
                     } else {
-                        (function () {
-                            console.warn('Request timed out, trying again in 2 sec');
-                            var id = setTimeout(function () {
-                                _this.__requestWidget(url, callback, numTry + 1);
-                                clearTimeout(id);
-                            }, 2000);
-                        })();
+                        console.warn('Request timed out, trying again in 2 sec');
+                        var id = setTimeout(function () {
+                            _this.__requestWidget(url, callback, numTry + 1);
+                            clearTimeout(id);
+                        }, 2000);
                     }
                 } else {
                     console.error(error);

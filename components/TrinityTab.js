@@ -88,12 +88,10 @@ var TrinityTab = function (_EventEmitter) {
 
         if (tabName.length > 0) {
             if (_this.aliasIdPairs.alToId[tabName]) {
-                (function () {
-                    var tabId = _this.aliasIdPairs.alToId[tabName];
-                    activeHead = _lodash2.default.find(_this.heads, function (head) {
-                        return head.id === tabId;
-                    });
-                })();
+                var tabId = _this.aliasIdPairs.alToId[tabName];
+                activeHead = _lodash2.default.find(_this.heads, function (head) {
+                    return head.id === tabId;
+                });
             } else {
                 activeHead = _lodash2.default.find(_this.heads, function (head) {
                     return head.id === tabName;

@@ -18,6 +18,11 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * Flash messages
  * @param message
  * @param type
+ * @deprecated
+ * todo: Only 'success' alert is cleared form DOM, other messages stays there
+ * This is kind of memory leak, as it is expected to delete message on close button
+ * This should be fixed, also whole service should be upgraded to have some message management, and handle
+ * all events in once place
  */
 function messageService(message, type) {
     type = type || 'info';
@@ -76,14 +81,12 @@ function messageService(message, type) {
     box.appendChild(ajaxInput);
     box.appendChild(ajaxAlert);
 
-    if (type == 'success') {
-        (function () {
-            var timeOutId = setTimeout(function () {
-                _Dom2.default.removeNode(ajaxInput);
-                _Dom2.default.removeNode(ajaxAlert);
-                clearTimeout(timeOutId); // just to be sure
-            }, 2000);
-        })();
+    if (type === 'success') {
+        var timeOutId = setTimeout(function () {
+            _Dom2.default.removeNode(ajaxInput);
+            _Dom2.default.removeNode(ajaxAlert);
+            clearTimeout(timeOutId); // just to be sure
+        }, 2000);
     }
     return {
         ajaxInput: ajaxInput,
