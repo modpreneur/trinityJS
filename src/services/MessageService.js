@@ -43,7 +43,7 @@ export default class MessageService {
 
         // Add timeout if needed
         if(newMessage.timeout){
-            newMessage.timeoutId = setTimeout(() => this.remove(newMessage.input.id), newMessage.timeout);
+            newMessage.timeoutId = setTimeout(() => this.remove(id), newMessage.timeout);
         }
 
         // At last, check if stack queue is full and then remove first element in queue

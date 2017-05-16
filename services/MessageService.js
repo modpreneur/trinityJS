@@ -65,7 +65,7 @@ var MessageService = function () {
             // Add timeout if needed
             if (newMessage.timeout) {
                 newMessage.timeoutId = setTimeout(function () {
-                    return _this.remove(newMessage.input.id);
+                    return _this.remove(id);
                 }, newMessage.timeout);
             }
 
