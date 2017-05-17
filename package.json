@@ -9,7 +9,8 @@
     "src",
     "*.js",
     "utils",
-    "components"
+    "components",
+    "services"
   ],
   "main": "index.js",
   "format": "es6",
