@@ -36,6 +36,17 @@ var defaultSettings = {
  */
 
 var App = function () {
+    /**
+     * Constructor of App
+     * @param routes {array<Object>}
+     * @param controllers {Object} <Name: classFunction>
+     * @param [settings] {Object}
+     *
+     * @default settings
+     * {
+     *      attributeName: 'data-ng-scope'
+     * }
+     */
     function App(routes, controllers, settings) {
         _classCallCheck(this, App);
 
@@ -61,7 +72,7 @@ var App = function () {
     /**
      * Kick up application
      * @param [successCallback] {Function} optional success callback
-     * @param [errorCallback] {Function} optional error callback
+     * @param [errorCallback] {Function} optional error callback. If not provided, error is thrown
      * @returns {boolean}
      */
 
@@ -90,11 +101,11 @@ var App = function () {
                 action = _controllerInfo$actio2[1];
 
             if (!name) {
-                var err = new Error('No Controller defined! did you forget to define controller in routes?');
+                var _err = new Error('No Controller defined! did you forget to define controller in routes?');
                 if (errorCallback) {
-                    return errorCallback(err);
+                    return errorCallback(_err);
                 }
-                throw err;
+                throw _err;
             }
 
             // Load controller
@@ -119,17 +130,31 @@ var App = function () {
 
             /** Run **/
             if (instance[action]) {
-                instance.beforeAction(this.$scope);
-                instance[action](this.$scope);
-                instance.afterAction(this.$scope);
-            } else {
-                var _err = new Error('Action "' + action + '" doesn\'t exists');
-                if (errorCallback) {
-                    return errorCallback(_err);
-                }
-                throw _err;
+                // Defer function to make place for initial rendering
+                _lodash2.default.defer(function () {
+                    instance.beforeAction(_this.$scope);
+                    instance[action](_this.$scope);
+                    instance.afterAction(_this.$scope);
+
+                    // now run finish
+                    _this.finishCallback(true, successCallback);
+                });
+                // OLD WAY
+                // instance.beforeAction(this.$scope);
+                // instance[action](this.$scope);
+                // instance.afterAction(this.$scope);
+                // now run finish
+                // this.finishCallback(true, successCallback);
+
+                return true;
             }
-            return this.finishCallback(true, successCallback);
+
+            // Something screw up - error
+            var err = new Error('Action "' + action + '" doesn\'t exists');
+            if (errorCallback) {
+                return errorCallback(err);
+            }
+            throw err;
         }
 
         /**
@@ -153,9 +178,8 @@ var App = function () {
     }, {
         key: 'finishCallback',
         value: function finishCallback(isController, callback) {
-            var message = isController ? this.activeController.name + ' loaded.' : 'Route does\'t have any controller.';
-
             if (process.env.NODE_ENV !== 'production') {
+                var message = isController ? this.activeController.name + ' loaded.' : 'Route does\'t have any controller.';
                 console.log(message);
             }
             if (callback) {

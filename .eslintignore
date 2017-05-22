@@ -5,3 +5,5 @@ components/*
 utils
 utils/*
 *.js
+!src
+!src/*

@@ -15,6 +15,17 @@ const defaultSettings = {
  * Represents application, provides main control over running js
  */
 export default class App {
+    /**
+     * Constructor of App
+     * @param routes {array<Object>}
+     * @param controllers {Object} <Name: classFunction>
+     * @param [settings] {Object}
+     *
+     * @default settings
+     * {
+     *      attributeName: 'data-ng-scope'
+     * }
+     */
     constructor(routes, controllers, settings){
         //Settings FIRST !
         this.settings = _.defaultsDeep(settings || {}, defaultSettings);
@@ -39,7 +50,7 @@ export default class App {
     /**
      * Kick up application
      * @param [successCallback] {Function} optional success callback
-     * @param [errorCallback] {Function} optional error callback
+     * @param [errorCallback] {Function} optional error callback. If not provided, error is thrown
      * @returns {boolean}
      */
     start(successCallback, errorCallback){
@@ -89,17 +100,31 @@ export default class App {
 
         /** Run **/
         if(instance[action]){
-            instance.beforeAction(this.$scope);
-            instance[action](this.$scope);
-            instance.afterAction(this.$scope);
-        } else {
-            let err = new Error('Action "' + action + '" doesn\'t exists');
-            if(errorCallback){
-                return errorCallback(err);
-            }
-            throw err;
+            // Defer function to make place for initial rendering
+            _.defer(() => {
+                instance.beforeAction(this.$scope);
+                instance[action](this.$scope);
+                instance.afterAction(this.$scope);
+
+                // now run finish
+                this.finishCallback(true, successCallback);
+            });
+            // OLD WAY
+            // instance.beforeAction(this.$scope);
+            // instance[action](this.$scope);
+            // instance.afterAction(this.$scope);
+            // now run finish
+            // this.finishCallback(true, successCallback);
+
+            return true;
         }
-        return this.finishCallback(true, successCallback);
+
+        // Something screw up - error
+        let err = new Error('Action "' + action + '" doesn\'t exists');
+        if(errorCallback){
+            return errorCallback(err);
+        }
+        throw err;
     }
 
     /**
@@ -117,11 +142,10 @@ export default class App {
      * @returns {boolean}
      */
     finishCallback(isController, callback){
-        let message = isController ?
-            this.activeController.name + ' loaded.'
-            : 'Route does\'t have any controller.';
-
         if(process.env.NODE_ENV !== 'production'){
+            let message = isController ?
+                this.activeController.name + ' loaded.'
+                : 'Route does\'t have any controller.';
             console.log(message);
         }
         if(callback){
@@ -156,5 +180,4 @@ export default class App {
         });
         return bag;
     }
-
 }

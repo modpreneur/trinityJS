@@ -44,7 +44,7 @@ function Router(routes) {
  * Regular expression template to modify regular expressions of routes
  * @type {string}
  */
-var prefixRegExp = '(?:\/\w+)*';
+let prefixRegExp = '(?:\/\w+)*';
 
 /**
  * Adds prefix to regular expression that any path can have any route prefix
@@ -54,8 +54,8 @@ var prefixRegExp = '(?:\/\w+)*';
  * @private
  */
 function __modifyRouteRegx(regx){
-    var source = regx.source;
-    var start = source.indexOf('^') !== 0 ? 0 : 1;
+    let source = regx.source;
+    let start = source.indexOf('^') !== 0 ? 0 : 1;
     return new RegExp(prefixRegExp + source.substring(start));
 }
 
