@@ -7,13 +7,41 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _isArray2 = require('lodash/isArray');
+
+var _isArray3 = _interopRequireDefault(_isArray2);
+
+var _isUndefined2 = require('lodash/isUndefined');
+
+var _isUndefined3 = _interopRequireDefault(_isUndefined2);
+
+var _each2 = require('lodash/each');
+
+var _each3 = _interopRequireDefault(_each2);
+
+var _defer2 = require('lodash/defer');
+
+var _defer3 = _interopRequireDefault(_defer2);
+
+var _isNull2 = require('lodash/isNull');
+
+var _isNull3 = _interopRequireDefault(_isNull2);
+
+var _find2 = require('lodash/find');
+
+var _find3 = _interopRequireDefault(_find2);
+
+var _extend2 = require('lodash/extend');
+
+var _extend3 = _interopRequireDefault(_extend2);
+
+var _defaultsDeep2 = require('lodash/defaultsDeep');
+
+var _defaultsDeep3 = _interopRequireDefault(_defaultsDeep2);
+
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
 
 var _Router = require('./Router');
 
@@ -51,7 +79,7 @@ var App = function () {
         _classCallCheck(this, App);
 
         //Settings FIRST !
-        this.settings = _lodash2.default.defaultsDeep(settings || {}, defaultSettings);
+        this.settings = (0, _defaultsDeep3.default)(settings || {}, defaultSettings);
 
         this.routes = routes;
         this.controllers = controllers;
@@ -66,7 +94,7 @@ var App = function () {
         });
 
         /** Try to find initial scope **/
-        _lodash2.default.extend(this.$scope, this.parseScope());
+        (0, _extend3.default)(this.$scope, this.parseScope());
     }
 
     /**
@@ -83,7 +111,7 @@ var App = function () {
             var _this = this;
 
             //super cool feature
-            _lodash2.default.find(this.preBootScripts, function (script) {
+            (0, _find3.default)(this.preBootScripts, function (script) {
                 return script(_this.$scope);
             });
 
@@ -91,7 +119,7 @@ var App = function () {
              * Active controller
              */
             var controllerInfo = this.router.findController();
-            if (_lodash2.default.isNull(controllerInfo)) {
+            if ((0, _isNull3.default)(controllerInfo)) {
                 return this.finishCallback(false, successCallback);
             }
 
@@ -131,7 +159,7 @@ var App = function () {
             /** Run **/
             if (instance[action]) {
                 // Defer function to make place for initial rendering
-                _lodash2.default.defer(function () {
+                (0, _defer3.default)(function () {
                     instance.beforeAction(_this.$scope);
                     instance[action](_this.$scope);
                     instance.afterAction(_this.$scope);
@@ -202,12 +230,12 @@ var App = function () {
                 elements = root.querySelectorAll('[' + attName + ']');
 
             var bag = {};
-            _lodash2.default.each(elements, function (el, i) {
+            (0, _each3.default)(elements, function (el, i) {
                 var name = el.getAttribute(attName) || '' + el.name + i;
-                if (_lodash2.default.isUndefined(bag[name])) {
+                if ((0, _isUndefined3.default)(bag[name])) {
                     bag[name] = el;
                 } else {
-                    if (_lodash2.default.isArray(bag[name])) {
+                    if ((0, _isArray3.default)(bag[name])) {
                         bag[name].push(el);
                     } else {
                         // crate new array

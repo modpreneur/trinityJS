@@ -7,9 +7,13 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _lodash = require('lodash');
+var _each2 = require('lodash/each');
 
-var _lodash2 = _interopRequireDefault(_lodash);
+var _each3 = _interopRequireDefault(_each2);
+
+var _find2 = require('lodash/find');
+
+var _find3 = _interopRequireDefault(_find2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -77,7 +81,7 @@ Router.prototype.findController = function findController(route) {
         cache = void 0,
         controllerInfo = void 0;
 
-    controllerInfo = _lodash2.default.find(this.routes, function (el) {
+    controllerInfo = (0, _find3.default)(this.routes, function (el) {
         cache = el.regx.exec(route);
         if (cache) {
             data = cache;
@@ -123,7 +127,7 @@ function __getParams(path, regxResult) {
         params = {};
 
     // create pairs
-    _lodash2.default.each(values, function (val, i) {
+    (0, _each3.default)(values, function (val, i) {
         params[keys[i].substring(1)] = val;
     });
 
@@ -140,7 +144,7 @@ function _getQueryObj(str) {
     var pairs = str.substr(1).split('&'),
         query = {};
 
-    _lodash2.default.each(pairs, function (p) {
+    (0, _each3.default)(pairs, function (p) {
         var ind = p.indexOf('=');
         query[p.substr(0, ind)] = p.substr(ind + 1);
     });

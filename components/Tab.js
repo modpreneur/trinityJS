@@ -4,11 +4,11 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _isNull2 = require('lodash/isNull');
+
+var _isNull3 = _interopRequireDefault(_isNull2);
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
 
 var _Dom = require('../utils/Dom');
 
@@ -190,7 +190,7 @@ function __tabNotLoaded(tab, callback) {
  */
 function __showLoading(element) {
     var loader = element.querySelector('.trinity-tab-loader');
-    if (_lodash2.default.isNull(loader)) {
+    if ((0, _isNull3.default)(loader)) {
         var icon = _Dom2.default.createDom('i', { 'class': 'tiecons tiecons-loading tiecons-rotate font-40' });
         loader = _Dom2.default.createDom('div', { 'class': 'trinity-tab-loader tab-loader' }, icon);
         element.appendChild(loader);

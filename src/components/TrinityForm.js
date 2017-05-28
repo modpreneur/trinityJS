@@ -540,10 +540,10 @@ const nameRegExp = /\w+/g;
 
 function serializeFrom(form, button){
     let formData = new FormData();
-    _(form).filter(el => {
 
+    _.each(form, el => {
         if(!el.name){
-            return false;
+            return;
         }
 
         let isValid = false;
@@ -561,8 +561,10 @@ function serializeFrom(form, button){
             } break;
         }
 
-        return isValid;
-    }).each(el => formData.append(el.name, el.value));
+        if(isValid) {
+            formData.append(el.name, el.value);
+        }
+    });
     return formData;
 }
 
@@ -580,10 +582,10 @@ function serializeFrom(form, button){
  * @returns {{object}}
  */
 function __parseSymfonyForm(form, button) {
-    var data = {},
+    let data = {},
         formLength = form.length;
     /** Go through all inputs in form */
-    for (var i = 0; i < formLength; i++) {
+    for (let i = 0; i < formLength; i++) {
         if (!form[i].name || form[i].name.length < 1) {
             continue;
         }
@@ -644,34 +646,3 @@ function __parseSymfonyForm(form, button) {
     }
     return data;
 }
-
-//function __parseSymfonyForm2(form, button){
-//    let data = {};
-//
-//    /** Go through all inputs in form */
-//    _(form).filter((el)=>{
-//        return !el.name
-//            || (
-//                !el.value
-//                && el.type !== 'submit'
-//                && el !== button
-//            )
-//            || (
-//                !el.checked
-//                && (
-//                    el.type === 'radio'
-//                    || el.type === 'checkbox'
-//                )
-//            );
-//    }).each((el)=>{
-//        let isArray = el.name.indexOf('[]') !== -1,
-//            parsed = el.name.match(nameRegExp),
-//            ref = data,
-//            lastIndex = parsed.length -1;
-//
-//        _.each(parsed, ()=>{
-//            //TODO:
-//        })
-//    });
-//}
-

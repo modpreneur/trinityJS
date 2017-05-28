@@ -5,9 +5,21 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.configure = undefined;
 
-var _lodash = require('lodash');
+var _extend2 = require('lodash/extend');
 
-var _lodash2 = _interopRequireDefault(_lodash);
+var _extend3 = _interopRequireDefault(_extend2);
+
+var _each2 = require('lodash/each');
+
+var _each3 = _interopRequireDefault(_each2);
+
+var _isArrayLike2 = require('lodash/isArrayLike');
+
+var _isArrayLike3 = _interopRequireDefault(_isArrayLike2);
+
+var _noop2 = require('lodash/noop');
+
+var _noop3 = _interopRequireDefault(_noop2);
 
 var _superagent = require('superagent');
 
@@ -216,13 +228,13 @@ function __sendJSON(url, method, data, successCallback, errorCallback, isManual)
 function __sendFile(url, method, file, fieldName, successCallback, errorCallback, progressCallback) {
     method = method || 'POST';
     fieldName = fieldName || 'files';
-    successCallback = successCallback || _lodash2.default.noop;
-    errorCallback = errorCallback || _lodash2.default.noop;
+    successCallback = successCallback || _noop3.default;
+    errorCallback = errorCallback || _noop3.default;
 
     var r = (0, _superagent2.default)(method.toUpperCase(), url.trim()).set('X-Requested-With', 'XMLHttpRequest').timeout(config.fileTimeout);
 
-    if (_lodash2.default.isArrayLike(file)) {
-        _lodash2.default.each(file, function (f) {
+    if ((0, _isArrayLike3.default)(file)) {
+        (0, _each3.default)(file, function (f) {
             r.attach(fieldName, f);
         });
     } else {
@@ -269,7 +281,7 @@ function __responseHandler(successCallback, errorCallback) {
  * @returns {{timeout: number}}
  */
 function configure(conf) {
-    return _lodash2.default.extend(config, conf);
+    return (0, _extend3.default)(config, conf);
 }
 
 /** EXPORTS **/

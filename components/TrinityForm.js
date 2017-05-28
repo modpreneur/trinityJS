@@ -4,11 +4,35 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _remove2 = require('lodash/remove');
+
+var _remove3 = _interopRequireDefault(_remove2);
+
+var _some2 = require('lodash/some');
+
+var _some3 = _interopRequireDefault(_some2);
+
+var _isFunction2 = require('lodash/isFunction');
+
+var _isFunction3 = _interopRequireDefault(_isFunction2);
+
+var _filter2 = require('lodash/filter');
+
+var _filter3 = _interopRequireDefault(_filter2);
+
+var _isString2 = require('lodash/isString');
+
+var _isString3 = _interopRequireDefault(_isString2);
+
+var _each2 = require('lodash/each');
+
+var _each3 = _interopRequireDefault(_each2);
+
+var _defaultsDeep2 = require('lodash/defaultsDeep');
+
+var _defaultsDeep3 = _interopRequireDefault(_defaultsDeep2);
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
 
 var _superagent = require('superagent');
 
@@ -92,13 +116,13 @@ var TrinityForm = function (_EventEmitter) {
         _this.form = formElement;
         _this.buttons = formElement.querySelectorAll('input[type="submit"], button[type="submit"]');
         _this.activeBtn = null;
-        _this.settings = _lodash2.default.defaultsDeep(settings || {}, defaultSettings);
+        _this.settings = (0, _defaultsDeep3.default)(settings || {}, defaultSettings);
         _this.__state = 'ready';
         _this.__inputs = {};
 
         //Main initialize
         // Create inputs
-        _lodash2.default.each(_this.form, function (el) {
+        (0, _each3.default)(_this.form, function (el) {
             if (el.name && !~INPUT_TYPE_FILTER.indexOf(el.type)) {
                 _this.__inputs[el.name] = new _FormInput2.default(el);
             }
@@ -106,7 +130,7 @@ var TrinityForm = function (_EventEmitter) {
 
         // Add ready class to all buttons
         var btnReadyClass = _this.settings.button['ready'].split(' ');
-        _lodash2.default.each(_this.buttons, function (btn) {
+        (0, _each3.default)(_this.buttons, function (btn) {
             return _Dom2.default.classlist.addAll(btn, btnReadyClass);
         });
 
@@ -139,7 +163,7 @@ var TrinityForm = function (_EventEmitter) {
     }, {
         key: 'removeInput',
         value: function removeInput(element) {
-            var name = _lodash2.default.isString(element) ? element : element.name;
+            var name = (0, _isString3.default)(element) ? element : element.name;
             delete this.__inputs[name];
         }
 
@@ -158,7 +182,7 @@ var TrinityForm = function (_EventEmitter) {
          * Disable all forms submit inputs
          */
         value: function lock() {
-            _lodash2.default.each(this.buttons, _Dom2.default.disable);
+            (0, _each3.default)(this.buttons, _Dom2.default.disable);
         }
 
         /**
@@ -168,7 +192,7 @@ var TrinityForm = function (_EventEmitter) {
     }, {
         key: 'unlock',
         value: function unlock() {
-            return this.state !== 'loading' && !!_lodash2.default.each(this.buttons, _Dom2.default.enable);
+            return this.state !== 'loading' && !!(0, _each3.default)(this.buttons, _Dom2.default.enable);
         }
 
         /**
@@ -193,8 +217,8 @@ var TrinityForm = function (_EventEmitter) {
             if (!inputObj) {
                 return;
             }
-            inputObj.errors = _lodash2.default.filter(inputObj.errors, function (err) {
-                if (!_lodash2.default.isFunction(err.validate) || err.validate(inputObj.getValue(), inputObj.element)) {
+            inputObj.errors = (0, _filter3.default)(inputObj.errors, function (err) {
+                if (!(0, _isFunction3.default)(err.validate) || err.validate(inputObj.getValue(), inputObj.element)) {
                     _Dom2.default.removeNode(err.element);
                     return false;
                 }
@@ -241,7 +265,7 @@ var TrinityForm = function (_EventEmitter) {
             var inputObj = this.__findInput(element);
             if (!inputObj) {
                 if (process.env.NODE_ENV !== 'production') {
-                    throw new Error('Form does not have input ' + (_lodash2.default.isString(element) ? 'with name ' : '') + element + '.');
+                    throw new Error('Form does not have input ' + ((0, _isString3.default)(element) ? 'with name ' : '') + element + '.');
                 }
                 return false;
             }
@@ -273,11 +297,11 @@ var TrinityForm = function (_EventEmitter) {
             var inputObj = this.__findInput(element);
             if (!inputObj) {
                 if (process.env.NODE_ENV !== 'production') {
-                    throw new Error('Form does not have input ' + (_lodash2.default.isString(element) ? 'with name ' : '') + element + '.');
+                    throw new Error('Form does not have input ' + ((0, _isString3.default)(element) ? 'with name ' : '') + element + '.');
                 }
                 return false;
             }
-            return errorId ? _lodash2.default.some(inputObj.errors, function (err) {
+            return errorId ? (0, _some3.default)(inputObj.errors, function (err) {
                 return err.id === errorId;
             }) : inputObj.errors.length > 0;
         }
@@ -295,18 +319,18 @@ var TrinityForm = function (_EventEmitter) {
             var inputObj = this.__findInput(element);
             if (!inputObj) {
                 if (process.env.NODE_ENV !== 'production') {
-                    throw new Error('Form does not have input ' + (_lodash2.default.isString(element) ? 'with name ' : '') + element + '.');
+                    throw new Error('Form does not have input ' + ((0, _isString3.default)(element) ? 'with name ' : '') + element + '.');
                 }
                 return false;
             }
 
             if (errorId) {
-                _lodash2.default.remove(inputObj.errors, function (err) {
+                (0, _remove3.default)(inputObj.errors, function (err) {
                     return err.id === errorId && !!_Dom2.default.removeNode(err.element);
                 });
             } else {
                 // Remove all if error key not provided
-                _lodash2.default.each(inputObj.errors, function (err) {
+                (0, _each3.default)(inputObj.errors, function (err) {
                     return _Dom2.default.removeNode(err.element);
                 });
                 inputObj.errors = [];
@@ -329,7 +353,7 @@ var TrinityForm = function (_EventEmitter) {
             var inputObj = this.__findInput(element);
             if (!inputObj) {
                 if (process.env.NODE_ENV !== 'production') {
-                    throw new Error('Form does not have input ' + (_lodash2.default.isString(element) ? 'with name ' : '') + element + '.');
+                    throw new Error('Form does not have input ' + ((0, _isString3.default)(element) ? 'with name ' : '') + element + '.');
                 }
                 return false;
             }
@@ -358,7 +382,7 @@ var TrinityForm = function (_EventEmitter) {
             var inputObj = this.__findInput(element);
             if (!inputObj) {
                 if (process.env.NODE_ENV !== 'production') {
-                    throw new Error('Form does not have input ' + (_lodash2.default.isString(element) ? 'with name ' : '') + element + '.');
+                    throw new Error('Form does not have input ' + ((0, _isString3.default)(element) ? 'with name ' : '') + element + '.');
                 }
                 return false;
             }
@@ -373,7 +397,7 @@ var TrinityForm = function (_EventEmitter) {
     }, {
         key: 'validate',
         value: function validate() {
-            if (!_lodash2.default.some(this.__inputs, function (input) {
+            if (!(0, _some3.default)(this.__inputs, function (input) {
                 return !input.isValid();
             })) {
                 this.unlock();
@@ -508,11 +532,11 @@ var TrinityForm = function (_EventEmitter) {
         value: function setSubmitButtons(buttons) {
             /** Add ready class to all buttons **/
             var btnReadyClass = this.settings.button['ready'].split(' ');
-            _lodash2.default.each(this.buttons, function (btn) {
+            (0, _each3.default)(this.buttons, function (btn) {
                 _Dom2.default.classlist.removeAll(btn, btnReadyClass);
             });
             this.buttons = buttons;
-            _lodash2.default.each(this.buttons, function (btn) {
+            (0, _each3.default)(this.buttons, function (btn) {
                 _Dom2.default.classlist.addAll(btn, btnReadyClass);
             });
         }
@@ -529,7 +553,7 @@ var TrinityForm = function (_EventEmitter) {
     }, {
         key: '__findInput',
         value: function __findInput(element) {
-            return this.__inputs[_lodash2.default.isString(element) ? element : element.name];
+            return this.__inputs[(0, _isString3.default)(element) ? element : element.name];
         }
 
         /**
@@ -598,7 +622,7 @@ var TrinityForm = function (_EventEmitter) {
 
             if (newState === 'error' || newState === 'ready') {
                 // For all btns
-                _lodash2.default.each(this.buttons, function (btn) {
+                (0, _each3.default)(this.buttons, function (btn) {
                     _Dom2.default.classlist.removeAll(btn, _this5.settings.button[oldState].split(' '));
                     _Dom2.default.classlist.addAll(btn, _this5.settings.button[newState].split(' '));
                 });
@@ -644,7 +668,7 @@ var TrinityForm = function (_EventEmitter) {
 
 exports.default = TrinityForm;
 function __createMessage(msg, template, prefix, args) {
-    msg = _lodash2.default.isString(msg) ? { message: msg } : msg;
+    msg = (0, _isString3.default)(msg) ? { message: msg } : msg;
     msg.id = msg.id || prefix + ('' + Math.random() * 100).substr(3, 4);
 
     // Create message
@@ -664,10 +688,10 @@ var nameRegExp = /\w+/g;
 
 function serializeFrom(form, button) {
     var formData = new FormData();
-    (0, _lodash2.default)(form).filter(function (el) {
 
+    (0, _each3.default)(form, function (el) {
         if (!el.name) {
-            return false;
+            return;
         }
 
         var isValid = false;
@@ -688,9 +712,9 @@ function serializeFrom(form, button) {
                 }break;
         }
 
-        return isValid;
-    }).each(function (el) {
-        return formData.append(el.name, el.value);
+        if (isValid) {
+            formData.append(el.name, el.value);
+        }
     });
     return formData;
 }
@@ -775,33 +799,3 @@ function __parseSymfonyForm(form, button) {
     }
     return data;
 }
-
-//function __parseSymfonyForm2(form, button){
-//    let data = {};
-//
-//    /** Go through all inputs in form */
-//    _(form).filter((el)=>{
-//        return !el.name
-//            || (
-//                !el.value
-//                && el.type !== 'submit'
-//                && el !== button
-//            )
-//            || (
-//                !el.checked
-//                && (
-//                    el.type === 'radio'
-//                    || el.type === 'checkbox'
-//                )
-//            );
-//    }).each((el)=>{
-//        let isArray = el.name.indexOf('[]') !== -1,
-//            parsed = el.name.match(nameRegExp),
-//            ref = data,
-//            lastIndex = parsed.length -1;
-//
-//        _.each(parsed, ()=>{
-//            //TODO:
-//        })
-//    });
-//}

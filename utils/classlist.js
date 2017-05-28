@@ -4,15 +4,32 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _lodash = require('lodash');
+var _includes2 = require('lodash/includes');
 
-var _lodash2 = _interopRequireDefault(_lodash);
+var _includes3 = _interopRequireDefault(_includes2);
+
+var _contains2 = require('lodash/fp/contains');
+
+var _contains3 = _interopRequireDefault(_contains2);
+
+var _filter2 = require('lodash/filter');
+
+var _filter3 = _interopRequireDefault(_filter2);
+
+var _each2 = require('lodash/each');
+
+var _each3 = _interopRequireDefault(_each2);
+
+var _isString2 = require('lodash/isString');
+
+var _isString3 = _interopRequireDefault(_isString2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var classlist = {}; /**
-                     * Created by fisa on 10/26/15.
-                     */
+/**
+ * Created by fisa on 10/26/15.
+ */
+var classlist = {};
 exports.default = classlist;
 
 /**
@@ -30,7 +47,7 @@ classlist.get = function (element) {
     // Some types of elements don't have a className in IE (e.g. iframes).
     // Furthermore, in Firefox, className is not a string when the element is
     // an SVG element.
-    return _lodash2.default.isString(className) && className.match(/\S+/g) || [];
+    return (0, _isString3.default)(className) && className.match(/\S+/g) || [];
 };
 
 /**
@@ -59,7 +76,7 @@ classlist.add = function (element, className) {
  */
 classlist.addAll = function (element, classesToAdd) {
     if (element.classList) {
-        _lodash2.default.each(classesToAdd, function (c) {
+        (0, _each3.default)(classesToAdd, function (c) {
             return element.classList.add(c);
         });
         return;
@@ -68,12 +85,12 @@ classlist.addAll = function (element, classesToAdd) {
     var classMap = {};
 
     // Get all current class names into a map.
-    _lodash2.default.each(classlist.get(element), function (className) {
+    (0, _each3.default)(classlist.get(element), function (className) {
         classMap[className] = true;
     });
 
     // Add new class names to the map.
-    _lodash2.default.each(classesToAdd, function (className) {
+    (0, _each3.default)(classesToAdd, function (className) {
         classMap[className] = true;
     });
 
@@ -98,7 +115,7 @@ classlist.remove = function (element, className) {
 
     if (classlist.contains(element, className)) {
         // Filter out the class name.
-        element.className = _lodash2.default.filter(classlist.get(element), function (c) {
+        element.className = (0, _filter3.default)(classlist.get(element), function (c) {
             return c != className;
         }).join(' ');
     }
@@ -111,16 +128,16 @@ classlist.remove = function (element, className) {
  */
 classlist.removeAll = function (element, classesToRemove) {
     if (element.classList) {
-        _lodash2.default.each(classesToRemove, function (c) {
+        (0, _each3.default)(classesToRemove, function (c) {
             return element.classList.remove(c);
         });
         return;
     }
     // Filter out those classes in classesToRemove.
-    element.className = _lodash2.default.filter(classlist.get(element), function (className) {
+    element.className = (0, _filter3.default)(classlist.get(element), function (className) {
         // If this class is not one we are trying to remove,
         // add it to the array of new class names.
-        return !_lodash2.default.contains(classesToRemove, className);
+        return !(0, _contains3.default)(classesToRemove, className);
     }).join(' ');
 };
 
@@ -131,5 +148,5 @@ classlist.removeAll = function (element, classesToRemove) {
  * @returns {boolean}
  */
 classlist.contains = function (element, className) {
-    return element.classList ? element.classList.contains(className) : _lodash2.default.includes(classlist.get(element), className);
+    return element.classList ? element.classList.contains(className) : (0, _includes3.default)(classlist.get(element), className);
 };

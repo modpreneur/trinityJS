@@ -3,13 +3,18 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+
+var _map2 = require('lodash/map');
+
+var _map3 = _interopRequireDefault(_map2);
+
+var _each2 = require('lodash/each');
+
+var _each3 = _interopRequireDefault(_each2);
+
 exports.startFroala = startFroala;
 exports.editFroala = editFroala;
 exports.harmonicaPlugin = harmonicaPlugin;
-
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
 
 var _jquery = require('jquery');
 
@@ -25,9 +30,6 @@ var _Gateway2 = _interopRequireDefault(_Gateway);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Created by rockuo on 24.8.16.
- */
 var froalaState = 'none';
 /**
  *
@@ -35,6 +37,9 @@ var froalaState = 'none';
  * @param froalaBundlePath {String}
  * @param callback {Function}
  * @param packages
+ */
+/**
+ * Created by rockuo on 24.8.16.
  */
 function startFroala(containers, froalaBundlePath) {
     var callback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : function () {};
@@ -47,7 +52,7 @@ function startFroala(containers, froalaBundlePath) {
         }
     }
     var doneFn = function doneFn() {
-        _lodash2.default.each([].concat(containers), function (container) {
+        (0, _each3.default)([].concat(containers), function (container) {
             var settings = JSON.parse(container.getAttribute('data-settings')),
                 froala = (0, _jquery2.default)(container.children[0]).froalaEditor(settings);
             manageFroala(froala, settings);
@@ -80,7 +85,7 @@ function startFroala(containers, froalaBundlePath) {
 }
 
 function manageFroala(froala, settings) {
-    _lodash2.default.each(settings, function (value, key) {
+    (0, _each3.default)(settings, function (value, key) {
         if (key === 'imageDeleteURL') {
             froala.on('froalaEditor.image.removed', function (e, editor, $img) {
                 _Gateway2.default.post(value, {
@@ -105,7 +110,7 @@ function manageFroala(froala, settings) {
  * @param how
  */
 function editFroala(containers, how) {
-    _lodash2.default.each([].concat(containers), function (container) {
+    (0, _each3.default)([].concat(containers), function (container) {
         var $cont = (0, _jquery2.default)(container.children[1]);
         $cont.froalaEditor.apply($cont, how);
     });
@@ -116,14 +121,14 @@ function editFroala(containers, how) {
  */
 function harmonicaPlugin($harmonicaContainer) {
     var harmonicaForms = [];
-    return _lodash2.default.map($harmonicaContainer.find('input[id*=\'harmonica-global-\']'), function (radio) {
+    return (0, _map3.default)($harmonicaContainer.find('input[id*=\'harmonica-global-\']'), function (radio) {
         var $harmonicaForm = (0, _jquery2.default)(radio).next().find('form');
         harmonicaForms.push($harmonicaForm);
         if (!radio.checked) {
             $harmonicaForm.css('display', 'none');
         }
         return _Events2.default.listen(radio, 'click', function () {
-            _lodash2.default.each(harmonicaForms, function (form) {
+            (0, _each3.default)(harmonicaForms, function (form) {
                 return form.css('display', 'none');
             });
             $harmonicaForm.css('display', 'block');

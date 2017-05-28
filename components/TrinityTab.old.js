@@ -4,11 +4,27 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _isArray2 = require('lodash/isArray');
+
+var _isArray3 = _interopRequireDefault(_isArray2);
+
+var _isNull2 = require('lodash/isNull');
+
+var _isNull3 = _interopRequireDefault(_isNull2);
+
+var _isUndefined2 = require('lodash/isUndefined');
+
+var _isUndefined3 = _interopRequireDefault(_isUndefined2);
+
+var _find2 = require('lodash/find');
+
+var _find3 = _interopRequireDefault(_find2);
+
+var _each2 = require('lodash/each');
+
+var _each3 = _interopRequireDefault(_each2);
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
 
 var _Dom = require('trinity/utils/Dom');
 
@@ -58,7 +74,7 @@ var TrinityTab = function (_EventEmitter) {
         _this.heads = tabHeads;
         _this.aliasIdPairs = { alToId: {}, idToAl: {} };
         // find heads with aliases
-        _lodash2.default.each(tabHeads, function (head) {
+        (0, _each3.default)(tabHeads, function (head) {
             head.alias = head.getAttribute('data-alias'); // sets custom attribute, for not having to use getAttribute anny later
             if (head.alias) {
                 _this.aliasIdPairs.alToId[head.alias] = head.id;
@@ -77,11 +93,11 @@ var TrinityTab = function (_EventEmitter) {
         if (tabName.length > 0) {
             if (_this.aliasIdPairs.alToId[tabName]) {
                 var tabId = _this.aliasIdPairs.alToId[tabName];
-                activeHead = _lodash2.default.find(_this.heads, function (head) {
+                activeHead = (0, _find3.default)(_this.heads, function (head) {
                     return head.id === tabId;
                 });
             } else {
-                activeHead = _lodash2.default.find(_this.heads, function (head) {
+                activeHead = (0, _find3.default)(_this.heads, function (head) {
                     return head.id === tabName;
                 });
                 if (activeHead && activeHead.alias) {
@@ -95,10 +111,10 @@ var TrinityTab = function (_EventEmitter) {
         if (activeHead) {
             activeHead.setAttribute('checked', 'checked'); //sets head from url as active
         } else {
-            activeHead = _lodash2.default.find(_this.heads, function (tab) {
+            activeHead = (0, _find3.default)(_this.heads, function (tab) {
                 var checked = false;
-                if (_lodash2.default.isUndefined(tab.checked)) {
-                    checked = !_lodash2.default.isNull(tab.getAttribute('checked'));
+                if ((0, _isUndefined3.default)(tab.checked)) {
+                    checked = !(0, _isNull3.default)(tab.getAttribute('checked'));
                 } else {
                     checked = tab.checked;
                 }
@@ -128,7 +144,7 @@ var TrinityTab = function (_EventEmitter) {
         value: function attachHeadClickEvents() {
             var _this2 = this;
 
-            _lodash2.default.each(this.heads, function (head) {
+            (0, _each3.default)(this.heads, function (head) {
                 head.addEventListener('click', __handleTabClick.bind(_this2, head));
             });
         }
@@ -147,7 +163,7 @@ var TrinityTab = function (_EventEmitter) {
 
             // If undefined -> Create and Set as Active
             if (!this.tabs[tabName]) {
-                var head = _lodash2.default.find(this.heads, function (el) {
+                var head = (0, _find3.default)(this.heads, function (el) {
                     return el.id === tabName;
                 });
                 if (!head) {
@@ -210,10 +226,10 @@ var TrinityTab = function (_EventEmitter) {
                     tab.reloadContent();
                 }
             };
-            if (!_lodash2.default.isArray(tabName)) {
+            if (!(0, _isArray3.default)(tabName)) {
                 __reload(tabName);
             } else {
-                _lodash2.default.each(tabName, function (name) {
+                (0, _each3.default)(tabName, function (name) {
                     __reload(name);
                 });
             }
@@ -226,7 +242,7 @@ var TrinityTab = function (_EventEmitter) {
     }, {
         key: 'reloadAll',
         value: function reloadAll() {
-            _lodash2.default.each(this.tabs, function (t) {
+            (0, _each3.default)(this.tabs, function (t) {
                 t.reloadContent();
             });
         }
@@ -433,7 +449,7 @@ function __tabNotLoaded(link, tab) {
  */
 function __showLoading(element) {
     var loader = element.querySelector('.trinity-tab-loader');
-    if (_lodash2.default.isNull(loader)) {
+    if ((0, _isNull3.default)(loader)) {
         var icon = _Dom2.default.createDom('i', { 'class': 'tiecons tiecons-loading tiecons-rotate font-40' });
         loader = _Dom2.default.createDom('div', { 'class': 'trinity-tab-loader tab-loader' }, icon);
         element.appendChild(loader);

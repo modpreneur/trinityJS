@@ -7,11 +7,35 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _find2 = require('lodash/find');
+
+var _find3 = _interopRequireDefault(_find2);
+
+var _cloneDeep2 = require('lodash/cloneDeep');
+
+var _cloneDeep3 = _interopRequireDefault(_cloneDeep2);
+
+var _map2 = require('lodash/map');
+
+var _map3 = _interopRequireDefault(_map2);
+
+var _each2 = require('lodash/each');
+
+var _each3 = _interopRequireDefault(_each2);
+
+var _isFunction2 = require('lodash/isFunction');
+
+var _isFunction3 = _interopRequireDefault(_isFunction2);
+
+var _filter2 = require('lodash/filter');
+
+var _filter3 = _interopRequireDefault(_filter2);
+
+var _defaultsDeep2 = require('lodash/defaultsDeep');
+
+var _defaultsDeep3 = _interopRequireDefault(_defaultsDeep2);
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
 
 var _Dom = require('./utils/Dom');
 
@@ -73,7 +97,7 @@ var Collection = function () {
             prototypeData = __parsePrototypeData(element);
             _Store2.default.setValue(element, 'collection', this);
         }
-        this.settings = _lodash2.default.defaultsDeep({}, globalOptions, prototypeData.options, defaultSettings);
+        this.settings = (0, _defaultsDeep3.default)({}, globalOptions, prototypeData.options, defaultSettings);
         //this.settings = _.extend(_.clone(defaultSettings), (globalOptions ? _.extend(prototypeData.options, globalOptions) : prototypeData.options));
         this.settings.addButton = _Dom2.default.htmlToDocumentFragment(this.settings.addButton.trim());
         this.settings.deleteButton = _Dom2.default.htmlToDocumentFragment(this.settings.deleteButton.trim());
@@ -96,7 +120,7 @@ var Collection = function () {
                 prototypeChildren = this.protoChildren,
 
             // children count?
-            childrenCount = _lodash2.default.filter(this.collectionHolder.children, function (node) {
+            childrenCount = (0, _filter3.default)(this.collectionHolder.children, function (node) {
                 return _Dom2.default.classlist.contains(node, 'collection-child');
             }),
 
@@ -112,14 +136,14 @@ var Collection = function () {
             //Insert new Child
             addButton.parentNode.insertBefore(newChildNode, addButton);
 
-            if (_lodash2.default.isFunction(settings.onAdd)) {
+            if ((0, _isFunction3.default)(settings.onAdd)) {
                 settings.onAdd(newChildNode);
             }
         }
     }, {
         key: 'removeAll',
         value: function removeAll() {
-            _lodash2.default.each(this.children, function (child) {
+            (0, _each3.default)(this.children, function (child) {
                 child.detach();
                 child.remove();
             });
@@ -127,7 +151,7 @@ var Collection = function () {
     }, {
         key: 'detach',
         value: function detach() {
-            _lodash2.default.each(this.children, function (child) {
+            (0, _each3.default)(this.children, function (child) {
                 return child.detach();
             });
             this.unlistenAddButton();
@@ -151,7 +175,7 @@ function __initialize(data) {
     // init
     var prototypeDom = _Dom2.default.htmlToDocumentFragment(data.prototype),
         children = prototypeDom.querySelectorAll('[data-prototype]'),
-        protoChildren = _lodash2.default.map(children, function (node) {
+        protoChildren = (0, _map3.default)(children, function (node) {
         return __parsePrototypeData(node);
     });
 
@@ -160,14 +184,17 @@ function __initialize(data) {
     __addCreateBtn.call(this);
 
     // Add class and delete button to children
-    this.children = (0, _lodash2.default)(this.collectionHolder.children).filter(function (node) {
+    this.children = (0, _map3.default)(
+    // filter row nodes
+    (0, _filter3.default)(this.collectionHolder.children, function (node) {
         return _Dom2.default.classlist.contains(node, 'row');
-    }).map(function (child, index) {
+    }),
+    // Add delete buttons
+    function (child, index) {
         var newChild = new CollectionChild(child, index, _this);
         __addRemoveBtn.call(_this, newChild);
         return newChild;
-    }).value();
-
+    });
     //Add first?
     if (this.children.length === 0 && this.settings.addFirst) {
         this.add();
@@ -207,7 +234,7 @@ function __addRemoveBtn(child) {
         // prevent the link from creating a "#" on the URL
         e.preventDefault();
 
-        if (_lodash2.default.isFunction(settings.onDelete)) {
+        if ((0, _isFunction3.default)(settings.onDelete)) {
             settings.onDelete(child.node);
         }
         var id = child.id;
@@ -215,7 +242,7 @@ function __addRemoveBtn(child) {
         child.remove();
         child.unlistenRemoveButton = null;
         // Update all other children
-        _this2.children = _lodash2.default.filter(_this2.children, function (item) {
+        _this2.children = (0, _filter3.default)(_this2.children, function (item) {
             if (item.id > id) {
                 item.setID(item.id - 1);
                 return true;
@@ -359,8 +386,8 @@ var CollectionChild = function () {
 
             var layer = this.parent.layer;
             this.id = id;
-            _lodash2.default.each(SELECT_MAP, function (selector, key) {
-                _lodash2.default.each(_this4.node.querySelectorAll(selector), function (el) {
+            (0, _each3.default)(SELECT_MAP, function (selector, key) {
+                (0, _each3.default)(_this4.node.querySelectorAll(selector), function (el) {
                     return __updateAttribute(el, id, layer, key);
                 });
             });
@@ -370,7 +397,7 @@ var CollectionChild = function () {
     }, {
         key: 'detach',
         value: function detach() {
-            _lodash2.default.each(this.collections, function (coll) {
+            (0, _each3.default)(this.collections, function (coll) {
                 return coll.detach();
             });
             this.unlistenRemoveButton();
@@ -393,14 +420,14 @@ function __initializeCollections(prototypeElements, prototypeDataSource) {
     var _this5 = this;
 
     if (!prototypeDataSource) {
-        return _lodash2.default.map(prototypeElements, function (el) {
+        return (0, _map3.default)(prototypeElements, function (el) {
             return _Store2.default.getValue(el, 'collection');
         });
     }
     // Init next level
-    return _lodash2.default.map(prototypeElements, function (el) {
+    return (0, _map3.default)(prototypeElements, function (el) {
         var prototypeName = el.getAttribute('data-prototype'),
-            prototypeData = _lodash2.default.cloneDeep(_lodash2.default.find(prototypeDataSource, function (data) {
+            prototypeData = (0, _cloneDeep3.default)((0, _find3.default)(prototypeDataSource, function (data) {
             return data.options['prototype_name'] === prototypeName;
         }));
         prototypeData.prototype = __fillPlaceholders(_this5.parent.settings['prototype_name'], _this5.parent.settings.name, _this5.id, prototypeData.prototype);

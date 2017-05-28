@@ -4,11 +4,35 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _isFunction2 = require('lodash/isFunction');
+
+var _isFunction3 = _interopRequireDefault(_isFunction2);
+
+var _map2 = require('lodash/map');
+
+var _map3 = _interopRequireDefault(_map2);
+
+var _isNull2 = require('lodash/isNull');
+
+var _isNull3 = _interopRequireDefault(_isNull2);
+
+var _isUndefined2 = require('lodash/isUndefined');
+
+var _isUndefined3 = _interopRequireDefault(_isUndefined2);
+
+var _find2 = require('lodash/find');
+
+var _find3 = _interopRequireDefault(_find2);
+
+var _extend2 = require('lodash/extend');
+
+var _extend3 = _interopRequireDefault(_extend2);
+
+var _each2 = require('lodash/each');
+
+var _each3 = _interopRequireDefault(_each2);
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
 
 var _fbemitter = require('fbemitter');
 
@@ -62,7 +86,7 @@ var TrinityTab = function (_EventEmitter) {
         _this.heads = tabHeads;
         _this.aliasIdPairs = { alToId: {}, idToAl: {} };
         // find heads with aliases
-        _lodash2.default.each(tabHeads, function (head) {
+        (0, _each3.default)(tabHeads, function (head) {
             head.alias = head.getAttribute('data-alias'); // sets custom attribute, for not having to use getAttribute anny later
             if (head.alias) {
                 _this.aliasIdPairs.alToId[head.alias] = head.id;
@@ -75,10 +99,10 @@ var TrinityTab = function (_EventEmitter) {
         _this.__prevTabName = null;
 
         // Create tabs
-        _lodash2.default.each(tabHeads, function (head) {
+        (0, _each3.default)(tabHeads, function (head) {
             _this.tabs[head.id] = new _Tab2.default(head);
             // If no config is provided, try look also for _other
-            _this.configuration[head.id] = _lodash2.default.extend({}, _this.configuration['_default'], _this.configuration[head.id]);
+            _this.configuration[head.id] = (0, _extend3.default)({}, _this.configuration['_default'], _this.configuration[head.id]);
         });
 
         // Find active Head
@@ -89,11 +113,11 @@ var TrinityTab = function (_EventEmitter) {
         if (tabName.length > 0) {
             if (_this.aliasIdPairs.alToId[tabName]) {
                 var tabId = _this.aliasIdPairs.alToId[tabName];
-                activeHead = _lodash2.default.find(_this.heads, function (head) {
+                activeHead = (0, _find3.default)(_this.heads, function (head) {
                     return head.id === tabId;
                 });
             } else {
-                activeHead = _lodash2.default.find(_this.heads, function (head) {
+                activeHead = (0, _find3.default)(_this.heads, function (head) {
                     return head.id === tabName;
                 });
                 if (activeHead && activeHead.alias) {
@@ -107,10 +131,10 @@ var TrinityTab = function (_EventEmitter) {
         if (activeHead) {
             activeHead.setAttribute('checked', 'checked'); //sets head from url as active
         } else {
-            activeHead = _lodash2.default.find(_this.heads, function (tab) {
+            activeHead = (0, _find3.default)(_this.heads, function (tab) {
                 var checked = false;
-                if (_lodash2.default.isUndefined(tab.checked)) {
-                    checked = !_lodash2.default.isNull(tab.getAttribute('checked'));
+                if ((0, _isUndefined3.default)(tab.checked)) {
+                    checked = !(0, _isNull3.default)(tab.getAttribute('checked'));
                 } else {
                     checked = tab.checked;
                 }
@@ -149,7 +173,7 @@ var TrinityTab = function (_EventEmitter) {
         value: function __attachHeadClickEvents() {
             var _this2 = this;
 
-            return _lodash2.default.map(this.heads, function (head) {
+            return (0, _map3.default)(this.heads, function (head) {
                 return _Events2.default.listen(head, 'click', _this2.setActiveTab.bind(_this2, head.id));
             });
         }
@@ -173,7 +197,7 @@ var TrinityTab = function (_EventEmitter) {
             // No error
             // Call onLoad callback if set
             var onLoadCallback = this.configuration[tabId].onLoad;
-            if (_lodash2.default.isFunction(onLoadCallback)) {
+            if ((0, _isFunction3.default)(onLoadCallback)) {
                 onLoadCallback(tab);
             }
             // Emit event
@@ -183,7 +207,7 @@ var TrinityTab = function (_EventEmitter) {
             if (tabId === this.__activeTabName) {
                 // On Active callback
                 var onActiveCallback = this.configuration[tabId].onActive;
-                if (_lodash2.default.isFunction(onActiveCallback)) {
+                if ((0, _isFunction3.default)(onActiveCallback)) {
                     onActiveCallback(tab, this.__prevTabName);
                 }
                 // Emit event
@@ -238,7 +262,7 @@ var TrinityTab = function (_EventEmitter) {
             if (!tab.isFetching) {
                 // On Active callback
                 var onActiveCallback = this.configuration[tabId].onActive;
-                if (_lodash2.default.isFunction(onActiveCallback)) {
+                if ((0, _isFunction3.default)(onActiveCallback)) {
                     onActiveCallback(tab, this.__prevTabName);
                 }
                 // Emit event
@@ -270,7 +294,7 @@ var TrinityTab = function (_EventEmitter) {
             var _this3 = this;
 
             var tabs = [].concat(tabId);
-            _lodash2.default.each(tabs, function (tmpTabId) {
+            (0, _each3.default)(tabs, function (tmpTabId) {
                 var tab = _this3.tabs[_this3.aliasIdPairs.alToId[tmpTabId] || tmpTabId];
                 if (tab) {
                     _this3.__reloadTab(tab);
@@ -287,7 +311,7 @@ var TrinityTab = function (_EventEmitter) {
         value: function reloadAll() {
             var _this4 = this;
 
-            _lodash2.default.each(this.tabs, function (tab) {
+            (0, _each3.default)(this.tabs, function (tab) {
                 return _this4.__reloadTab(tab);
             });
         }
@@ -303,14 +327,14 @@ var TrinityTab = function (_EventEmitter) {
             var _this5 = this;
 
             // unload listeners
-            _lodash2.default.each(this.__listeners, function (f) {
+            (0, _each3.default)(this.__listeners, function (f) {
                 return f();
             });
             // Delete tabs
-            _lodash2.default.each(this.tabs, function (tab) {
+            (0, _each3.default)(this.tabs, function (tab) {
                 // life cycle hook
                 var onDeleteCallback = _this5.configuration[tab.id].onDelete;
-                _lodash2.default.isFunction(onDeleteCallback) && onDeleteCallback(tab, true);
+                (0, _isFunction3.default)(onDeleteCallback) && onDeleteCallback(tab, true);
 
                 // global event
                 _this5.emit(TAB_UNLOAD, tab, true);
@@ -334,7 +358,7 @@ var TrinityTab = function (_EventEmitter) {
             // reload only if there is what to reload
             if (tab.loaded) {
                 var callbackFunction = this.configuration[tab.id].onDelete;
-                if (_lodash2.default.isFunction(callbackFunction) && callbackFunction(tab, false) === false) {
+                if ((0, _isFunction3.default)(callbackFunction) && callbackFunction(tab, false) === false) {
                     return;
                 }
                 this.emit(TAB_UNLOAD, tab);

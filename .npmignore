@@ -1,1 +1,4 @@
 .eslintrc.json
+.babelrc
+.eslintignore
+.gitignore
