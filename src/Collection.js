@@ -197,8 +197,14 @@ function __addRemoveBtn(child){
         });
     });
 
-    //Append child to right
-    child.node.querySelector('.form-right').appendChild(removeButton);
+    //Append child to right - old design
+    let rightPart = child.node.querySelector('.form-right');
+    if(rightPart) {
+        rightPart.appendChild(removeButton);
+    } else {
+        // new design fix
+        child.node.appendChild(removeButton);
+    }
 }
 
 /**
