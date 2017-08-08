@@ -303,12 +303,19 @@ function __getHtmlString(element) {
  * Remove label of node
  * @param node {HTMLElement}
  * @private
+ * @deprecated
  */
 function _removeLabel(node) {
-    _Dom2.default.removeNode(node.querySelector('.form-left'));
-    var formRight = node.querySelector('.form-right');
-    _Dom2.default.classlist.removeAll(formRight, ['span-none-padding-medium-16', 'span-none-padding-large-18', 'span-none-padding-xlarge-14']);
-    _Dom2.default.classlist.addAll(formRight, ['span-none-padding-medium-24', 'span-none-padding-large-24', 'span-none-padding-xlarge-24']);
+    var el = node.querySelector('.form-left');
+    if (el) {
+        _Dom2.default.removeNode(node.querySelector('.form-left'));
+    }
+    el = node.querySelector('.form-right');
+
+    if (el) {
+        _Dom2.default.classlist.removeAll(formRight, ['span-none-padding-medium-16', 'span-none-padding-large-18', 'span-none-padding-xlarge-14']);
+        _Dom2.default.classlist.addAll(formRight, ['span-none-padding-medium-24', 'span-none-padding-large-24', 'span-none-padding-xlarge-24']);
+    }
 }
 
 /**
@@ -352,7 +359,7 @@ var CollectionChild = function () {
         this.unlistenRemoveButton = null;
 
         _Dom2.default.classlist.add(node, 'collection-child');
-        //Label?
+        //Label? @deprecated will be changed
         if (parent.settings.label === false) {
             _removeLabel(node);
         }
