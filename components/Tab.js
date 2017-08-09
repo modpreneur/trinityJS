@@ -191,7 +191,7 @@ function __tabNotLoaded(tab, callback) {
 function __showLoading(element) {
     var loader = element.querySelector('.trinity-tab-loader');
     if ((0, _isNull3.default)(loader)) {
-        var icon = _Dom2.default.createDom('i', { 'class': 'tiecons tiecons-loading tiecons-rotate font-40' });
+        var icon = _Dom2.default.createDom('i', { 'class': 'mdi mdi-refresh spin' });
         loader = _Dom2.default.createDom('div', { 'class': 'trinity-tab-loader tab-loader' }, icon);
         element.appendChild(loader);
     } else {

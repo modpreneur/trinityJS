@@ -18,13 +18,13 @@ const defaultSettings = {
                 <div class="span-medium-8 span-large-6 span-xlarge-10"></div>
                 <div class="display-inline-block">
                     <a href="#" id="addButton" class="add-collection-item">
-                        <i class="tiecons tiecons-plus-radius-large"></i>
+                        <i class="mdi mdi-plus"></i>
                     </a>
                 </div>
             </div>`,
     deleteButton:
         `       <a title="Remove item" href="#" id="deleteButton" class="delete-collection-item">
-                <span class="trinity trinity-trash circle"></span>
+                <span class="mdi mdi-delete"></span>
             </a>`,
     onAdd: null,
     onDelete: null,
