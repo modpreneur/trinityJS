@@ -17,7 +17,7 @@ export default class Tab {
         this.head = head;
         this.root = null;
         this.loaded = false;
-        this.failed = true;
+        this.failed = false;
         this.isFetching = false;
 
         // Tab body
