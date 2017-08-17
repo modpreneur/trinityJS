@@ -14,11 +14,10 @@ import Store from './Store';
  */
 const defaultSettings = {
     addButton:
-        `       <div class="collection-add display-inline-block">
-                <div class="span-medium-8 span-large-6 span-xlarge-10"></div>
+        `       <div class="collection-add">
                 <div class="display-inline-block">
                     <a href="#" id="addButton" class="add-collection-item">
-                        <i class="mdi mdi-plus"></i>
+                        + add new
                     </a>
                 </div>
             </div>`,

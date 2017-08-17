@@ -58,7 +58,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * @type {{addButton: string, deleteButton: string, onAdd: null, onDelete: null, name: string}}
  */
 var defaultSettings = {
-    addButton: '       <div class="collection-add display-inline-block">\n                <div class="span-medium-8 span-large-6 span-xlarge-10"></div>\n                <div class="display-inline-block">\n                    <a href="#" id="addButton" class="add-collection-item">\n                        <i class="mdi mdi-plus"></i>\n                    </a>\n                </div>\n            </div>',
+    addButton: '       <div class="collection-add">\n                <div class="display-inline-block">\n                    <a href="#" id="addButton" class="add-collection-item">\n                        + add new\n                    </a>\n                </div>\n            </div>',
     deleteButton: '       <a title="Remove item" href="#" id="deleteButton" class="delete-collection-item">\n                <span class="mdi mdi-delete"></span>\n            </a>',
     onAdd: null,
     onDelete: null,
