@@ -131,7 +131,7 @@ function __initialize(data){
     // Add class and delete button to children
     this.children = _.map(
         // filter row nodes
-        _.filter(this.collectionHolder.children, node => Dom.classlist.contains(node, 'row')),
+        _.filter(this.collectionHolder.children, node => Dom.classlist.contains(node, 'form-row')),
         // Add delete buttons
         (child, index) => {
             let newChild = new CollectionChild(child, index, this);
