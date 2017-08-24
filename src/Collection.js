@@ -180,7 +180,9 @@ function __addRemoveBtn(child){
         e.preventDefault();
 
         if (_.isFunction(settings.onDelete)){
-            settings.onDelete(child.node);
+            if(!settings.onDelete(child.node)) {
+                return false;
+            }
         }
         let id = child.id;
         // remove collection child
