@@ -56,6 +56,11 @@ export default class Collection {
             Store.setValue(element, 'collection', this);
         }
         this.settings = _.defaultsDeep({}, globalOptions, prototypeData.options, defaultSettings);
+        if(element.getAttribute('disabled')) {
+            this.settings.addButton = '<span></span>';
+            this.settings.deleteButton = '<span></span>';
+        }
+
         //this.settings = _.extend(_.clone(defaultSettings), (globalOptions ? _.extend(prototypeData.options, globalOptions) : prototypeData.options));
         this.settings.addButton = Dom.htmlToDocumentFragment(this.settings.addButton.trim());
         this.settings.deleteButton = Dom.htmlToDocumentFragment(this.settings.deleteButton.trim());
