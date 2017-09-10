@@ -1,15 +1,39 @@
 'use strict';
 
-import _ from 'lodash';
-import Request from 'superagent';
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.configure = undefined;
+
+var _extend2 = require('lodash/extend');
+
+var _extend3 = _interopRequireDefault(_extend2);
+
+var _each2 = require('lodash/each');
+
+var _each3 = _interopRequireDefault(_each2);
+
+var _isArrayLike2 = require('lodash/isArrayLike');
+
+var _isArrayLike3 = _interopRequireDefault(_isArrayLike2);
+
+var _noop2 = require('lodash/noop');
+
+var _noop3 = _interopRequireDefault(_noop2);
+
+var _superagent = require('superagent');
+
+var _superagent2 = _interopRequireDefault(_superagent);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Global configuration
-let config = {
+var config = {
     timeout: 10000,
     fileTimeout: 10000
 };
 
-let Gateway = {
+var Gateway = {
     /**
      *  normal GET request to defined URL
      * @param url {string}
@@ -17,8 +41,8 @@ let Gateway = {
      * @param successCallback [function]
      * @param errorCallback [function]
      */
-    get: function get(url, data, successCallback, errorCallback){
-        __send(url,'GET', data, successCallback, errorCallback);
+    get: function get(url, data, successCallback, errorCallback) {
+        __send(url, 'GET', data, successCallback, errorCallback);
     },
     /**
      * JSON GET request
@@ -27,8 +51,8 @@ let Gateway = {
      * @param successCallback [function]
      * @param errorCallback [function]
      */
-    getJSON: function getJSON(url, data, successCallback, errorCallback){
-        __sendJSON(url, 'GET',  data, successCallback, errorCallback);
+    getJSON: function getJSON(url, data, successCallback, errorCallback) {
+        __sendJSON(url, 'GET', data, successCallback, errorCallback);
     },
 
     /**
@@ -38,7 +62,7 @@ let Gateway = {
      * @param successCallback [function]
      * @param errorCallback [function]
      */
-    post: function post(url, data, successCallback, errorCallback){
+    post: function post(url, data, successCallback, errorCallback) {
         __send(url, 'POST', data, successCallback, errorCallback);
     },
     /**
@@ -48,8 +72,8 @@ let Gateway = {
      * @param successCallback [function]
      * @param errorCallback [function]
      */
-    postJSON: function postJSON(url, data, successCallback, errorCallback){
-        __sendJSON(url, 'POST',  data, successCallback, errorCallback);
+    postJSON: function postJSON(url, data, successCallback, errorCallback) {
+        __sendJSON(url, 'POST', data, successCallback, errorCallback);
     },
     /**
      * normal PUT request
@@ -58,8 +82,8 @@ let Gateway = {
      * @param successCallback [function]
      * @param errorCallback [function]
      */
-    put: function put(url, data, successCallback, errorCallback){
-        __send(url,'PUT', data, successCallback, errorCallback);
+    put: function put(url, data, successCallback, errorCallback) {
+        __send(url, 'PUT', data, successCallback, errorCallback);
     },
     /**
      * JSON PUT request
@@ -68,8 +92,8 @@ let Gateway = {
      * @param successCallback [function]
      * @param errorCallback [function]
      */
-    putJSON: function putJSON(url, data, successCallback, errorCallback){
-        __sendJSON(url, 'PUT',  data, successCallback, errorCallback);
+    putJSON: function putJSON(url, data, successCallback, errorCallback) {
+        __sendJSON(url, 'PUT', data, successCallback, errorCallback);
     },
 
     /**
@@ -121,7 +145,6 @@ let Gateway = {
     settings: config
 };
 
-
 /** PRIVATE METHODS **/
 /**
  * private abstract send request method
@@ -134,22 +157,22 @@ let Gateway = {
  * @returns {Xhr}
  * @private
  */
-function __send(url, method, data, successCallback, errorCallback, isManual){
+function __send(url, method, data, successCallback, errorCallback, isManual) {
     method = method.toUpperCase();
-    let r = Request(method, url.trim())
-        .set('X-Requested-With', 'XMLHttpRequest')
-        .timeout(Gateway.settings.timeout);
+    var r = (0, _superagent2.default)(method, url.trim()).set('X-Requested-With', 'XMLHttpRequest').timeout(Gateway.settings.timeout);
 
-    if(data){
-        if(method === 'GET' && !(window.FormData && data instanceof window.FormData)){
+    if (data) {
+        if (method === 'GET' && !(window.FormData && data instanceof window.FormData)) {
             r.query(data);
         } else {
             r.send(data);
         }
     }
 
-    r.finish = () => r.end(__responseHandler(successCallback, errorCallback));
-    if(isManual){
+    r.finish = function () {
+        return r.end(__responseHandler(successCallback, errorCallback));
+    };
+    if (isManual) {
         return r;
     }
     r.finish();
@@ -166,26 +189,26 @@ function __send(url, method, data, successCallback, errorCallback, isManual){
  * @returns {Xhr}
  * @private
  */
-function __sendJSON(url, method, data, successCallback, errorCallback, isManual){
+function __sendJSON(url, method, data, successCallback, errorCallback, isManual) {
     method = method.toUpperCase();
-    let r = Request(method, url.trim())
-        .set({
-            'Content-type': 'application/json',
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-        })
-        .timeout(Gateway.settings.timeout);
+    var r = (0, _superagent2.default)(method, url.trim()).set({
+        'Content-type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+    }).timeout(Gateway.settings.timeout);
 
-    if(data){
-        if(method === 'GET'){
+    if (data) {
+        if (method === 'GET') {
             r.query(data);
         } else {
             r.send(data);
         }
     }
 
-    r.finish = () => r.end(__responseHandler(successCallback, errorCallback));
-    if(isManual){
+    r.finish = function () {
+        return r.end(__responseHandler(successCallback, errorCallback));
+    };
+    if (isManual) {
         return r;
     }
     r.finish();
@@ -202,24 +225,22 @@ function __sendJSON(url, method, data, successCallback, errorCallback, isManual)
  * @param progressCallback [function]
  * @private
  */
-function __sendFile(url, method, file, fieldName, successCallback, errorCallback, progressCallback){
+function __sendFile(url, method, file, fieldName, successCallback, errorCallback, progressCallback) {
     method = method || 'POST';
     fieldName = fieldName || 'files';
-    successCallback = successCallback || _.noop;
-    errorCallback = errorCallback || _.noop;
+    successCallback = successCallback || _noop3.default;
+    errorCallback = errorCallback || _noop3.default;
 
-    let r = Request(method.toUpperCase(), url.trim())
-        .set('X-Requested-With', 'XMLHttpRequest')
-        .timeout(config.fileTimeout);
+    var r = (0, _superagent2.default)(method.toUpperCase(), url.trim()).set('X-Requested-With', 'XMLHttpRequest').timeout(config.fileTimeout);
 
-    if(_.isArrayLike(file)){
-        _.each(file, f => {
+    if ((0, _isArrayLike3.default)(file)) {
+        (0, _each3.default)(file, function (f) {
             r.attach(fieldName, f);
         });
     } else {
         r.attach(fieldName, file);
     }
-    if(progressCallback){
+    if (progressCallback) {
         r.on('progress', progressCallback);
     }
     r.end(__responseHandler(successCallback, errorCallback));
@@ -232,38 +253,37 @@ function __sendFile(url, method, file, fieldName, successCallback, errorCallback
  * @returns {function}
  * @private
  */
-function __responseHandler(successCallback, errorCallback){
-    return function __abstractHandler(err, response){
-        if(response && response.status === 302) {
-            let redirectTo = response.body.location;
+function __responseHandler(successCallback, errorCallback) {
+    return function __abstractHandler(err, response) {
+        if (response && response.status === 302) {
+            var redirectTo = response.body.location;
             // Do callback and then redirect
-            if(successCallback(response) === false){
+            if (successCallback(response) === false) {
                 return false;
             }
             // Redirect
-            if(process.env.NODE_ENV !== 'production' && !redirectTo){
+            if (process.env.NODE_ENV !== 'production' && !redirectTo) {
                 throw new Error('Missing "location" attribute!');
             }
             window.location.assign(redirectTo);
             return;
         }
-        if(err){
+        if (err) {
             return errorCallback(err);
         }
         successCallback(response);
     };
 }
 
-
 /**
  * Set global configuration object
  * @param conf
  * @returns {{timeout: number}}
  */
-function configure(conf){
-    return _.extend(config, conf);
+function configure(conf) {
+    return (0, _extend3.default)(config, conf);
 }
 
 /** EXPORTS **/
-export default Gateway;
-export {configure};
+exports.default = Gateway;
+exports.configure = configure;

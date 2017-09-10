@@ -3,18 +3,29 @@
  */
 'use strict';
 
-import _ from 'lodash';
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _each2 = require('lodash/each');
+
+var _each3 = _interopRequireDefault(_each2);
+
+var _find2 = require('lodash/find');
+
+var _find3 = _interopRequireDefault(_find2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
  * Private help RegExpressions
  * @type {RegExp}
  */
-let optionalParam = /\((.*?)\)/g,
+var optionalParam = /\((.*?)\)/g,
     namedParam = /(\(\?)?:\w+/g,
     splatParam = /\*\w+/g,
     escapeRegExp = /[\-{}\[\]+?.,\\\^$|#\s]/g,
-    paramsRegExp = /:\w+/g
-    ;
+    paramsRegExp = /:\w+/g;
 
 /**
  * Takes routes and create regular expression for each
@@ -22,16 +33,16 @@ let optionalParam = /\((.*?)\)/g,
  * @constructor
  */
 function Router(routes) {
-    this.routes = routes.map(function(route) {
+    this.routes = routes.map(function (route) {
         route.regx = _routeToRegExp(route.path);
         return route;
     }, this);
 
     /** Adds prefix to regular expressions **/
-    if(process.env.NODE_ENV !== 'production'){
-        this.routes = this.routes.map(function(route){
-            let path = route['path'];
-            if(path.indexOf('/') > 1){
+    if (process.env.NODE_ENV !== 'production') {
+        this.routes = this.routes.map(function (route) {
+            var path = route['path'];
+            if (path.indexOf('/') > 1) {
                 console.warn('Route should start with "/" char. Or should be index page "(/)". It can cause unexpected behaviour!', route);
             }
             route.regx = __modifyRouteRegx(route.regx);
@@ -44,7 +55,7 @@ function Router(routes) {
  * Regular expression template to modify regular expressions of routes
  * @type {string}
  */
-let prefixRegExp = '(?:\/\w+)*';
+var prefixRegExp = '(?:\/\w+)*';
 
 /**
  * Adds prefix to regular expression that any path can have any route prefix
@@ -53,9 +64,9 @@ let prefixRegExp = '(?:\/\w+)*';
  * @returns {RegExp}
  * @private
  */
-function __modifyRouteRegx(regx){
-    let source = regx.source;
-    let start = source.indexOf('^') !== 0 ? 0 : 1;
+function __modifyRouteRegx(regx) {
+    var source = regx.source;
+    var start = source.indexOf('^') !== 0 ? 0 : 1;
     return new RegExp(prefixRegExp + source.substring(start));
 }
 
@@ -66,13 +77,13 @@ function __modifyRouteRegx(regx){
  */
 Router.prototype.findController = function findController(route) {
     route = route || window.location.pathname;
-    let data = null,
-        cache,
-        controllerInfo;
+    var data = null,
+        cache = void 0,
+        controllerInfo = void 0;
 
-    controllerInfo = _.find(this.routes, function(el) {
+    controllerInfo = (0, _find3.default)(this.routes, function (el) {
         cache = el.regx.exec(route);
-        if(cache){
+        if (cache) {
             data = cache;
             return true;
         }
@@ -80,20 +91,15 @@ Router.prototype.findController = function findController(route) {
     }) || null;
 
     // If we found any controller -> create request and return it
-    if(controllerInfo){
+    if (controllerInfo) {
         /** Create request Info object */
-        let search = window.location.search;
-        controllerInfo.request = new this.Request(
-            controllerInfo.path,
-            data.length > 2 ? __getParams(controllerInfo.path, data) : null,
-            search.length > 0 ? _getQueryObj(search) : null
-        );
+        var search = window.location.search;
+        controllerInfo.request = new this.Request(controllerInfo.path, data.length > 2 ? __getParams(controllerInfo.path, data) : null, search.length > 0 ? _getQueryObj(search) : null);
         //And return all inside one package
         return controllerInfo;
     }
     return null;
 };
-
 
 /**
  * Represents request object
@@ -102,7 +108,7 @@ Router.prototype.findController = function findController(route) {
  * @param query
  * @constructor
  */
-Router.prototype.Request = function Request(path, params, query){
+Router.prototype.Request = function Request(path, params, query) {
     this.path = path;
     this.query = query;
     this.params = params;
@@ -115,13 +121,13 @@ Router.prototype.Request = function Request(path, params, query){
  * @returns {Object}
  * @private
  */
-function __getParams(path, regxResult){
-    let keys = path.match(paramsRegExp),
+function __getParams(path, regxResult) {
+    var keys = path.match(paramsRegExp),
         values = regxResult.slice(1, regxResult.length - 1),
         params = {};
 
     // create pairs
-    _.each(values, (val, i) => {
+    (0, _each3.default)(values, function (val, i) {
         params[keys[i].substring(1)] = val;
     });
 
@@ -134,17 +140,16 @@ function __getParams(path, regxResult){
  * @returns {Object}
  * @private
  */
-function _getQueryObj(str){
-    let pairs = str.substr(1).split('&'),
+function _getQueryObj(str) {
+    var pairs = str.substr(1).split('&'),
         query = {};
 
-    _.each(pairs, p => {
-        let ind = p.indexOf('=');
+    (0, _each3.default)(pairs, function (p) {
+        var ind = p.indexOf('=');
         query[p.substr(0, ind)] = p.substr(ind + 1);
     });
     return query;
 }
-
 
 /**
  * Create regular expression from route - from backbone framework
@@ -154,13 +159,10 @@ function _getQueryObj(str){
  * @private
  */
 function _routeToRegExp(route) {
-    route = route.replace(escapeRegExp, '\\$&')
-        .replace(optionalParam, '(?:$1)?')
-        .replace(namedParam, function(match, optional) {
-            return optional ? match : '([^/?]+)';
-        })
-        .replace(splatParam, '([^?]*?)');
+    route = route.replace(escapeRegExp, '\\$&').replace(optionalParam, '(?:$1)?').replace(namedParam, function (match, optional) {
+        return optional ? match : '([^/?]+)';
+    }).replace(splatParam, '([^?]*?)');
     return new RegExp('^' + route + '(?:\\?([\\s\\S]*))?$');
 }
 
-export default Router;
+exports.default = Router;

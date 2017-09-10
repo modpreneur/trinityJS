@@ -10,8 +10,10 @@
 'use strict';
 
 /** Preparation - ES5 (IE 9+, others) or IE8 **/
+/* eslint-disable */
 var XhrFactory = window.XMLHttpRequest || ActiveXObject;
 var isES5 = typeof Object.keys === 'function';
+/* eslint-enable */
 /**
  * Wrapper of browser xhr request object
  */
@@ -42,6 +44,7 @@ class Xhr {
             headers['Content-type'] = 'application/x-www-form-urlencoded';
         }
         this.setHeaders(headers);
+        //console.log(headers);
     }
 
     /**
@@ -53,7 +56,7 @@ class Xhr {
         if(isES5){
             let headerKeys = Object.keys(headers);
             let keysLenght = headerKeys.length;
-            for(let i=0; i<keysLenght; i++){
+            for(let i = 0; i < keysLenght; i++){
                 this.request.setRequestHeader(headerKeys[i], headers[headerKeys[i]]);
             }
         }
@@ -115,7 +118,7 @@ class Xhr {
             window.setTimeout(function(){
                 self.isTimeout = true;
                 self.request.abort();
-            }, this.timeout)
+            }, this.timeout);
         }
         // SEND
         this.request.send(data);
@@ -143,24 +146,24 @@ class Xhr {
      * @returns {Array}
      */
     getResponseHeaders(){
-        var headersString = this.request.getAllResponseHeaders();
-        var headersTemp = headersString.split('\n');
-        var headersLength = headersTemp.length;
-        if(headersTemp[headersLength-1].length === 0){
+        let headersString = this.request.getAllResponseHeaders(),
+            headersTemp = headersString.split('\n'),
+            headersLength = headersTemp.length;
+        if(headersTemp[headersLength - 1].length === 0){
             headersLength--;
         }
-        var headers = new Array(headersLength);
-        for(var i=0; i<headersLength; i++){
+        let headers = new Array(headersLength);
+        for(let i = 0; i < headersLength; i++){
             var header = {};
             if(isES5){
-                var index = headersTemp[i].indexOf(':');
-                header[headersTemp[i].substring(0,index)] = headersTemp[i].substring(index+2);
+                let index = headersTemp[i].indexOf(':');
+                header[headersTemp[i].substring(0,index)] = headersTemp[i].substring(index + 2);
             } else {
-                var name = '';
-                var value = '';
-                var strLength = headersTemp[i].length;
-                var isNamePart = true;
-                for(var j=0; j<strLength; j++){
+                let name = '',
+                    value = '',
+                    strLength = headersTemp[i].length,
+                    isNamePart = true;
+                for(let j = 0; j < strLength; j++){
                     if(headersTemp[i][j] === ':'){
                         j++;
                         isNamePart = false;
@@ -172,7 +175,7 @@ class Xhr {
                         value += headersTemp[i][j];
                     }
                 }
-                header[name] = value
+                header[name] = value;
             }
             // Add new Header to array
             headers[i] = header;

@@ -1,10 +1,17 @@
-import _ from 'lodash';
-import Dom from '../utils/Dom';
-import events from '../utils/closureEvents';
-import {EventEmitter} from 'fbemitter';
-import Gateway from '../Gateway';
+'use strict';
 
-const MAX_TRY = 3;
+import _ from 'lodash';
+import {EventEmitter} from 'fbemitter';
+import Tab from './Tab';
+import Events from '../utils/Events';
+
+/**
+ * Event name constants
+ * @type {string}
+ */
+const TAB_LOAD = 'tab-load',
+    TAB_CHANGED = 'tab-changed',
+    TAB_UNLOAD = 'tab-unload';
 
 /**
  * Trinity Tab
@@ -13,51 +20,181 @@ export default class TrinityTab extends EventEmitter {
     /**
      * Heads of tab component
      * @param [tabHeads] {Array<HTMLElement>}
+     * @param [configuration] {object}
      */
-    constructor(tabHeads){
+    constructor(tabHeads, configuration) {
         tabHeads = tabHeads || document.querySelectorAll('.tab-head');
-        if(tabHeads.length < 1){
+        if (tabHeads.length < 1) {
             throw new Error('No "tabHeads" provided or elements with "tab-head" class not found!');
         }
         super();
+        this.configuration = configuration || {};
         this.heads = tabHeads;
+        this.aliasIdPairs = {alToId: {}, idToAl: {}};
+        // find heads with aliases
+        _.each(tabHeads, head => {
+            head.alias = head.getAttribute('data-alias'); // sets custom attribute, for not having to use getAttribute anny later
+            if (head.alias) {
+                this.aliasIdPairs.alToId[head.alias] = head.id;
+                this.aliasIdPairs.idToAl[head.id] = head.alias;
+            }
+        });
+
         this.tabs = {};
-        this.__activeTabID = null;
-        _initialize.call(this);
+        this.__activeTabName = null;
+        this.__prevTabName = null;
+
+        // Create tabs
+        _.each(tabHeads, head => {
+            this.tabs[head.id] = new Tab(head);
+            // If no config is provided, try look also for _other
+            this.configuration[head.id] = _.extend({}, this.configuration['_default'], this.configuration[head.id]);
+        });
+
+        // Find active Head
+        // Check which tab to load first
+        let tabName = location.hash.substring(1),
+            activeHead = null;
+
+        if (tabName.length > 0) {
+            if (this.aliasIdPairs.alToId[tabName]) {
+                let tabId = this.aliasIdPairs.alToId[tabName];
+                activeHead = _.find(this.heads, head => head.id === tabId);
+            } else {
+                activeHead = _.find(this.heads, head => head.id === tabName);
+                if (activeHead && activeHead.alias) { // if head have alias, replace hash and tabName to it
+                    tabName = activeHead.alias;
+                    window.location.hash = `#${activeHead.alias}`;
+                }
+            }
+        }
+
+        if (activeHead) {
+            activeHead.setAttribute('checked', 'checked'); //sets head from url as active
+        } else {
+            activeHead = _.find(this.heads, (tab) => {
+                let checked = false;
+                if (_.isUndefined(tab.checked)) {
+                    checked = !_.isNull(tab.getAttribute('checked'));
+                } else {
+                    checked = tab.checked;
+                }
+                return checked;
+            });
+            if (!activeHead) {
+                activeHead = this.heads[0];
+            }
+            tabName = activeHead.alias || activeHead.id;
+            // Replace history string
+            window.history.replaceState(null, tabName, '#' + tabName);
+        }
+        // Got active head
+        this.__activeTabName = activeHead.id;
+
+        // Request content for active tab
+        this.tabs[activeHead.id].loadContent(this.__onTabLoad.bind(this));
+
+        /** Attach click event Listeners to other heads **/
+        this.__listeners = this.__attachHeadClickEvents();
+
+        // Navigation
+        window.addEventListener('popstate', __handleNavigation.bind(this));
+    }
+
+    /**
+     * Attach onClick events to tab heads
+     * @returns Array<function> - unlisteners
+     * @private
+     */
+    __attachHeadClickEvents(){
+        return _.map(this.heads, head => Events.listen(head, 'click', this.setActiveTab.bind(this, head.id)));
+    }
+
+    /**
+     * Private callback, called when tab is loaded
+     * @param err {object} can be null
+     * @param tab {Tab} object
+     * @private
+     */
+    __onTabLoad(err, tab){
+        if(err) {
+            this.emit('error', err);
+            return;
+        }
+        let tabId = tab.id;
+
+        // No error
+        // Call onLoad callback if set
+        let onLoadCallback = this.configuration[tabId].onLoad;
+        if(_.isFunction(onLoadCallback)){
+            onLoadCallback(tab);
+        }
+        // Emit event
+        this.emit(TAB_LOAD, tab);
+
+        // if loaded tab is also active tab -> call Active callbacks
+        if(tabId === this.__activeTabName){
+            // On Active callback
+            let onActiveCallback = this.configuration[tabId].onActive;
+            if(_.isFunction(onActiveCallback)){
+                onActiveCallback(tab, this.__prevTabName);
+            }
+            // Emit event
+            this.emit(TAB_CHANGED, tab, this.__prevTabName);
+        }
     }
 
     /**
      * Set active Tab by provided tabID
-     * @param tabID {string}
+     * @param tabId {string}
      * @throws {Error} if tab with provided ID does't exit
      * @public
      */
-    setActiveTab(tabID){
-        if(!this.tabs.hasOwnProperty(tabID)){
-            if(TrinityTab.settings.debug){
-                throw new Error('Tab with id: '+ tabID + ' does not exist!');
+    setActiveTab(tabId) {
+        tabId = tabId ? (this.aliasIdPairs.alToId[tabId] || tabId) : this.heads[0].id;
+
+        let tab = this.tabs[tabId];
+        if(!tab){
+            if (process.env.NODE_ENV !== 'production') {
+                throw new Error('Tab with id or alias: ' + tabId + ' does not exist!');
             }
+            return false;
+        }
+
+
+        // If not loaded -> Load it
+        if (!tab.loaded) {
+            tab.loadContent(this.__onTabLoad.bind(this));
+        }
+
+        if (tabId === this.__activeTabName) {
             return;
         }
-        if(tabID === this.__activeTabID){
-            return;
-        }
-        let prevTab = this.__activeTabID;
-        this.__activeTabID = tabID;
-        this.tabs[prevTab].head.removeAttribute('checked');
-        this.tabs[prevTab].head.checked = false;
-        this.tabs[tabID].head.setAttribute('checked', 'checked');
-        this.tabs[tabID].head.checked = true;
+        this.__prevTabName = this.__activeTabName;
+        this.__activeTabName = tabId;
+
+        // Select prevTab instance
+        let prevTab = this.tabs[this.__prevTabName];
+
+        // Switch checked attribute
+        prevTab.head.removeAttribute('checked');
+        prevTab.head.checked = false;
+        tab.head.setAttribute('checked', 'checked');
+        tab.head.checked = true;
 
         //Update Hash URL
-        __pushHistory(tabID);
+        __pushHistory(tab.alias || tabId);
 
-        // Emit change
-        this.emit('tab-changed', {
-            previous: prevTab,
-            id: tabID,
-            tab: this.tabs[tabID]
-        });
+        // Emit only when is already fetched
+        if(!tab.isFetching){
+            // On Active callback
+            let onActiveCallback = this.configuration[tabId].onActive;
+            if(_.isFunction(onActiveCallback)){
+                onActiveCallback(tab, this.__prevTabName);
+            }
+            // Emit event
+            this.emit(TAB_CHANGED, tab, this.__prevTabName);
+        }
     }
 
     /**
@@ -66,108 +203,92 @@ export default class TrinityTab extends EventEmitter {
      * @public
      * @returns {Tab}
      */
-    getActiveTab(){
-        return this.tabs[this.__activeTabID];
+    getActiveTab() {
+        return this.tabs[this.__activeTabName];
     }
 
     /**
      * Reloads content of tab
-     * @param tabID {string || Array<string>}
+     * @param tabId {string || Array<string>}
      */
-    reload(tabID){
-        if(_.isArray(tabID)){
-            let tab = _.find(this.tabs, (t)=>{
-                return t.id === tabID;
-            });
+    reload(tabId) {
+        let tabs = [].concat(tabId);
+        _.each(tabs, (tmpTabId) => {
+            let tab  = this.tabs[(this.aliasIdPairs.alToId[tmpTabId] || tmpTabId)];
             if(tab){
-                tab.reloadContent();
+                this.__reloadTab(tab);
             }
-        } else {
-            _.map(this.tabs, (t)=>{
-                if(tabID.indexOf(t.id) !== -1){
-                    t.reloadContent();
-                }
-            });
-        }
+        });
     }
+
 
     /**
      * Reload content of all tabs
      */
-    reloadAll(){
-        _.map(this.tabs, (t)=>{
-            t.reloadContent();
-        })
+    reloadAll() {
+        _.each(this.tabs, (tab) => this.__reloadTab(tab));
     }
 
-    onLoad(tabID, callback, context){
+    /**
+     * Destroy all tabs and unload trinityTab so it can be garbage collected,
+     * Also emits tab-unload event and calls delete callback, but cannot be prevented
+     */
+    destroy(){
+        // unload listeners
+        _.each(this.__listeners, f => f());
+        // Delete tabs
+        _.each(this.tabs, (tab) => {
+            // life cycle hook
+            let onDeleteCallback = this.configuration[tab.id].onDelete;
+            _.isFunction(onDeleteCallback) && onDeleteCallback(tab, true);
+
+            // global event
+            this.emit(TAB_UNLOAD, tab, true);
+
+            // call destroy to Tab
+            tab.destroy();
+        });
+    }
+
+    /**
+     * Emits "tab-unload" event and call callback onDelete function
+     * If callback returns false, then do not reload content
+     * This is inner function, should not be called from outside
+     * @param tab {Tab}
+     * @private
+     */
+    __reloadTab(tab) {
+        // reload only if there is what to reload
+        if(tab.loaded){
+            let callbackFunction = this.configuration[tab.id].onDelete;
+            if(_.isFunction(callbackFunction) && callbackFunction(tab, false) === false){
+                return;
+            }
+            this.emit(TAB_UNLOAD, tab);
+            tab.reloadContent(this.__onTabLoad.bind(this));
+        }
+    }
+
+    /**
+     * @deprecated
+     * @param tabID
+     * @param callback
+     * @param context
+     */
+    onLoad(tabID, callback, context) {
         this.addListener(tabID, callback, context);
     }
-
-}
-
-TrinityTab.settings = {debug : false};
-
-/**
- * Initialize TrinityTab wrapper
- * @private
- */
-function _initialize(){
-    //Check which tab to load first
-    let tabID = location.hash.substring(1),
-        activeHead = null;
-
-    if(tabID.length > 0){
-        activeHead = document.getElementById(tabID);
-        activeHead.setAttribute('checked', 'checked');
-    } else {
-        activeHead = _.find(this.heads, (tab)=>{
-            return !_.isNull(tab.getAttribute('checked'));
-        });
-        if(!activeHead){
-            activeHead = this.heads[0];
-        }
-        tabID = activeHead.getAttribute('id');
-        // Replace history string
-        window.history.replaceState(null, tabID, '#'+tabID);
-    }
-    this.__activeTabID = tabID;
-    // Add new Tab to tabs
-    this.tabs[tabID] = new Tab(activeHead, this);
-
-    /** Attach click event Listeners to other heads **/
-    _.map(this.heads, (head)=>{
-        events.listen(head, 'click', __handleTabClick.bind(this, head));
-    });
-
-    // Navigation
-    events.listen(window, 'popstate', __handleNavigation, false, this);
 }
 
 /**
  * Handles pop state navigation
  * @private
  */
-function __handleNavigation(){
-    let tabID = location.hash.substring(1);
-    if(tabID.length > 0) {
-        this.setActiveTab(tabID);
+function __handleNavigation() {
+    let tabName = location.hash.substring(1);
+    if (tabName.length > 0) {
+        this.setActiveTab(tabName);
     }
-}
-
-/**
- * Handles click event on Tab
- * @param head {HTMLElement}
- * @param [e] {Event}
- * @private
- */
-function __handleTabClick(head, e){
-    let tabID = head.getAttribute('id');
-    // If undefined -> Create and Set as Active
-    if(_.isUndefined(this.tabs[tabID])) {
-        this.tabs[tabID] = new Tab(head, this);
-    }
-    this.setActiveTab(tabID);
 }
 
 /**
@@ -175,125 +296,10 @@ function __handleTabClick(head, e){
  * @param newHash
  * @private
  */
-function __pushHistory(newHash){
-    if(newHash !== window.location.hash.substring(1)){
-        window.history.pushState(null, newHash, '#'+newHash);
+function __pushHistory(newHash) {
+    if (newHash !== window.location.hash.substring(1)) {
+        window.history.pushState(null, newHash, '#' + newHash);
     }
 }
 
 
-
-/**
- * Tab class
- */
-export class Tab {
-    constructor(head, parent){
-        this.id = head.getAttribute('id');
-        this.head = head;
-        this.parent = parent;
-        this.root = null;
-        this.forms = [];
-
-        // Tab body
-        this.bodyElement = document.getElementById(this.id.replace('tab', 'tab-body-'));
-
-        __showLoading(this.bodyElement);
-
-        //link of body for root child
-        this.dataSource = this.bodyElement.getAttribute('data-source');
-        this.loadContent();
-    }
-
-    loadContent(){
-        __requestWidget(this.dataSource, this, null);
-    }
-
-    reloadContent(){
-        __showLoading(this.bodyElement);
-        Dom.removeNode(this.root);
-        __requestWidget(this.dataSource, this, null);
-    }
-}
-
-function __requestWidget(link, tab, timeout_i, callback){
-    Gateway.get(link, null, function(data){
-        // @NOTE: note sure if this if is necessary
-        if(typeof data === 'object'){
-            if(data.go != undefined){
-                __requestWidget(data.go, tab, callback);
-                return;
-            }
-            throw new Error('Unexpected response: ', data);
-        }
-
-        let tmpDiv =  Dom.createDom('div', null, data.trim());
-        tab.root = tmpDiv.children.length === 1 ? tmpDiv.children[0] : tmpDiv;
-
-        __hideLoading(tab.bodyElement);
-        tab.bodyElement.appendChild(tab.root);
-
-        // Dispatch global event
-        // tab doesn't inherit from EventEmitter class, but his parent does
-
-        tab.parent.emit('tab-load', {
-            id: tab.id,
-            tab: tab,
-            element: tab.bodyElement
-        });
-
-        // Dispatch tabID-specific event
-        tab.parent.emit(tab.id, {
-            tab: tab,
-            element: tab.bodyElement
-        });
-
-        // If id has any content then emit another event
-        let contentID = tab.root.getAttribute('id');
-        if(contentID){
-            tab.parent.emit(contentID, {
-                tab: tab,
-                element: tab.bodyElement
-            });
-        }
-        // IF callback provided
-        if(callback) {
-            callback.call(tab, this.bodyElement);
-        }
-    }, function(error){
-        if(error.timeout){
-            if(timeout_i && timeout_i === MAX_TRY){
-                // TODO: Logger service?
-                console.error('Call for maintenance');
-                tab.parent.emit('error', {message: 'REQUEST TIMED OUT', timeout:true});
-            } else {
-                console.warn('Request timed out, trying again in 2 sec');
-                let id = setTimeout(()=>{
-                    __requestWidget(link, tab, timeout_i || 1);
-                    clearTimeout(id);
-                }, 2000);
-            }
-        } else {
-            console.error(error);
-            tab.parent.emit('error', error);
-        }
-    });
-}
-
-//TODO: loading icon to settings
-function __showLoading(element){
-    let loader = element.querySelector('.trinity-tab-loader');
-    if(_.isNull(loader)){
-        let icon = Dom.createDom('i', {'class': 'tiecons tiecons-loading tiecons-rotate font-40'});
-        loader = Dom.createDom('div', {'class':'trinity-tab-loader tab-loader'}, icon);
-        element.appendChild(loader);
-    } else {
-        Dom.classlist.remove(loader, 'display-none');
-    }
-}
-
-function __hideLoading(element){
-    let loader = element.querySelector('.trinity-tab-loader');
-    if(loader){
-        Dom.classlist.add(loader, 'display-none');
-    }
-}
