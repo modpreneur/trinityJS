@@ -361,8 +361,7 @@ function __tabNotLoaded(link, tab) {
 function __showLoading(element) {
     let loader = element.querySelector('.trinity-tab-loader');
     if (_.isNull(loader)) {
-        let icon = Dom.createDom('i', {'class': 'tiecons tiecons-loading tiecons-rotate font-40'});
-        loader = Dom.createDom('div', {'class': 'trinity-tab-loader tab-loader'}, icon);
+        loader = Dom.createDom('div', {'class': 'trinity-tab-loader tab-loader'});
         element.appendChild(loader);
     } else {
         Dom.classlist.remove(loader, 'display-none');

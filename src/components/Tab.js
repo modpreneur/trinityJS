@@ -17,6 +17,7 @@ export default class Tab {
         this.head = head;
         this.root = null;
         this.loaded = false;
+        this.failed = false;
         this.isFetching = false;
 
         // Tab body
@@ -84,6 +85,7 @@ export default class Tab {
             // set flags
             this.isFetching = false;
             this.loaded = true;
+            this.failed = true;
             // Success
             callback(null, this);
         }, error => {
@@ -118,6 +120,7 @@ export default class Tab {
  * @private
  */
 function __tabNotLoaded(tab, callback) {
+    tab.failed = true;
     let wrapper = document.createElement('div'),
         button = document.createElement('input');
     button.type = 'submit';
@@ -145,8 +148,7 @@ function __tabNotLoaded(tab, callback) {
 function __showLoading(element) {
     let loader = element.querySelector('.trinity-tab-loader');
     if (_.isNull(loader)) {
-        let icon = Dom.createDom('i', {'class': 'tiecons tiecons-loading tiecons-rotate font-40'});
-        loader = Dom.createDom('div', {'class': 'trinity-tab-loader tab-loader'}, icon);
+        loader = Dom.createDom('div', {'class': 'trinity-tab-loader tab-loader'});
         element.appendChild(loader);
     } else {
         Dom.classlist.remove(loader, 'display-none');

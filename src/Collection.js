@@ -14,17 +14,16 @@ import Store from './Store';
  */
 const defaultSettings = {
     addButton:
-        `       <div class="collection-add display-inline-block">
-                <div class="span-medium-8 span-large-6 span-xlarge-10"></div>
+        `       <div class="collection-add">
                 <div class="display-inline-block">
                     <a href="#" id="addButton" class="add-collection-item">
-                        <i class="tiecons tiecons-plus-radius-large"></i>
+                        + add new
                     </a>
                 </div>
             </div>`,
     deleteButton:
         `       <a title="Remove item" href="#" id="deleteButton" class="delete-collection-item">
-                <span class="trinity trinity-trash circle"></span>
+                <span class="mdi mdi-delete"></span>
             </a>`,
     onAdd: null,
     onDelete: null,
@@ -57,6 +56,11 @@ export default class Collection {
             Store.setValue(element, 'collection', this);
         }
         this.settings = _.defaultsDeep({}, globalOptions, prototypeData.options, defaultSettings);
+        if(element.getAttribute('disabled')) {
+            this.settings.addButton = '<span></span>';
+            this.settings.deleteButton = '<span></span>';
+        }
+
         //this.settings = _.extend(_.clone(defaultSettings), (globalOptions ? _.extend(prototypeData.options, globalOptions) : prototypeData.options));
         this.settings.addButton = Dom.htmlToDocumentFragment(this.settings.addButton.trim());
         this.settings.deleteButton = Dom.htmlToDocumentFragment(this.settings.deleteButton.trim());
@@ -132,7 +136,7 @@ function __initialize(data){
     // Add class and delete button to children
     this.children = _.map(
         // filter row nodes
-        _.filter(this.collectionHolder.children, node => Dom.classlist.contains(node, 'row')),
+        _.filter(this.collectionHolder.children, node => Dom.classlist.contains(node, 'form-row')),
         // Add delete buttons
         (child, index) => {
             let newChild = new CollectionChild(child, index, this);
@@ -181,7 +185,9 @@ function __addRemoveBtn(child){
         e.preventDefault();
 
         if (_.isFunction(settings.onDelete)){
-            settings.onDelete(child.node);
+            if(!settings.onDelete(child.node)) {
+                return false;
+            }
         }
         let id = child.id;
         // remove collection child
