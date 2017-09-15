@@ -4,7 +4,6 @@
 'use strict';
 
 import _ from 'lodash';
-import Router from './Router';
 import Controller from './Controller.js';
 
 const defaultSettings = {
@@ -17,7 +16,7 @@ const defaultSettings = {
 export default class App {
     /**
      * Constructor of App
-     * @param routes {array<Object>}
+     * @param router {Router}
      * @param controllers {Object} <Name: classFunction>
      * @param [settings] {Object}
      *
@@ -26,14 +25,12 @@ export default class App {
      *      attributeName: 'data-ng-scope'
      * }
      */
-    constructor(routes, controllers, settings){
+    constructor(router, controllers, settings){
         //Settings FIRST !
         this.settings = _.defaultsDeep(settings || {}, defaultSettings);
 
-
-        this.routes = routes;
         this.controllers = controllers;
-        this.router = new Router(routes);
+        this.router = router;
         // this.global = null;
         this.activeController = null;
         this.preBootScripts = [];

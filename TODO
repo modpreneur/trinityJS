@@ -1,0 +1,6 @@
+1. Router out of App class. Add it in constructor (OOP approach) - done
+2. Dynamic match of routes (don't create all Regex before-hand)
+3. TrinityForm
+ - support groups (checkboxes), which share error message
+ - support automatic Collection
+ - maybe support error memory

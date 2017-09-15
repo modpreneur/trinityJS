@@ -132,15 +132,18 @@ function __initialize(data){
     // Add class and delete button to children
     this.children = _.map(
         // filter row nodes
+        // todo: zde nelze spolehat na classu "row" pro urceni children. Chce to vymslet jiny selector
         _.filter(this.collectionHolder.children, node => Dom.classlist.contains(node, 'row')),
         // Add delete buttons
         (child, index) => {
             let newChild = new CollectionChild(child, index, this);
+            // todo remove button musi dat vedet parentu ze child je odstranen aby parent mohl prepocitat indexy
             __addRemoveBtn.call(this, newChild);
             return newChild;
         }
     );
     //Add first?
+    // todo mozna ten addFirst nechat jako rozhodujici. Zmenit na OR
     if(this.children.length === 0 && this.settings.addFirst){
         this.add();
     }
