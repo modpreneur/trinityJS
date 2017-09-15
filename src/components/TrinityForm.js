@@ -449,6 +449,7 @@ export default class TrinityForm extends EventEmitter {
     }
 
     detach() {
+        this.emit('beforeDetach', new TrinityEvent(this.element));
         // Main listener
         this.unlistenSubmit();
         this.unlistenValueChange();
