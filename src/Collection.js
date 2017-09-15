@@ -55,6 +55,7 @@ export default class Collection {
             prototypeData = __parsePrototypeData(element);
             Store.setValue(element, 'collection', this);
         }
+        this.prototypeData = prototypeData;
         this.settings = _.defaultsDeep({}, globalOptions, prototypeData.options, defaultSettings);
         if(element.getAttribute('disabled')) {
             this.settings.addButton = '<span></span>';
@@ -113,6 +114,9 @@ export default class Collection {
     detach(){
         _.each(this.children, child => child.detach());
         this.unlistenAddButton();
+        this.collectionHolder.setAttribute('data-options', JSON.stringify(this.prototypeData.options));
+        this.collectionHolder.setAttribute('data-prototype', JSON.stringify(this.prototypeData.prototype));
+        Store.remove(this.collectionHolder, 'collection');
     }
 }
 
