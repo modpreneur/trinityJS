@@ -543,6 +543,7 @@ var TrinityForm = function (_EventEmitter) {
     }, {
         key: 'detach',
         value: function detach() {
+            this.emit('beforeDetach', new _TrinityEvent2.default(this.element));
             // Main listener
             this.unlistenSubmit();
             this.unlistenValueChange();

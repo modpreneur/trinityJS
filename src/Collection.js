@@ -144,6 +144,9 @@ function __initialize(data){
         // Add delete buttons
         (child, index) => {
             let newChild = new CollectionChild(child, index, this);
+            if(_.isFunction(this.settings.onAdd)){
+                this.settings.onAdd(child);
+            }
             __addRemoveBtn.call(this, newChild);
             return newChild;
         }
@@ -189,7 +192,7 @@ function __addRemoveBtn(child){
         e.preventDefault();
 
         if (_.isFunction(settings.onDelete)){
-            if(!settings.onDelete(child.node)) {
+            if(settings.onDelete(child.node) === false) {
                 return false;
             }
         }

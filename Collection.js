@@ -97,7 +97,13 @@ var Collection = function () {
             prototypeData = __parsePrototypeData(element);
             _Store2.default.setValue(element, 'collection', this);
         }
+        this.prototypeData = prototypeData;
         this.settings = (0, _defaultsDeep3.default)({}, globalOptions, prototypeData.options, defaultSettings);
+        if (element.getAttribute('disabled')) {
+            this.settings.addButton = '<span></span>';
+            this.settings.deleteButton = '<span></span>';
+        }
+
         //this.settings = _.extend(_.clone(defaultSettings), (globalOptions ? _.extend(prototypeData.options, globalOptions) : prototypeData.options));
         this.settings.addButton = _Dom2.default.htmlToDocumentFragment(this.settings.addButton.trim());
         this.settings.deleteButton = _Dom2.default.htmlToDocumentFragment(this.settings.deleteButton.trim());
@@ -155,6 +161,9 @@ var Collection = function () {
                 return child.detach();
             });
             this.unlistenAddButton();
+            this.collectionHolder.setAttribute('data-options', JSON.stringify(this.prototypeData.options));
+            this.collectionHolder.setAttribute('data-prototype', JSON.stringify(this.prototypeData.prototype));
+            _Store2.default.remove(this.collectionHolder, 'collection');
         }
     }]);
 
@@ -187,11 +196,14 @@ function __initialize(data) {
     this.children = (0, _map3.default)(
     // filter row nodes
     (0, _filter3.default)(this.collectionHolder.children, function (node) {
-        return _Dom2.default.classlist.contains(node, 'row');
+        return _Dom2.default.classlist.contains(node, 'form-row');
     }),
     // Add delete buttons
     function (child, index) {
         var newChild = new CollectionChild(child, index, _this);
+        if ((0, _isFunction3.default)(_this.settings.onAdd)) {
+            _this.settings.onAdd(child);
+        }
         __addRemoveBtn.call(_this, newChild);
         return newChild;
     });
@@ -235,7 +247,9 @@ function __addRemoveBtn(child) {
         e.preventDefault();
 
         if ((0, _isFunction3.default)(settings.onDelete)) {
-            settings.onDelete(child.node);
+            if (settings.onDelete(child.node) === false) {
+                return false;
+            }
         }
         var id = child.id;
         // remove collection child
