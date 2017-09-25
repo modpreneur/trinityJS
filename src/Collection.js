@@ -276,8 +276,8 @@ function _removeLabel(node){
     el = node.querySelector('.form-right');
 
     if(el) {
-        Dom.classlist.removeAll(formRight, ['span-none-padding-medium-16', 'span-none-padding-large-18', 'span-none-padding-xlarge-14']);
-        Dom.classlist.addAll(formRight, ['span-none-padding-medium-24', 'span-none-padding-large-24', 'span-none-padding-xlarge-24']);
+        Dom.classlist.removeAll(el, ['span-none-padding-medium-16', 'span-none-padding-large-18', 'span-none-padding-xlarge-14']);
+        Dom.classlist.addAll(el, ['span-none-padding-medium-24', 'span-none-padding-large-24', 'span-none-padding-xlarge-24']);
     }
 }
 
