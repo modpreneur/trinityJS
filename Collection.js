@@ -333,8 +333,8 @@ function _removeLabel(node) {
     el = node.querySelector('.form-right');
 
     if (el) {
-        _Dom2.default.classlist.removeAll(formRight, ['span-none-padding-medium-16', 'span-none-padding-large-18', 'span-none-padding-xlarge-14']);
-        _Dom2.default.classlist.addAll(formRight, ['span-none-padding-medium-24', 'span-none-padding-large-24', 'span-none-padding-xlarge-24']);
+        _Dom2.default.classlist.removeAll(el, ['span-none-padding-medium-16', 'span-none-padding-large-18', 'span-none-padding-xlarge-14']);
+        _Dom2.default.classlist.addAll(el, ['span-none-padding-medium-24', 'span-none-padding-large-24', 'span-none-padding-xlarge-24']);
     }
 }
 

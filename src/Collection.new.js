@@ -144,8 +144,7 @@ export default class Collection {
             // Insert new Child
             addButtonElement.parentNode.insertBefore(element, addButtonElement);
         // check if element is direct child of collection
-        } else if (element.parent !== this.element){
-
+        } else if (element.parentElement !== this.element){
             if(process.env.NODE_ENV !== 'production') {
                 console.error('Provided element is not child of collection holder element', element);
             }
@@ -164,7 +163,7 @@ export default class Collection {
 
         // On Add callback
         if(_.isFunction(settings.onAdd)){
-            settings.onAdd(newChildNode);
+            settings.onAdd(element);
         }
         return true;
     }
@@ -199,7 +198,7 @@ export default class Collection {
         this.unlistenAddButton = Events.listen(sett.addButton, 'click', (e) => {
             e.preventDefault();
             // add a new tag form (see next code block)
-            this.add();
+            this.addChild();
         });
         //append add button
         this.element.appendChild(sett.addButton);

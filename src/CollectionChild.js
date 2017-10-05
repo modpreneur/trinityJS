@@ -21,7 +21,7 @@ const SELECT_MAP = {
  * @constructor
  */
 export default class CollectionChild {
-    constructor(element, id, parent, onRemoveCallback, settings){
+    constructor(id, element, parent, onRemoveCallback, settings){
         this.id = id;
         this.element = element;
         this.parent = parent;
