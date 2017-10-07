@@ -174,8 +174,7 @@ export default class Collection {
      */
     removeAll(){
         _.each(this.children, child => {
-            child.detach();
-            child.remove();
+            this.removeChild(child.id);
         });
     }
 
