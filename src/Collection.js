@@ -90,7 +90,9 @@ export default class Collection {
 
         // Add first?
         if(this.children.length === 0 && this.settings.addFirst){
-            this.addChild();
+            // run it with async (first let collection finish to create and then add child)
+            // This way user can interact with collection instance in "onAdd" callback
+            _.defer(this.addChild.bind(this));
         }
     }
 
