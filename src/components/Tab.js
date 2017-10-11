@@ -17,7 +17,6 @@ export default class Tab {
         this.head = head;
         this.root = null;
         this.loaded = false;
-        this.failed = false;
         this.isFetching = false;
 
         // Tab body
@@ -85,7 +84,6 @@ export default class Tab {
             // set flags
             this.isFetching = false;
             this.loaded = true;
-            this.failed = true;
             // Success
             callback(null, this);
         }, error => {
@@ -120,7 +118,6 @@ export default class Tab {
  * @private
  */
 function __tabNotLoaded(tab, callback) {
-    tab.failed = true;
     let wrapper = document.createElement('div'),
         button = document.createElement('input');
     button.type = 'submit';

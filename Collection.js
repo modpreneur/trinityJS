@@ -19,6 +19,10 @@ var _find2 = require('lodash/find');
 
 var _find3 = _interopRequireDefault(_find2);
 
+var _defer2 = require('lodash/defer');
+
+var _defer3 = _interopRequireDefault(_defer2);
+
 var _each2 = require('lodash/each');
 
 var _each3 = _interopRequireDefault(_each2);
@@ -129,7 +133,9 @@ var Collection = function () {
 
             // Add first?
             if (this.children.length === 0 && this.settings.addFirst) {
-                this.addChild();
+                // run it with async (first let collection finish to create and then add child)
+                // This way user can interact with collection instance in "onAdd" callback
+                (0, _defer3.default)(this.addChild.bind(this));
             }
         }
 
@@ -216,9 +222,10 @@ var Collection = function () {
     }, {
         key: 'removeAll',
         value: function removeAll() {
+            var _this2 = this;
+
             (0, _each3.default)(this.children, function (child) {
-                child.detach();
-                child.remove();
+                _this2.removeChild(child.id);
             });
         }
 
@@ -245,13 +252,13 @@ var Collection = function () {
     }, {
         key: '__addCreateButton',
         value: function __addCreateButton() {
-            var _this2 = this;
+            var _this3 = this;
 
             var sett = this.settings;
             this.unlistenAddButton = _Events2.default.listen(sett.addButton, 'click', function (e) {
                 e.preventDefault();
                 // add a new tag form (see next code block)
-                _this2.addChild();
+                _this3.addChild();
             });
             //append add button
             this.element.appendChild(sett.addButton);

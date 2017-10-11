@@ -41,7 +41,6 @@ var Tab = function () {
         this.head = head;
         this.root = null;
         this.loaded = false;
-        this.failed = false;
         this.isFetching = false;
 
         // Tab body
@@ -126,7 +125,6 @@ var Tab = function () {
                 // set flags
                 _this.isFetching = false;
                 _this.loaded = true;
-                _this.failed = true;
                 // Success
                 callback(null, _this);
             }, function (error) {
@@ -167,7 +165,6 @@ var Tab = function () {
 
 exports.default = Tab;
 function __tabNotLoaded(tab, callback) {
-    tab.failed = true;
     var wrapper = document.createElement('div'),
         button = document.createElement('input');
     button.type = 'submit';
