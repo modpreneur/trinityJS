@@ -4,9 +4,20 @@ import _ from 'lodash';
 import Request from 'superagent';
 import {EventEmitter} from 'fbemitter';
 import Events from '../utils/Events';
+import Dom from '../utils/Dom';
 import TrinityEvent from '../utils/TrinityEvent';
 import FormInput from './FormInput';
-import Dom from '../utils/Dom';
+import {
+    STATE_READY,
+    STATE_ERROR,
+    STATE_LOADING,
+    STATE_SUCCESS,
+    STATE_TIMEOUT
+} from './FormStates';
+
+
+const IS_FORM_DATA = !!window.FormData,
+    INPUT_TYPE_FILTER = ['radio', 'checkbox'];
 
 /**
  * Default FORM settings
@@ -17,11 +28,11 @@ import Dom from '../utils/Dom';
  */
 const defaultSettings = {
     button: { // Defines which classes add to active button in which state
-        loading: 'trinity-form-loading',
-        success: 'trinity-form-success',
-        timeout: 'trinity-form-timeout',
-        error: 'trinity-form-error',
-        ready: 'trinity-form-ready'
+        [STATE_LOADING]: 'trinity-form-loading',
+        [STATE_SUCCESS]: 'trinity-form-success',
+        [STATE_TIMEOUT]: 'trinity-form-timeout',
+        [STATE_ERROR]: 'trinity-form-error',
+        [STATE_READY]: 'trinity-form-ready'
     },
     requestTimeout: 10000,
     successTimeout: 3000,
@@ -29,10 +40,6 @@ const defaultSettings = {
     errorTemplate: (message) => `<div>${message}</div>`,
     messageTemplate: (message) => `<div>${message}</div>`
 };
-
-
-const IS_FORM_DATA = !!window.FormData;
-const INPUT_TYPE_FILTER = ['radio', 'checkbox'];
 
 /**
  * Connects to formElement and change it to ajax form
@@ -42,17 +49,17 @@ const INPUT_TYPE_FILTER = ['radio', 'checkbox'];
  * @param [settings] {Object}
  * @constructor
  */
-export default class TrinityForm extends EventEmitter {
+export default class TrinityForm {
     constructor(formElement, settings) {
-        super();
         if (!formElement) {
             throw new Error('Missing "formElement" parameter!');
         }
+        this.__emitter = new EventEmitter();
         this.form = formElement;
         this.buttons = formElement.querySelectorAll('input[type="submit"], button[type="submit"]');
         this.activeBtn = null;
         this.settings = _.defaultsDeep(settings || {}, defaultSettings);
-        this.__state = 'ready';
+        this.__state = STATE_READY;
         this.__inputs = {};
 
 
@@ -65,7 +72,7 @@ export default class TrinityForm extends EventEmitter {
         });
 
         // Add ready class to all buttons
-        let btnReadyClass = this.settings.button['ready'].split(' ');
+        let btnReadyClass = this.settings.button[STATE_READY].split(' ');
         _.each(this.buttons, btn => Dom.classlist.addAll(btn, btnReadyClass));
 
         // Listeners at last
@@ -106,7 +113,7 @@ export default class TrinityForm extends EventEmitter {
         let oldState = this.__state;
         this.__state = newState;
 
-        if (newState === 'error' || newState === 'ready') {
+        if (newState === STATE_ERROR || newState === STATE_READY) {
             // For all btns
             _.each(this.buttons, (btn) => {
                 Dom.classlist.removeAll(btn, this.settings.button[oldState].split(' '));
@@ -118,12 +125,12 @@ export default class TrinityForm extends EventEmitter {
             Dom.classlist.addAll(this.activeBtn, this.settings.button[newState].split(' '));
         }
 
-        if (newState === 'error') {
+        if (newState === STATE_ERROR) {
             this.lock();
         }
 
         // Emit new state change
-        this.emit('state-change', {
+        this.__emitter.emit('state-change', {
             oldValue: oldState,
             value: newState
         });
@@ -147,7 +154,7 @@ export default class TrinityForm extends EventEmitter {
      * Enable all forms submit inputs
      */
     unlock() {
-        return this.state !== 'loading' && !!_.each(this.buttons, Dom.enable);
+        return this.state !== STATE_LOADING && !!_.each(this.buttons, Dom.enable);
     }
 
     /**
@@ -214,7 +221,7 @@ export default class TrinityForm extends EventEmitter {
             }
             return false;
         }
-        this.state = 'error';
+        this.state = STATE_ERROR;
         let errObj = __createMessage(
             error, // error object or string
             this.settings.errorTemplate, // template
@@ -314,15 +321,27 @@ export default class TrinityForm extends EventEmitter {
 
     /**
      * Validates if all errors are removed from form
+     * If yes, unlock form and remove error state if neccessary
      * @public
+     * @returns {boolean}
      */
     validate() {
-        if (!_.some(this.__inputs, input => !input.isValid())) {
+        if (this.isValid()) {
             this.unlock();
-            this.state = 'ready';
+            if (this.state === STATE_ERROR) {
+                this.state = STATE_READY;
+            }
             return true;
         }
         return false;
+    }
+
+    /**
+     * Check if form is in valid state but does not have side effect
+     * @returns {boolean}
+     */
+    isValid() {
+        return !_.some(this.__inputs, input => !input.isValid());
     }
 
     /**
@@ -339,7 +358,7 @@ export default class TrinityForm extends EventEmitter {
 
         /** Lock and Load **/
         this.lock();
-        this.state = 'loading';
+        this.state = STATE_LOADING;
 
         /** Parse and send Data **/
         let data = IS_FORM_DATA ?
@@ -353,7 +372,7 @@ export default class TrinityForm extends EventEmitter {
             })
             ;
 
-        this.emit('submit', submitEvent);
+        this.__emitter.emit('submit', submitEvent);
 
         if (submitEvent.defaultPrevented) {
             return;
@@ -367,10 +386,10 @@ export default class TrinityForm extends EventEmitter {
             .timeout(this.settings.requestTimeout)
             .send(data)
             .on('progress', (e) => {
-                this.emit('progress', e);
+                this.__emitter.emit('progress', e);
             });
 
-        this.emit('before-request', req);
+        this.__emitter.emit('before-request', req);
 
         req.end((err, response) => {
             // Redirect ?
@@ -404,7 +423,7 @@ export default class TrinityForm extends EventEmitter {
      * @returns {TrinityForm}
      */
     success(callback, context) {
-        this.addListener('success', callback, context);
+        this.on('success', callback, context);
         return this; // for chaining
     }
 
@@ -415,7 +434,7 @@ export default class TrinityForm extends EventEmitter {
      * @returns {TrinityForm}
      */
     error(callback, context) {
-        this.addListener('error', callback, context);
+        this.on('error', callback, context);
         return this; // for chaining
     }
 
@@ -426,10 +445,21 @@ export default class TrinityForm extends EventEmitter {
      * @param context {object}
      * @returns {TrinityForm}
      */
-    /*eslint-disable*/
     on(eventName, callback, context) {
+        this.addListener(eventName, callback, context);
+    }
+
+    /**
+     * Abbreviation for addListener
+     * @param eventName {string}
+     * @param callback {function}
+     * @param context {object}
+     * @returns {TrinityForm}
+     */
+    /*eslint-disable*/
+    addListener(eventName, callback, context){
     /*eslint-enable*/
-        this.addListener.apply(this, arguments);
+        this.__emitter.addListener.apply(this.__emitter, arguments);
     }
 
     /**
@@ -438,7 +468,7 @@ export default class TrinityForm extends EventEmitter {
      */
     setSubmitButtons(buttons) {
         /** Add ready class to all buttons **/
-        let btnReadyClass = this.settings.button['ready'].split(' ');
+        let btnReadyClass = this.settings.button[STATE_READY].split(' ');
         _.each(this.buttons, (btn) => {
             Dom.classlist.removeAll(btn, btnReadyClass);
         });
@@ -449,7 +479,7 @@ export default class TrinityForm extends EventEmitter {
     }
 
     detach() {
-        this.emit('beforeDetach', new TrinityEvent(this.element));
+        this.__emitter.emit('beforeDetach', new TrinityEvent(this.element));
         // Main listener
         this.unlistenSubmit();
         this.unlistenValueChange();
@@ -470,12 +500,12 @@ export default class TrinityForm extends EventEmitter {
     __successHandler(response) {
         let event = new TrinityEvent(response);
 
-        this.state = 'success';
-        this.emit('success', event);
+        this.state = STATE_SUCCESS;
+        this.__emitter.emit('success', event);
 
         this.unlock();
         let id = setTimeout(() => {
-            this.state = 'ready';
+            this.state = STATE_READY;
             clearTimeout(id);
         }, this.settings.successTimeout);
 
@@ -490,19 +520,19 @@ export default class TrinityForm extends EventEmitter {
      */
     __errorHandler(error) {
         if (error.timeout) {
-            this.state = 'timeout';
+            this.state = STATE_TIMEOUT;
             let id = setTimeout(() => {
                 this.unlock();
-                this.state = 'ready';
+                this.state = STATE_READY;
                 clearTimeout(id);
             }, this.settings.timeoutTimeout);
         } else {
-            this.state = 'error';
+            this.state = STATE_ERROR;
         }
 
         // Emit event
         let event = new TrinityEvent(error);
-        this.emit('error', event);
+        this.__emitter.emit('error', event);
         return !event.defaultPrevented;
     }
 

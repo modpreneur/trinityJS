@@ -34,6 +34,8 @@ var _defaultsDeep3 = _interopRequireDefault(_defaultsDeep2);
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _button;
+
 var _superagent = require('superagent');
 
 var _superagent2 = _interopRequireDefault(_superagent);
@@ -44,6 +46,10 @@ var _Events = require('../utils/Events');
 
 var _Events2 = _interopRequireDefault(_Events);
 
+var _Dom = require('../utils/Dom');
+
+var _Dom2 = _interopRequireDefault(_Dom);
+
 var _TrinityEvent = require('../utils/TrinityEvent');
 
 var _TrinityEvent2 = _interopRequireDefault(_TrinityEvent);
@@ -52,17 +58,16 @@ var _FormInput = require('./FormInput');
 
 var _FormInput2 = _interopRequireDefault(_FormInput);
 
-var _Dom = require('../utils/Dom');
-
-var _Dom2 = _interopRequireDefault(_Dom);
+var _FormStates = require('./FormStates');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+var IS_FORM_DATA = !!window.FormData,
+    INPUT_TYPE_FILTER = ['radio', 'checkbox'];
 
 /**
  * Default FORM settings
@@ -72,13 +77,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  *   }}
  */
 var defaultSettings = {
-    button: { // Defines which classes add to active button in which state
-        loading: 'trinity-form-loading',
-        success: 'trinity-form-success',
-        timeout: 'trinity-form-timeout',
-        error: 'trinity-form-error',
-        ready: 'trinity-form-ready'
-    },
+    button: (_button = {}, _defineProperty(_button, _FormStates.STATE_LOADING, 'trinity-form-loading'), _defineProperty(_button, _FormStates.STATE_SUCCESS, 'trinity-form-success'), _defineProperty(_button, _FormStates.STATE_TIMEOUT, 'trinity-form-timeout'), _defineProperty(_button, _FormStates.STATE_ERROR, 'trinity-form-error'), _defineProperty(_button, _FormStates.STATE_READY, 'trinity-form-ready'), _button),
     requestTimeout: 10000,
     successTimeout: 3000,
     timeoutTimeout: 2000,
@@ -90,9 +89,6 @@ var defaultSettings = {
     }
 };
 
-var IS_FORM_DATA = !!window.FormData;
-var INPUT_TYPE_FILTER = ['radio', 'checkbox'];
-
 /**
  * Connects to formElement and change it to ajax form
  *
@@ -102,45 +98,43 @@ var INPUT_TYPE_FILTER = ['radio', 'checkbox'];
  * @constructor
  */
 
-var TrinityForm = function (_EventEmitter) {
-    _inherits(TrinityForm, _EventEmitter);
-
+var TrinityForm = function () {
     function TrinityForm(formElement, settings) {
-        _classCallCheck(this, TrinityForm);
+        var _this = this;
 
-        var _this = _possibleConstructorReturn(this, (TrinityForm.__proto__ || Object.getPrototypeOf(TrinityForm)).call(this));
+        _classCallCheck(this, TrinityForm);
 
         if (!formElement) {
             throw new Error('Missing "formElement" parameter!');
         }
-        _this.form = formElement;
-        _this.buttons = formElement.querySelectorAll('input[type="submit"], button[type="submit"]');
-        _this.activeBtn = null;
-        _this.settings = (0, _defaultsDeep3.default)(settings || {}, defaultSettings);
-        _this.__state = 'ready';
-        _this.__inputs = {};
+        this.__emitter = new _fbemitter.EventEmitter();
+        this.form = formElement;
+        this.buttons = formElement.querySelectorAll('input[type="submit"], button[type="submit"]');
+        this.activeBtn = null;
+        this.settings = (0, _defaultsDeep3.default)(settings || {}, defaultSettings);
+        this.__state = _FormStates.STATE_READY;
+        this.__inputs = {};
 
         //Main initialize
         // Create inputs
-        (0, _each3.default)(_this.form, function (el) {
+        (0, _each3.default)(this.form, function (el) {
             if (el.name && !~INPUT_TYPE_FILTER.indexOf(el.type)) {
                 _this.__inputs[el.name] = new _FormInput2.default(el);
             }
         });
 
         // Add ready class to all buttons
-        var btnReadyClass = _this.settings.button['ready'].split(' ');
-        (0, _each3.default)(_this.buttons, function (btn) {
+        var btnReadyClass = this.settings.button[_FormStates.STATE_READY].split(' ');
+        (0, _each3.default)(this.buttons, function (btn) {
             return _Dom2.default.classlist.addAll(btn, btnReadyClass);
         });
 
         // Listeners at last
         // Add listener to form element
-        _this.unlistenSubmit = _Events2.default.listen(formElement, 'submit', _this.submit.bind(_this));
+        this.unlistenSubmit = _Events2.default.listen(formElement, 'submit', this.submit.bind(this));
         // Add listener for input value change
-        _this.unlistenValueInput = _Events2.default.listen(formElement, 'input', _this.onInputChange.bind(_this));
-        _this.unlistenValueChange = _Events2.default.listen(formElement, 'change', _this.onInputChange.bind(_this));
-        return _this;
+        this.unlistenValueInput = _Events2.default.listen(formElement, 'input', this.onInputChange.bind(this));
+        this.unlistenValueChange = _Events2.default.listen(formElement, 'change', this.onInputChange.bind(this));
     }
 
     /**
@@ -192,7 +186,7 @@ var TrinityForm = function (_EventEmitter) {
     }, {
         key: 'unlock',
         value: function unlock() {
-            return this.state !== 'loading' && !!(0, _each3.default)(this.buttons, _Dom2.default.enable);
+            return this.state !== _FormStates.STATE_LOADING && !!(0, _each3.default)(this.buttons, _Dom2.default.enable);
         }
 
         /**
@@ -269,7 +263,7 @@ var TrinityForm = function (_EventEmitter) {
                 }
                 return false;
             }
-            this.state = 'error';
+            this.state = _FormStates.STATE_ERROR;
 
             for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
                 args[_key - 2] = arguments[_key];
@@ -391,20 +385,35 @@ var TrinityForm = function (_EventEmitter) {
 
         /**
          * Validates if all errors are removed from form
+         * If yes, unlock form and remove error state if neccessary
          * @public
+         * @returns {boolean}
          */
 
     }, {
         key: 'validate',
         value: function validate() {
-            if (!(0, _some3.default)(this.__inputs, function (input) {
-                return !input.isValid();
-            })) {
+            if (this.isValid()) {
                 this.unlock();
-                this.state = 'ready';
+                if (this.state === _FormStates.STATE_ERROR) {
+                    this.state = _FormStates.STATE_READY;
+                }
                 return true;
             }
             return false;
+        }
+
+        /**
+         * Check if form is in valid state but does not have side effect
+         * @returns {boolean}
+         */
+
+    }, {
+        key: 'isValid',
+        value: function isValid() {
+            return !(0, _some3.default)(this.__inputs, function (input) {
+                return !input.isValid();
+            });
         }
 
         /**
@@ -426,7 +435,7 @@ var TrinityForm = function (_EventEmitter) {
 
             /** Lock and Load **/
             this.lock();
-            this.state = 'loading';
+            this.state = _FormStates.STATE_LOADING;
 
             /** Parse and send Data **/
             var data = IS_FORM_DATA ? serializeFrom(this.form, this.activeBtn) : __parseSymfonyForm(this.form, this.activeBtn),
@@ -438,7 +447,7 @@ var TrinityForm = function (_EventEmitter) {
                 data: data
             });
 
-            this.emit('submit', submitEvent);
+            this.__emitter.emit('submit', submitEvent);
 
             if (submitEvent.defaultPrevented) {
                 return;
@@ -448,10 +457,10 @@ var TrinityForm = function (_EventEmitter) {
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
             }).timeout(this.settings.requestTimeout).send(data).on('progress', function (e) {
-                _this2.emit('progress', e);
+                _this2.__emitter.emit('progress', e);
             });
 
-            this.emit('before-request', req);
+            this.__emitter.emit('before-request', req);
 
             req.end(function (err, response) {
                 // Redirect ?
@@ -488,7 +497,7 @@ var TrinityForm = function (_EventEmitter) {
     }, {
         key: 'success',
         value: function success(callback, context) {
-            this.addListener('success', callback, context);
+            this.on('success', callback, context);
             return this; // for chaining
         }
 
@@ -502,8 +511,22 @@ var TrinityForm = function (_EventEmitter) {
     }, {
         key: 'error',
         value: function error(callback, context) {
-            this.addListener('error', callback, context);
+            this.on('error', callback, context);
             return this; // for chaining
+        }
+
+        /**
+         * Abbreviation for addListener
+         * @param eventName {string}
+         * @param callback {function}
+         * @param context {object}
+         * @returns {TrinityForm}
+         */
+
+    }, {
+        key: 'on',
+        value: function on(eventName, callback, context) {
+            this.addListener(eventName, callback, context);
         }
 
         /**
@@ -516,10 +539,10 @@ var TrinityForm = function (_EventEmitter) {
         /*eslint-disable*/
 
     }, {
-        key: 'on',
-        value: function on(eventName, callback, context) {
+        key: 'addListener',
+        value: function addListener(eventName, callback, context) {
             /*eslint-enable*/
-            this.addListener.apply(this, arguments);
+            this.__emitter.addListener.apply(this.__emitter, arguments);
         }
 
         /**
@@ -531,7 +554,7 @@ var TrinityForm = function (_EventEmitter) {
         key: 'setSubmitButtons',
         value: function setSubmitButtons(buttons) {
             /** Add ready class to all buttons **/
-            var btnReadyClass = this.settings.button['ready'].split(' ');
+            var btnReadyClass = this.settings.button[_FormStates.STATE_READY].split(' ');
             (0, _each3.default)(this.buttons, function (btn) {
                 _Dom2.default.classlist.removeAll(btn, btnReadyClass);
             });
@@ -543,7 +566,7 @@ var TrinityForm = function (_EventEmitter) {
     }, {
         key: 'detach',
         value: function detach() {
-            this.emit('beforeDetach', new _TrinityEvent2.default(this.element));
+            this.__emitter.emit('beforeDetach', new _TrinityEvent2.default(this.element));
             // Main listener
             this.unlistenSubmit();
             this.unlistenValueChange();
@@ -570,12 +593,12 @@ var TrinityForm = function (_EventEmitter) {
 
             var event = new _TrinityEvent2.default(response);
 
-            this.state = 'success';
-            this.emit('success', event);
+            this.state = _FormStates.STATE_SUCCESS;
+            this.__emitter.emit('success', event);
 
             this.unlock();
             var id = setTimeout(function () {
-                _this3.state = 'ready';
+                _this3.state = _FormStates.STATE_READY;
                 clearTimeout(id);
             }, this.settings.successTimeout);
 
@@ -595,19 +618,19 @@ var TrinityForm = function (_EventEmitter) {
             var _this4 = this;
 
             if (error.timeout) {
-                this.state = 'timeout';
+                this.state = _FormStates.STATE_TIMEOUT;
                 var id = setTimeout(function () {
                     _this4.unlock();
-                    _this4.state = 'ready';
+                    _this4.state = _FormStates.STATE_READY;
                     clearTimeout(id);
                 }, this.settings.timeoutTimeout);
             } else {
-                this.state = 'error';
+                this.state = _FormStates.STATE_ERROR;
             }
 
             // Emit event
             var event = new _TrinityEvent2.default(error);
-            this.emit('error', event);
+            this.__emitter.emit('error', event);
             return !event.defaultPrevented;
         }
     }, {
@@ -621,7 +644,7 @@ var TrinityForm = function (_EventEmitter) {
             var oldState = this.__state;
             this.__state = newState;
 
-            if (newState === 'error' || newState === 'ready') {
+            if (newState === _FormStates.STATE_ERROR || newState === _FormStates.STATE_READY) {
                 // For all btns
                 (0, _each3.default)(this.buttons, function (btn) {
                     _Dom2.default.classlist.removeAll(btn, _this5.settings.button[oldState].split(' '));
@@ -633,12 +656,12 @@ var TrinityForm = function (_EventEmitter) {
                 _Dom2.default.classlist.addAll(this.activeBtn, this.settings.button[newState].split(' '));
             }
 
-            if (newState === 'error') {
+            if (newState === _FormStates.STATE_ERROR) {
                 this.lock();
             }
 
             // Emit new state change
-            this.emit('state-change', {
+            this.__emitter.emit('state-change', {
                 oldValue: oldState,
                 value: newState
             });
@@ -654,7 +677,7 @@ var TrinityForm = function (_EventEmitter) {
     }]);
 
     return TrinityForm;
-}(_fbemitter.EventEmitter);
+}();
 
 /**
  * Create message and returns object with description and element object
