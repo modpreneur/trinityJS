@@ -11,19 +11,27 @@ const MAX_TRY = 3;
  * Tab class
  */
 export default class Tab {
-    constructor(head) {
+    constructor(head, settings = {}) {
         this.alias = head.alias;
         this.id = head.id;
         this.head = head;
         this.root = null;
         this.loaded = false;
         this.isFetching = false;
+        this.settings = settings;
 
         // Tab body
         this.body = document.getElementById(head.id.replace('tab', 'tab-body-'));
 
         //link of body for root child
         this.sourceUrl = this.body.getAttribute('data-source');
+
+        // create loader
+        this.loader = Dom.createDom('div', {
+            id: `${this.body.id}-loader`,
+            style: 'display: none;',
+            'class': 'trinity-tab-loader',
+        });
     }
 
     /**
@@ -52,6 +60,14 @@ export default class Tab {
      */
     destroy(){
         Dom.removeNode(this.root);
+    }
+
+    __showLoader(){
+        this.loader.style['display'] = '';
+    }
+
+    __hideLoader(){
+        this.loader.style['display'] = 'none';
     }
 
     /**
