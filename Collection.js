@@ -7,29 +7,25 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _find2 = require('lodash/find');
+var _filter2 = require('lodash/filter');
 
-var _find3 = _interopRequireDefault(_find2);
-
-var _cloneDeep2 = require('lodash/cloneDeep');
-
-var _cloneDeep3 = _interopRequireDefault(_cloneDeep2);
-
-var _map2 = require('lodash/map');
-
-var _map3 = _interopRequireDefault(_map2);
-
-var _each2 = require('lodash/each');
-
-var _each3 = _interopRequireDefault(_each2);
+var _filter3 = _interopRequireDefault(_filter2);
 
 var _isFunction2 = require('lodash/isFunction');
 
 var _isFunction3 = _interopRequireDefault(_isFunction2);
 
-var _filter2 = require('lodash/filter');
+var _find2 = require('lodash/find');
 
-var _filter3 = _interopRequireDefault(_filter2);
+var _find3 = _interopRequireDefault(_find2);
+
+var _defer2 = require('lodash/defer');
+
+var _defer3 = _interopRequireDefault(_defer2);
+
+var _each2 = require('lodash/each');
+
+var _each3 = _interopRequireDefault(_each2);
 
 var _defaultsDeep2 = require('lodash/defaultsDeep');
 
@@ -45,9 +41,9 @@ var _Events = require('./utils/Events');
 
 var _Events2 = _interopRequireDefault(_Events);
 
-var _Store = require('./Store');
+var _CollectionChild = require('./CollectionChild');
 
-var _Store2 = _interopRequireDefault(_Store);
+var _CollectionChild2 = _interopRequireDefault(_CollectionChild);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -58,13 +54,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * @type {{addButton: string, deleteButton: string, onAdd: null, onDelete: null, name: string}}
  */
 var defaultSettings = {
-    addButton: '       <div class="collection-add display-inline-block">\n                <div class="span-medium-8 span-large-6 span-xlarge-10"></div>\n                <div class="display-inline-block">\n                    <a href="#" id="addButton" class="add-collection-item">\n                        <i class="tiecons tiecons-plus-radius-large"></i>\n                    </a>\n                </div>\n            </div>',
-    deleteButton: '       <a title="Remove item" href="#" id="deleteButton" class="delete-collection-item">\n                <span class="trinity trinity-trash circle"></span>\n            </a>',
+    addButton: '       <div class="collection-add">\n                <div class="display-inline-block">\n                    <a href="#" id="addButton" class="add-collection-item">\n                        + add new\n                    </a>\n                </div>\n            </div>',
+    deleteButton: '       <a title="Remove item" href="#" id="deleteButton" class="delete-collection-item">\n                <span class="mdi mdi-delete"></span>\n            </a>',
     onAdd: null,
     onDelete: null,
     label: false,
     addFirst: true,
-    name: '[Element Name]'
+    name: '[Element Name]',
+    childSelectorClass: 'collection-child'
 };
 
 /**
@@ -79,75 +76,163 @@ var defaultSettings = {
 var Collection = function () {
     function Collection(element) {
         var globalOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-        var prototypeData = arguments[2];
-        var layer = arguments[3];
+        var layer = arguments[2];
 
         _classCallCheck(this, Collection);
 
-        this.collectionHolder = element;
+        this.element = element;
         this.prototype = null;
-        this.protoChildren = [];
         this.children = [];
         this.globalOptions = globalOptions;
         this.layer = layer || 0;
+
         // Listeners
         this.unlistenAddButton = null;
 
-        if (!prototypeData) {
-            prototypeData = __parsePrototypeData(element);
-            _Store2.default.setValue(element, 'collection', this);
+        this.prototypeData = __parsePrototypeData(element); // todo: maybe remove prototypeData
+        this.prototype = this.prototypeData.prototype;
+
+        // Merge all options
+        this.settings = (0, _defaultsDeep3.default)({}, globalOptions, this.prototypeData.options, defaultSettings);
+
+        // TODO: BUTTONS
+        if (element.getAttribute('disabled')) {
+            this.settings.addButton = '<span></span>';
+            this.settings.deleteButton = '<span></span>';
         }
-        this.settings = (0, _defaultsDeep3.default)({}, globalOptions, prototypeData.options, defaultSettings);
+
         //this.settings = _.extend(_.clone(defaultSettings), (globalOptions ? _.extend(prototypeData.options, globalOptions) : prototypeData.options));
         this.settings.addButton = _Dom2.default.htmlToDocumentFragment(this.settings.addButton.trim());
         this.settings.deleteButton = _Dom2.default.htmlToDocumentFragment(this.settings.deleteButton.trim());
 
         /** Make it live **/
-        __initialize.call(this, prototypeData);
+        this.initialize();
     }
 
     /**
-     * Adds new child to collection
+     * Initializes Collection
+     * - find and add existing children
+     * - add "add new child" button
      */
 
 
     _createClass(Collection, [{
-        key: 'add',
-        value: function add() {
-            var settings = this.settings,
-                addButton = settings.addButton,
-                prototype = this.prototype,
-                prototypeChildren = this.protoChildren,
+        key: 'initialize',
+        value: function initialize() {
+            var _this = this;
 
-            // children count?
-            childrenCount = (0, _filter3.default)(this.collectionHolder.children, function (node) {
-                return _Dom2.default.classlist.contains(node, 'collection-child');
-            }),
+            // init
+            this.__addCreateButton();
 
-            // Placeholders
-            newChildStr = __fillPlaceholders(settings['prototype_name'], settings.name, childrenCount.length, prototype);
+            // initialize existing collection children if there are any
+            (0, _each3.default)(this.element.children, function (el) {
+                if (_Dom2.default.classlist.contains(el, _this.settings.childSelectorClass)) {
+                    _this.addChild(el);
+                }
+            });
 
-            var newChildNode = _Dom2.default.htmlToDocumentFragment(newChildStr.trim()),
-                child = new CollectionChild(newChildNode, childrenCount.length, this, prototypeChildren);
-
-            this.children.push(child);
-            __addRemoveBtn.call(this, child);
-
-            //Insert new Child
-            addButton.parentNode.insertBefore(newChildNode, addButton);
-
-            if ((0, _isFunction3.default)(settings.onAdd)) {
-                settings.onAdd(newChildNode);
+            // Add first?
+            if (this.children.length === 0 && this.settings.addFirst) {
+                // run it with async (first let collection finish to create and then add child)
+                // This way user can interact with collection instance in "onAdd" callback
+                (0, _defer3.default)(this.addChild.bind(this));
             }
         }
+
+        /**
+         * Removes collection child
+         * @param id {string}
+         * @returns {boolean}
+         */
+
+    }, {
+        key: 'removeChild',
+        value: function removeChild(id) {
+            var child = (0, _find3.default)(this.children, function (collChild) {
+                return collChild.id === id;
+            });
+            if (!child) {
+                if (process.env.NODE_ENV !== 'production') {
+                    console.error('Child with ID: ' + id + ' does not exist');
+                }
+                return false;
+            }
+
+            if ((0, _isFunction3.default)(this.settings.onDelete) && this.settings.onDelete(child.node) === false) {
+                return false;
+            }
+
+            // remove collection child
+            child.remove();
+            child.unlistenRemoveButton = null;
+
+            // Update all other children
+            this.children = (0, _filter3.default)(this.children, function (collChild) {
+                if (collChild.id > id) {
+                    // update ID
+                    collChild.setId(collChild.id - 1);
+                    return true;
+                }
+                // Keep others
+                return !(collChild.id === id);
+            });
+        }
+
+        /**
+         * Adds new child to collection
+         * @param element [HTMLElement]
+         */
+
+    }, {
+        key: 'addChild',
+        value: function addChild(element) {
+            var settings = this.settings,
+                index = this.children.length,
+                // new child index
+            addButtonElement = settings.addButton; // add button
+
+            if (!element) {
+                element = _Dom2.default.htmlToDocumentFragment(__fillPlaceholders(settings['prototype_name'], settings.name, index, this.prototype).trim());
+                // Insert new Child
+                addButtonElement.parentNode.insertBefore(element, addButtonElement);
+                // check if element is direct child of collection
+            } else if (element.parentElement !== this.element) {
+                if (process.env.NODE_ENV !== 'production') {
+                    console.error('Provided element is not child of collection holder element', element);
+                }
+                return false;
+            }
+
+            var newChild = new _CollectionChild2.default(index, element, this, this.removeChild.bind(this, index));
+
+            // add new collection child to array
+            this.children.push(newChild);
+
+            // On Add callback
+            if ((0, _isFunction3.default)(settings.onAdd)) {
+                settings.onAdd(element);
+            }
+            return true;
+        }
+
+        /**
+         * Remove all children
+         */
+
     }, {
         key: 'removeAll',
         value: function removeAll() {
+            var _this2 = this;
+
             (0, _each3.default)(this.children, function (child) {
-                child.detach();
-                child.remove();
+                _this2.removeChild(child.id);
             });
         }
+
+        /**
+         * Remove all listeners and prepare for DOM remove
+         */
+
     }, {
         key: 'detach',
         value: function detach() {
@@ -155,6 +240,28 @@ var Collection = function () {
                 return child.detach();
             });
             this.unlistenAddButton();
+            this.element.setAttribute('data-options', JSON.stringify(this.prototypeData.options));
+            this.element.setAttribute('data-prototype', JSON.stringify(this.prototypeData.prototype));
+        }
+
+        /**
+         * Add Add button to collection
+         * @private
+         */
+
+    }, {
+        key: '__addCreateButton',
+        value: function __addCreateButton() {
+            var _this3 = this;
+
+            var sett = this.settings;
+            this.unlistenAddButton = _Events2.default.listen(sett.addButton, 'click', function (e) {
+                e.preventDefault();
+                // add a new tag form (see next code block)
+                _this3.addChild();
+            });
+            //append add button
+            this.element.appendChild(sett.addButton);
         }
     }]);
 
@@ -162,120 +269,25 @@ var Collection = function () {
 }();
 
 /**
- * Initialize Collection object
- * @param data {PrototypeData}
+ * Parse prototype data from element and remove [data-prototype] and [data-options] values
+ * [data-prototype] value is set to "prototype_name" of parsed element, found in options
+ * @param element
+ * @returns {object}
  * @private
  */
 
 
 exports.default = Collection;
-function __initialize(data) {
-    var _this = this;
-
-    // init
-    var prototypeDom = _Dom2.default.htmlToDocumentFragment(data.prototype),
-        children = prototypeDom.querySelectorAll('[data-prototype]'),
-        protoChildren = (0, _map3.default)(children, function (node) {
-        return __parsePrototypeData(node);
-    });
-
-    this.prototype = __getHtmlString(prototypeDom);
-    this.protoChildren = protoChildren;
-    __addCreateBtn.call(this);
-
-    // Add class and delete button to children
-    this.children = (0, _map3.default)(
-    // filter row nodes
-    (0, _filter3.default)(this.collectionHolder.children, function (node) {
-        return _Dom2.default.classlist.contains(node, 'row');
-    }),
-    // Add delete buttons
-    function (child, index) {
-        var newChild = new CollectionChild(child, index, _this);
-        __addRemoveBtn.call(_this, newChild);
-        return newChild;
-    });
-    //Add first?
-    if (this.children.length === 0 && this.settings.addFirst) {
-        this.add();
-    }
-}
-
-/**
- * Parse prototype data from element and remove [data-prototype] and [data-options] values
- * [data-prototype] value is set to "prototype_name" of parsed element, found in options
- * @param element
- * @returns {PrototypeData}
- * @private
- */
 function __parsePrototypeData(element) {
-    var data = new PrototypeData(element.getAttribute('data-prototype'), JSON.parse(element.getAttribute('data-options')));
+    var data = {
+        prototype: element.getAttribute('data-prototype'),
+        options: JSON.parse(element.getAttribute('data-options'))
+    };
+
     //clean up
     element.removeAttribute('data-options');
     element.setAttribute('data-prototype', data.options['prototype_name']);
     return data;
-}
-
-/**
- * Add remove button to element
- * @param child {CollectionChild}
- * @private
- */
-function __addRemoveBtn(child) {
-    var _this2 = this;
-
-    var settings = this.settings,
-        removeButton = settings.deleteButton.cloneNode(true);
-
-    // right ID to delete button
-    removeButton.setAttribute('id', [removeButton.getAttribute('id'), child.node.getAttribute('id')].join('_'));
-
-    child.unlistenRemoveButton = _Events2.default.listenOnce(removeButton, 'click', function (e) {
-        // prevent the link from creating a "#" on the URL
-        e.preventDefault();
-
-        if ((0, _isFunction3.default)(settings.onDelete)) {
-            settings.onDelete(child.node);
-        }
-        var id = child.id;
-        // remove collection child
-        child.remove();
-        child.unlistenRemoveButton = null;
-        // Update all other children
-        _this2.children = (0, _filter3.default)(_this2.children, function (item) {
-            if (item.id > id) {
-                item.setID(item.id - 1);
-                return true;
-            }
-            return !(item.id === id);
-        });
-    });
-
-    //Append child to right - old design
-    var rightPart = child.node.querySelector('.form-right');
-    if (rightPart) {
-        rightPart.appendChild(removeButton);
-    } else {
-        // new design fix
-        child.node.appendChild(removeButton);
-    }
-}
-
-/**
- * Add Add button to collection
- * @private
- */
-function __addCreateBtn() {
-    var _this3 = this;
-
-    var sett = this.settings;
-    this.unlistenAddButton = _Events2.default.listen(sett.addButton, 'click', function (e) {
-        e.preventDefault();
-        // add a new tag form (see next code block)
-        _this3.add();
-    });
-    //append add button
-    this.collectionHolder.appendChild(sett.addButton);
 }
 
 /**
@@ -288,202 +300,7 @@ function __addCreateBtn() {
  * @private
  */
 function __fillPlaceholders(key, name, number, prototype) {
-    var labelRegx = new RegExp(key + 'label__', 'g'),
-        nameRegx = new RegExp(key, 'g');
-    return prototype.replace(labelRegx, name + number).replace(nameRegx, '' + number);
-}
-
-/**
- * Return HTML string representation of HTML Element object
- * @param element {HTMLElement}
- * @returns {string}
- * @private
- */
-function __getHtmlString(element) {
-    var wrap = document.createElement('div');
-    wrap.appendChild(element);
-    return wrap.innerHTML;
-}
-
-/**
- * Remove label of node
- * @param node {HTMLElement}
- * @private
- * @deprecated
- */
-function _removeLabel(node) {
-    var el = node.querySelector('.form-left');
-    if (el) {
-        _Dom2.default.removeNode(node.querySelector('.form-left'));
-    }
-    el = node.querySelector('.form-right');
-
-    if (el) {
-        _Dom2.default.classlist.removeAll(formRight, ['span-none-padding-medium-16', 'span-none-padding-large-18', 'span-none-padding-xlarge-14']);
-        _Dom2.default.classlist.addAll(formRight, ['span-none-padding-medium-24', 'span-none-padding-large-24', 'span-none-padding-xlarge-24']);
-    }
-}
-
-/**
- * Simple class which keeps basic prototype data
- * @class PrototypeData
- * @param proto {string}
- * @param options {Object}
- * @constructor
- */
-
-var PrototypeData = function PrototypeData(proto, options) {
-    _classCallCheck(this, PrototypeData);
-
-    this.prototype = proto;
-    this.options = options;
-};
-
-var SELECT_MAP = {
-    id: '[id]',
-    name: '[name]',
-    'for': 'label[for]'
-};
-
-/**
- * Class representing child of collection
- * @class CollectionChild
- * @param node {HTMLElement}
- * @param id {string}
- * @param parent {Collection}
- * @param [prototypeData] {Array}
- * @constructor
- */
-
-var CollectionChild = function () {
-    function CollectionChild(node, id, parent, prototypeData) {
-        _classCallCheck(this, CollectionChild);
-
-        this.id = id;
-        this.node = node;
-        this.parent = parent;
-        this.unlistenRemoveButton = null;
-
-        _Dom2.default.classlist.add(node, 'collection-child');
-        //Label? @deprecated will be changed
-        if (parent.settings.label === false) {
-            _removeLabel(node);
-        }
-
-        var prototypeElements = node.querySelectorAll('[data-prototype]');
-        if (prototypeElements.length > 0) {
-            this.collections = __initializeCollections.call(this, prototypeElements, prototypeData);
-        }
-    }
-
-    /**
-     * Safety remove of child
-     */
-
-
-    _createClass(CollectionChild, [{
-        key: 'remove',
-        value: function remove() {
-            _Dom2.default.removeNode(this.node);
-        }
-
-        /**
-         * Set ID of child and update all elements descendant
-         * @param id
-         */
-
-    }, {
-        key: 'setID',
-        value: function setID(id) {
-            var _this4 = this;
-
-            var layer = this.parent.layer;
-            this.id = id;
-            (0, _each3.default)(SELECT_MAP, function (selector, key) {
-                (0, _each3.default)(_this4.node.querySelectorAll(selector), function (el) {
-                    return __updateAttribute(el, id, layer, key);
-                });
-            });
-            // change to self
-            __updateAttribute(this.node, id, layer, 'id');
-        }
-    }, {
-        key: 'detach',
-        value: function detach() {
-            (0, _each3.default)(this.collections, function (coll) {
-                return coll.detach();
-            });
-            this.unlistenRemoveButton();
-        }
-    }]);
-
-    return CollectionChild;
-}();
-
-/**
- * Initialize new collections of child
- * @param prototypeElements {HTMLCollection | Array}
- * @param prototypeDataSource {Array}
- * @returns {*|Array}
- * @private
- */
-
-
-function __initializeCollections(prototypeElements, prototypeDataSource) {
-    var _this5 = this;
-
-    if (!prototypeDataSource) {
-        return (0, _map3.default)(prototypeElements, function (el) {
-            return _Store2.default.getValue(el, 'collection');
-        });
-    }
-    // Init next level
-    return (0, _map3.default)(prototypeElements, function (el) {
-        var prototypeName = el.getAttribute('data-prototype'),
-            prototypeData = (0, _cloneDeep3.default)((0, _find3.default)(prototypeDataSource, function (data) {
-            return data.options['prototype_name'] === prototypeName;
-        }));
-        prototypeData.prototype = __fillPlaceholders(_this5.parent.settings['prototype_name'], _this5.parent.settings.name, _this5.id, prototypeData.prototype);
-        return new Collection(el, _this5.parent.globalOptions, prototypeData, _this5.parent.layer + 1);
-    });
-}
-
-/**
- * Change identifier on particular level of selected attribute
- * @param node {HTMLElement}
- * @param id {string}
- * @param layer {Number}
- * @param attribute {string}
- * @private
- */
-function __updateAttribute(node, id, layer, attribute) {
-    var isName = attribute === 'name',
-        regex = isName ? /\[\d]/g : /_\d_|_\d$/g,
-        parameterStr = node.getAttribute(attribute),
-        resultStr = '';
-
-    var i = 0,
-        rgxResult = null,
-        next = true;
-
-    while (next) {
-        rgxResult = regex.exec(parameterStr);
-        if (i === layer) {
-            resultStr += parameterStr.substring(0, rgxResult.index + 1);
-            resultStr += id;
-
-            if (!isName && parameterStr.length === rgxResult.index + rgxResult[0].length) {
-                break;
-            }
-            // Add trailing
-            resultStr += isName ? ']' : '_';
-            //Add end of string
-            resultStr += parameterStr.substring(rgxResult.index + rgxResult[0].length);
-            next = false;
-            break;
-        }
-        i++;
-    }
-    //Set new ID
-    node.setAttribute(attribute, resultStr);
+    var labelRegex = new RegExp(key + 'label__', 'g'),
+        nameRegex = new RegExp(key, 'g');
+    return prototype.replace(labelRegex, name + number).replace(nameRegex, '' + number);
 }

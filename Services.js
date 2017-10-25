@@ -46,24 +46,24 @@ function messageService(message, type) {
     switch (type) {
         case 'success':
             {
-                iconClass = 'trinity trinity-ok';
+                iconClass = 'mdi mdi-check-circle';
             }
             break;
         case 'warning':
             {
-                iconClass = 'trinity trinity-warning';
+                iconClass = 'mdi mdi-alert';
             }
             break;
         case 'error':
         case 'danger':
             {
                 type = 'danger';
-                iconClass = 'tiecons tiecons-exclamation-mark-circle';
+                iconClass = 'mdi mdi-alert-circle-outline';
             }
             break;
         default:
             {
-                iconClass = 'trinity trinity-info';
+                iconClass = 'mdi mdi-information-outline';
             }
             break;
     }

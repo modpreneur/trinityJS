@@ -44,7 +44,7 @@ export function removeNode(node){
  * @param {Node} node Node to remove children from.
  */
 export function removeChildren(node){
-    var child;
+    let child;
     while ((child = node.firstChild)) {
         node.removeChild(child);
     }
@@ -59,7 +59,7 @@ export function htmlToDocumentFragment(htmlString){
     let tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlString;
 
-    if (tempDiv.childNodes.length == 1) {
+    if (tempDiv.childNodes.length === 1) {
         return tempDiv.removeChild(tempDiv.firstChild);
     }
     let fragment = document.createDocumentFragment();
@@ -80,6 +80,17 @@ export function replaceNode(newNode, oldNode) {
     if (parent) {
         parent.replaceChild(newNode, oldNode);
     }
+}
+
+/**
+ * Return HTML string representation of HTML Element object
+ * @param element {HTMLElement}
+ * @returns {string}
+ */
+export function getHtmlString(element){
+    let wrap = document.createElement('div');
+    wrap.appendChild(element);
+    return wrap.innerHTML;
 }
 
 /**
@@ -119,6 +130,7 @@ let Dom = {
     removeChildren,
     htmlToDocumentFragment,
     replaceNode,
+    getHtmlString,
     createDom
 };
 export default Dom;

@@ -161,7 +161,6 @@ export default class TrinityTab extends EventEmitter {
             return false;
         }
 
-
         // If not loaded -> Load it
         if (!tab.loaded) {
             tab.loadContent(this.__onTabLoad.bind(this));

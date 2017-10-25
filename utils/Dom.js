@@ -10,6 +10,7 @@ exports.removeNode = removeNode;
 exports.removeChildren = removeChildren;
 exports.htmlToDocumentFragment = htmlToDocumentFragment;
 exports.replaceNode = replaceNode;
+exports.getHtmlString = getHtmlString;
 exports.createDom = createDom;
 
 var _classlist = require('./classlist.js');
@@ -62,7 +63,7 @@ function removeNode(node) {
  * @param {Node} node Node to remove children from.
  */
 function removeChildren(node) {
-    var child;
+    var child = void 0;
     while (child = node.firstChild) {
         node.removeChild(child);
     }
@@ -77,7 +78,7 @@ function htmlToDocumentFragment(htmlString) {
     var tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlString;
 
-    if (tempDiv.childNodes.length == 1) {
+    if (tempDiv.childNodes.length === 1) {
         return tempDiv.removeChild(tempDiv.firstChild);
     }
     var fragment = document.createDocumentFragment();
@@ -98,6 +99,17 @@ function replaceNode(newNode, oldNode) {
     if (parent) {
         parent.replaceChild(newNode, oldNode);
     }
+}
+
+/**
+ * Return HTML string representation of HTML Element object
+ * @param element {HTMLElement}
+ * @returns {string}
+ */
+function getHtmlString(element) {
+    var wrap = document.createElement('div');
+    wrap.appendChild(element);
+    return wrap.innerHTML;
 }
 
 /**
@@ -136,6 +148,7 @@ var Dom = {
     removeChildren: removeChildren,
     htmlToDocumentFragment: htmlToDocumentFragment,
     replaceNode: replaceNode,
+    getHtmlString: getHtmlString,
     createDom: createDom
 };
 exports.default = Dom;
