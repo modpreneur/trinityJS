@@ -1,4 +1,4 @@
 {
-  "plugins": ["lodash"],
+  "plugins": ["lodash", "transform-class-properties"],
   "presets": ["es2015"]
 }
