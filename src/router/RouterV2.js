@@ -24,12 +24,14 @@ class Router {
      * @constructor
      */
     constructor(routes){
+        this.rawRoutes = routes;
         this.routes = Router.routeParser(routes);
+        console.time('old-create');
         _.each(this.routes, (route) => {
             route.regx = Router.routeToRegularExpression(route.path);
         });
+        console.timeEnd('old-create');
 
-        console.log(this.routes, 'dsfdsfds');
 
         /** Adds prefix to regular expressions **/
         if(process.env.NODE_ENV !== 'production'){
@@ -54,6 +56,11 @@ class Router {
             cache,
             controllerInfo;
 
+        // console.time('experimental');
+        // let experimental = this.findRoute(this.rawRoutes, route);
+        // console.timeEnd('experimental');
+
+        console.time('old');
         controllerInfo = _.find(this.routes, function(el) {
             cache = el.regx.exec(route);
             if(cache){
@@ -62,6 +69,10 @@ class Router {
             }
             return false;
         }) || null;
+
+        console.timeEnd('old');
+
+        // console.log('COMPARE', controllerInfo, experimental);
 
         // If we found any controller -> create request and return it
         if(controllerInfo){
@@ -76,6 +87,33 @@ class Router {
             return controllerInfo;
         }
         return null;
+    }
+
+    findRoute(routeObject, pathName){
+        let resultRoute = null;
+
+        function inner(routes, prefix = ''){
+            _.each(routes, (route, pathFragment) => {
+                let pathTemplate = `${prefix}${pathFragment}`;
+                if(_.isString(route)){
+                    if(Router.routeToRegularExpression(pathTemplate).test(pathName)){
+                        resultRoute = {
+                            path: pathTemplate,
+                            action: route
+                        };
+                        return false;
+                    }
+                } else {
+                    if(Router.routeToRegularExpressionPartial(pathTemplate).test(pathName)){
+                        inner(route, pathTemplate);
+                        return false; // break iteration
+                    }
+                }
+            });
+        }
+        inner(routeObject);
+
+        return resultRoute;
     }
 
     /**
@@ -119,6 +157,16 @@ class Router {
             })
             .replace(splatParam, '([^?]*?)');
         return new RegExp('^' + route + '(?:\\?([\\s\\S]*))?$');
+    }
+
+    static routeToRegularExpressionPartial(route) {
+        route = route.replace(escapeRegExp, '\\$&')
+            .replace(optionalParam, '(?:$1)?')
+            .replace(namedParam, function(match, optional) {
+                return optional ? match : '([^/?]+)';
+            })
+            .replace(splatParam, '([^?]*?)');
+        return new RegExp('^' + route + '(?:\\?([\\s\\S]*))?');
     }
 }
 
