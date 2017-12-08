@@ -127,7 +127,7 @@ class Router {
      * @returns {Array}
      */
     static compileRoutes(routeObject, prefix = '', routesArray = []) {
-        _.each(routes, (route, key) => {
+        _.each(routeObject, (route, key) => {
             if(_.isString(route)) {
                 routesArray.push({
                     path: prefix + key,
