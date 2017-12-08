@@ -106,12 +106,6 @@ export default class App {
                 // now run finish
                 this.finishCallback(true, successCallback);
             });
-            // OLD WAY
-            // instance.beforeAction(this.$scope);
-            // instance[action](this.$scope);
-            // instance.afterAction(this.$scope);
-            // now run finish
-            // this.finishCallback(true, successCallback);
 
             return true;
         }
