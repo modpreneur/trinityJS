@@ -123,21 +123,26 @@ class Router {
      * Use recursive depth search to find and concat all routes
      * @param {Object} routeObject describing routes
      * @param {string} prefix
-     * @param {Array} routesArray
      * @returns {Array}
      */
-    static compileRoutes(routeObject, prefix = '', routesArray = []) {
-        _.each(routeObject, (route, key) => {
-            if(_.isString(route)) {
-                routesArray.push({
-                    path: prefix + key,
-                    action: route
-                });
-            } else {
-                Router.compileRoutes(route, prefix + key);
-            }
-        });
+    static compileRoutes(routeObject, prefix = '') {
+        let routesArray = [];
+        const inner = (routes, prefix) => {
+            _.each(routes, (route, key) => {
+                if(_.isString(route)) {
+                    routesArray.push({
+                        path: prefix + key,
+                        action: route
+                    });
+                } else {
+                    inner(route, prefix + key);
+                }
+            });
+        }
 
+        // call
+        inner(routeObject, prefix);
+       
         return routesArray;
     }
 
