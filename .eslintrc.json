@@ -1,5 +1,5 @@
 {
-//    "extends": "recommended/esnext",
+    "extends": "recommended/esnext",
     "env": {
         "browser": true,
         "es6": true,
