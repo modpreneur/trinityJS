@@ -1,5 +1,5 @@
 {
-    "extends": "recommended/esnext",
+    "extends": "eslint:recommended",
     "env": {
         "browser": true,
         "es6": true,
@@ -30,6 +30,7 @@
         "no-debugger": "error",
         "no-unreachable": "error",
         "no-unused-vars": "error",
+        "no-useless-escape": "off",
         "no-empty": "error",
         "no-eval": "error",
         "no-eq-null" : "error",
@@ -46,6 +47,7 @@
             4,
             { "SwitchCase": 1 }
         ],
+        "react/jsx-indent": ["error", 4],
         "linebreak-style": [
             "error",
             "unix"
