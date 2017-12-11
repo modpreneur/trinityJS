@@ -43,10 +43,6 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _Router = require('./Router');
-
-var _Router2 = _interopRequireDefault(_Router);
-
 var _Controller = require('./Controller.js');
 
 var _Controller2 = _interopRequireDefault(_Controller);
@@ -66,7 +62,7 @@ var defaultSettings = {
 var App = function () {
     /**
      * Constructor of App
-     * @param routes {array<Object>}
+     * @param router {Router}
      * @param controllers {Object} <Name: classFunction>
      * @param [settings] {Object}
      *
@@ -75,15 +71,14 @@ var App = function () {
      *      attributeName: 'data-ng-scope'
      * }
      */
-    function App(routes, controllers, settings) {
+    function App(router, controllers, settings) {
         _classCallCheck(this, App);
 
         //Settings FIRST !
         this.settings = (0, _defaultsDeep3.default)(settings || {}, defaultSettings);
 
-        this.routes = routes;
         this.controllers = controllers;
-        this.router = new _Router2.default(routes);
+        this.router = router;
         // this.global = null;
         this.activeController = null;
         this.preBootScripts = [];
@@ -167,12 +162,6 @@ var App = function () {
                     // now run finish
                     _this.finishCallback(true, successCallback);
                 });
-                // OLD WAY
-                // instance.beforeAction(this.$scope);
-                // instance[action](this.$scope);
-                // instance.afterAction(this.$scope);
-                // now run finish
-                // this.finishCallback(true, successCallback);
 
                 return true;
             }

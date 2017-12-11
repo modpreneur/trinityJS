@@ -7,17 +7,13 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _pullAt2 = require('lodash/pullAt');
-
-var _pullAt3 = _interopRequireDefault(_pullAt2);
-
 var _findIndex2 = require('lodash/findIndex');
 
 var _findIndex3 = _interopRequireDefault(_findIndex2);
 
-var _isNull2 = require('lodash/isNull');
+var _pullAt2 = require('lodash/pullAt');
 
-var _isNull3 = _interopRequireDefault(_isNull2);
+var _pullAt3 = _interopRequireDefault(_pullAt2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -57,7 +53,7 @@ var Store = {
         var item = __get(owner, key),
             old = null;
 
-        if ((0, _isNull3.default)(item)) {
+        if (item === null) {
             old = new Item(owner, key, value);
             _Data.push(old);
         } else {

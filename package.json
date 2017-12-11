@@ -10,7 +10,8 @@
     "*.js",
     "utils",
     "components",
-    "services"
+    "services",
+    "router"
   ],
   "main": "index.js",
   "format": "es6",

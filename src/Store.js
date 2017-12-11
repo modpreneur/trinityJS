@@ -3,7 +3,8 @@
  */
 'use strict';
 
-import _ from 'lodash';
+import _findIndex from 'lodash/findIndex';
+import _pullAt from 'lodash/pullAt';
 
 /**
  * Private cache data storage
@@ -38,7 +39,7 @@ const Store = {
         let item = __get(owner, key),
             old = null;
 
-        if(_.isNull(item)){
+        if(item === null){
             old = new Item(owner, key, value);
             _Data.push(old);
         } else {
@@ -67,10 +68,10 @@ const Store = {
      * @returns {*} | null
      */
     remove(owner, key){
-        let index = _.findIndex(_Data, function(item){
+        let index = _findIndex(_Data, function(item){
             return item.key === key && item.owner === owner;
         });
-        return index ? _.pullAt(_Data, index).value : null;
+        return index ? _pullAt(_Data, index).value : null;
     }
 };
 
