@@ -4,19 +4,23 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _isString2 = require('lodash/isString');
-
-var _isString3 = _interopRequireDefault(_isString2);
-
-var _find2 = require('lodash/find');
-
-var _find3 = _interopRequireDefault(_find2);
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _each2 = require('lodash/each');
 
 var _each3 = _interopRequireDefault(_each2);
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _find2 = require('lodash/find');
+
+var _find3 = _interopRequireDefault(_find2);
+
+var _isString2 = require('lodash/isString');
+
+var _isString3 = _interopRequireDefault(_isString2);
+
+var _queryString = require('query-string');
+
+var _queryString2 = _interopRequireDefault(_queryString);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -29,8 +33,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var optionalParam = /\((.*?)\)/g,
     namedParam = /(\(\?)?:\w+/g,
     splatParam = /\*\w+/g,
-    escapeRegExp = /[\-{}\[\]+?.,\\\^$|#\s]/g,
-    paramsRegExp = /:\w+/g;
+    escapeRegExp = /[\-{}\[\]+?.,\\\^$|#\s]/g;
 
 var Router = function () {
     /**
@@ -86,31 +89,22 @@ var Router = function () {
             var route = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : window.location.pathname;
 
             var data = null,
-                cache = void 0,
-                controllerInfo = void 0;
+                controller = void 0;
 
-            controllerInfo = (0, _find3.default)(this.routes, function (el) {
-                cache = el.regx.exec(route);
-                if (cache) {
-                    data = cache;
-                    return true;
-                }
-                return false;
+            controller = (0, _find3.default)(this.routes, function (el) {
+                data = el.regx.exec(route);
+                return !!data;
             }) || null;
 
             // If we found any controller -> create request and return it
-            if (controllerInfo) {
-                /** Create request Info object */
-                var search = window.location.search;
-                controllerInfo.request = {
-                    path: controllerInfo.path,
-                    query: search.length > 0 ? _getQueryObj(search) : null,
-                    params: data.length > 2 ? _getParams(controllerInfo.path, data) : null
+            if (controller) {
+                controller.request = {
+                    path: controller.path,
+                    query: _queryString2.default.parse(window.location.search),
+                    params: data.length > 2 ? _getParams(controller.path, data) : null
                 };
-                //And return all inside one package
-                return controllerInfo;
             }
-            return null;
+            return controller;
         }
 
         /**
@@ -241,7 +235,7 @@ var prefixRegExp = '(?:\/\w+)*';
 /**
  * Adds prefix to regular expression that any path can have any route prefix
  * Note: used only for development purposes. For example symfony have different entry points for developemnt, test and production.
- * @param regx
+ * @param {RegExp} regx
  * @returns {RegExp}
  * @private
  * @ignore
@@ -259,8 +253,8 @@ function __modifyRouteRegx(regx) {
  * @private
  */
 function _getParams(path, regxResult) {
-    var keys = path.match(paramsRegExp),
-        values = regxResult.slice(1, regxResult.length - 1),
+    var keys = path.match(namedParam),
+        values = regxResult.slice(1, keys.length + 1),
         params = {};
 
     // create pairs
@@ -269,23 +263,6 @@ function _getParams(path, regxResult) {
     });
 
     return params;
-}
-
-/**
- * Creates object with key:value pairs from query string (e.g. location.search)
- * @param {string} str
- * @returns {Object}
- * @private
- */
-function _getQueryObj(str) {
-    var pairs = str.substr(1).split('&'),
-        query = {};
-
-    (0, _each3.default)(pairs, function (p) {
-        var ind = p.indexOf('=');
-        query[p.substr(0, ind)] = p.substr(ind + 1);
-    });
-    return query;
 }
 
 exports.default = Router;

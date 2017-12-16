@@ -7,41 +7,37 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _isArray2 = require('lodash/isArray');
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
-var _isArray3 = _interopRequireDefault(_isArray2);
-
-var _isUndefined2 = require('lodash/isUndefined');
-
-var _isUndefined3 = _interopRequireDefault(_isUndefined2);
-
-var _each2 = require('lodash/each');
-
-var _each3 = _interopRequireDefault(_each2);
-
-var _defer2 = require('lodash/defer');
-
-var _defer3 = _interopRequireDefault(_defer2);
-
-var _isNull2 = require('lodash/isNull');
-
-var _isNull3 = _interopRequireDefault(_isNull2);
-
-var _find2 = require('lodash/find');
-
-var _find3 = _interopRequireDefault(_find2);
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _extend2 = require('lodash/extend');
 
 var _extend3 = _interopRequireDefault(_extend2);
 
-var _defaultsDeep2 = require('lodash/defaultsDeep');
+var _find2 = require('lodash/find');
 
-var _defaultsDeep3 = _interopRequireDefault(_defaultsDeep2);
+var _find3 = _interopRequireDefault(_find2);
 
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+var _isNull2 = require('lodash/isNull');
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _isNull3 = _interopRequireDefault(_isNull2);
+
+var _defer2 = require('lodash/defer');
+
+var _defer3 = _interopRequireDefault(_defer2);
+
+var _each2 = require('lodash/each');
+
+var _each3 = _interopRequireDefault(_each2);
+
+var _isUndefined2 = require('lodash/isUndefined');
+
+var _isUndefined3 = _interopRequireDefault(_isUndefined2);
+
+var _isArray2 = require('lodash/isArray');
+
+var _isArray3 = _interopRequireDefault(_isArray2);
 
 var _Controller = require('./Controller.js');
 
@@ -62,24 +58,24 @@ var defaultSettings = {
 var App = function () {
     /**
      * Constructor of App
-     * @param router {Router}
-     * @param controllers {Object} <Name: classFunction>
-     * @param [settings] {Object}
+     * @param {Router} router
+     * @param {Object} controllers <Name: classFunction>
+     * @param {Object} [settings]
      *
      * @default settings
      * {
      *      attributeName: 'data-ng-scope'
      * }
      */
-    function App(router, controllers, settings) {
+    function App(router, controllers) {
+        var settings = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : defaultSettings;
+
         _classCallCheck(this, App);
 
-        //Settings FIRST !
-        this.settings = (0, _defaultsDeep3.default)(settings || {}, defaultSettings);
-
+        this.settings = settings;
         this.controllers = controllers;
         this.router = router;
-        // this.global = null;
+
         this.activeController = null;
         this.preBootScripts = [];
 
@@ -105,9 +101,12 @@ var App = function () {
         value: function start(successCallback, errorCallback) {
             var _this = this;
 
-            //super cool feature
+            var $scope = this.$scope;
+
+            // if some script returns true, execution will stop
+
             (0, _find3.default)(this.preBootScripts, function (script) {
-                return script(_this.$scope);
+                return script($scope);
             });
 
             /**
@@ -146,7 +145,7 @@ var App = function () {
                 throw new Error(name + ' does not inherit from "Controller" class!');
             }
 
-            instance._scope = this.$scope;
+            instance._scope = $scope;
             instance._app = this;
             instance.request = controllerInfo.request;
             this.activeController = instance;
@@ -155,9 +154,9 @@ var App = function () {
             if (instance[action]) {
                 // Defer function to make place for initial rendering
                 (0, _defer3.default)(function () {
-                    instance.beforeAction(_this.$scope);
-                    instance[action](_this.$scope);
-                    instance.afterAction(_this.$scope);
+                    instance.beforeAction($scope);
+                    instance[action]($scope);
+                    instance.afterAction($scope);
 
                     // now run finish
                     _this.finishCallback(true, successCallback);
@@ -207,8 +206,8 @@ var App = function () {
 
         /**
          * Search in "root" element for every element with attribute defined in settings
-         * @param root
-         * @returns {{}} - bag with {attName.value:element}
+         * @param {HTMLElement} [root]
+         * @returns {Object} - bag with {attName.value:element}
          */
 
     }, {
