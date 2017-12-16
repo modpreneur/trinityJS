@@ -15,7 +15,6 @@ const optionalParam = /\((.*?)\)/g,
     escapeRegExp = /[\-{}\[\]+?.,\\\^$|#\s]/g
     ;
 
-
 class Router {
     /**
      * Takes routes and create regular expression for each
@@ -143,7 +142,6 @@ class Router {
      * Create regular expression from route - from backbone framework
      * @param {string} route
      * @returns {RegExp}
-     * @private
      */
     static routeToRegExp(route) {
         return new RegExp(`${Router._baseRouteToRegExp(route)}$`);

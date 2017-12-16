@@ -1,7 +1,16 @@
 'use strict';
 
-import _ from 'lodash';
+import _noop from 'lodash/noop';
+import _isArrayLike from 'lodash/isArrayLike';
+import _each from 'lodash/each';
+import _extend from 'lodash/extend';
 import Request from 'superagent';
+
+const GET = 'GET',
+    POST = 'POST',
+    PUT = 'PUT',
+    DELETE = 'DELETE'
+    ;
 
 // Global configuration
 let config = {
@@ -9,166 +18,183 @@ let config = {
     fileTimeout: 10000
 };
 
-let Gateway = {
+class Gateway {
     /**
      *  normal GET request to defined URL
-     * @param url {string}
-     * @param data [object]
-     * @param successCallback [function]
-     * @param errorCallback [function]
+     * @param {string} url
+     * @param {object} [data]
+     * @param {function} [successCallback]
+     * @param {function} [errorCallback]
+     * @returns {Request}
      */
-    get: function get(url, data, successCallback, errorCallback){
-        __send(url,'GET', data, successCallback, errorCallback);
-    },
+    static get(url, data, successCallback, errorCallback){
+        __send(url, GET, data, successCallback, errorCallback);
+    }
     /**
      * JSON GET request
-     * @param url {string}
-     * @param data [object]
-     * @param successCallback [function]
-     * @param errorCallback [function]
+     * @param {string} url
+     * @param {object} [data]
+     * @param {function} [successCallback]
+     * @param {function} [errorCallback]
+     * @returns {Request}
      */
-    getJSON: function getJSON(url, data, successCallback, errorCallback){
-        __sendJSON(url, 'GET',  data, successCallback, errorCallback);
-    },
+    static getJSON(url, data, successCallback, errorCallback){
+        __sendJSON(url, GET,  data, successCallback, errorCallback);
+    }
 
     /**
      * normal POST request
-     * @param url {string}
-     * @param data [object]
-     * @param successCallback [function]
-     * @param errorCallback [function]
+     * @param {string} url
+     * @param {object} [data]
+     * @param {function} [successCallback]
+     * @param {function} [errorCallback]
+     * @returns {Request}
      */
-    post: function post(url, data, successCallback, errorCallback){
-        __send(url, 'POST', data, successCallback, errorCallback);
-    },
+    static post(url, data, successCallback, errorCallback){
+        __send(url, POST, data, successCallback, errorCallback);
+    }
+
     /**
      * JSON POST request
-     * @param url {string}
-     * @param data [object]
-     * @param successCallback [function]
-     * @param errorCallback [function]
+     * @param {string} url
+     * @param {object} [data]
+     * @param {function} [successCallback]
+     * @param {function} [errorCallback]
+     * @returns {Request}
      */
-    postJSON: function postJSON(url, data, successCallback, errorCallback){
-        __sendJSON(url, 'POST',  data, successCallback, errorCallback);
-    },
+    static postJSON(url, data, successCallback, errorCallback){
+        __sendJSON(url, POST,  data, successCallback, errorCallback);
+    }
+
     /**
      * normal PUT request
-     * @param url {string}
-     * @param data [object]
-     * @param successCallback [function]
-     * @param errorCallback [function]
+     * @param {string} url
+     * @param {object} [data]
+     * @param {function} [successCallback]
+     * @param {function} [errorCallback]
+     * @returns {Request}
      */
-    put: function put(url, data, successCallback, errorCallback){
-        __send(url,'PUT', data, successCallback, errorCallback);
-    },
+    static put(url, data, successCallback, errorCallback){
+        __send(url, PUT, data, successCallback, errorCallback);
+    }
+
     /**
      * JSON PUT request
-     * @param url {string}
-     * @param data [object]
-     * @param successCallback [function]
-     * @param errorCallback [function]
+     * @param {string} url
+     * @param {object} [data]
+     * @param {function} [successCallback]
+     * @param {function} [errorCallback]
+     * @returns {Request}
      */
-    putJSON: function putJSON(url, data, successCallback, errorCallback){
-        __sendJSON(url, 'PUT',  data, successCallback, errorCallback);
-    },
+    static putJSON(url, data, successCallback, errorCallback){
+        __sendJSON(url, PUT,  data, successCallback, errorCallback);
+    }
 
     /**
      * JSON DELETE request
-     * @param url {string}
-     * @param data [object]
-     * @param successCallback [function]
-     * @param errorCallback [function]
+     * @param {string} url
+     * @param {object} [data]
+     * @param {function} [successCallback]
+     * @param {function} [errorCallback]
+     * @returns {Request}
      */
-    deleteJSON: function deleteJSON(url, data, successCallback, errorCallback) {
-        __sendJSON(url, 'DELETE', data, successCallback, errorCallback);
-    },
+    static deleteJSON(url, data, successCallback, errorCallback) {
+        __sendJSON(url, DELETE, data, successCallback, errorCallback);
+    }
 
     /**
      * Same as others, just allow specify method.
-     * @param url {string}
-     * @param method {string}
-     * @param data [object]
-     * @param successCallback [function]
-     * @param errorCallback [function]
+     * @param {string} url
+     * @param {string} method
+     * @param {object} [data]
+     * @param {function} [successCallback]
+     * @param {function} [errorCallback]
+     * @param {boolean} [isManual]
+     * @returns {Request}
      */
-    send: __send,
+    static send = __send
 
     /**
      * Send JSON request and accepts only json
-     * @param url {string}
-     * @param method {string}
-     * @param data [object]
-     * @param successCallback [function]
-     * @param errorCallback [function]
+     * @param {string} url
+     * @param {string} method
+     * @param {object} [data]
+     * @param {function} [successCallback]
+     * @param {function} [errorCallback]
+     * @param {boolean} [isManual]
+     * @returns {Request}
      */
-    sendJSON: __sendJSON,
+    static sendJSON = __sendJSON
 
     /**
      * Send file fnc
-     * @param url {string}
-     * @param method {string}
-     * @param file {object}
-     * @param fieldName [string]
-     * @param successCallback [function]
-     * @param errorCallback [function]
-     * @param progressCallback [function]
+     * @param {string} url
+     * @param {string} method
+     * @param {object | Array} file
+     * @param {string} [fieldName]
+     * @param {function} [successCallback]
+     * @param {function} [errorCallback]
+     * @param {function} [progressCallback]
+     * @returns {Request}
+     * @private
      */
-    sendFile: __sendFile,
+    static sendFile = __sendFile
 
     /**
      * settings for gateway
+     * @type {Object}
      */
-    settings: config
-};
+    static settings = config
+}
 
 
 /** PRIVATE METHODS **/
 /**
  * private abstract send request method
- * @param url {string}
- * @param method {string}
- * @param [data] {object}
- * @param successCallback {function}
- * @param errorCallback {function}
- * @param [isManual] {boolean}
- * @returns {Xhr}
+ * @param {string} url
+ * @param {string} method
+ * @param {object} [data]
+ * @param {function} [successCallback]
+ * @param {function} [errorCallback]
+ * @param {boolean} [isManual]
+ * @returns {Request}
  * @private
  */
 function __send(url, method, data, successCallback, errorCallback, isManual){
     method = method.toUpperCase();
-    let r = Request(method, url.trim())
+    let request = Request(method, url.trim())
         .set('X-Requested-With', 'XMLHttpRequest')
         .timeout(Gateway.settings.timeout);
 
     if(data){
-        if(method === 'GET' && !(window.FormData && data instanceof window.FormData)){
-            r.query(data);
+        if(method === GET && !(window.FormData && data instanceof window.FormData)){
+            request.query(data);
         } else {
-            r.send(data);
+            request.send(data);
         }
     }
 
-    r.finish = () => r.end(__responseHandler(successCallback, errorCallback));
-    if(isManual){
-        return r;
+    request.finish = () => request.end(__responseHandler(successCallback, errorCallback));
+    if(!isManual){
+        request.finish();
     }
-    r.finish();
+    return request;
 }
 
 /**
  * Private abstract send JSON request method
- * @param url {string}
- * @param method {string}
- * @param [data] {object}
- * @param successCallback {function}
- * @param errorCallback {function}
- * @param [isManual] {boolean}
- * @returns {Xhr}
+ *@param {string} url
+ * @param {string} method
+ * @param {object} [data]
+ * @param {function} [successCallback]
+ * @param {function} [errorCallback]
+ * @param {boolean} [isManual]
+ * @returns {Request}
  * @private
  */
 function __sendJSON(url, method, data, successCallback, errorCallback, isManual){
     method = method.toUpperCase();
-    let r = Request(method, url.trim())
+    let request = Request(method, url.trim())
         .set({
             'Content-type': 'application/json',
             'Accept': 'application/json',
@@ -177,58 +203,58 @@ function __sendJSON(url, method, data, successCallback, errorCallback, isManual)
         .timeout(Gateway.settings.timeout);
 
     if(data){
-        if(method === 'GET'){
-            r.query(data);
+        if(method === GET){
+            request.query(data);
         } else {
-            r.send(data);
+            request.send(data);
         }
     }
 
-    r.finish = () => r.end(__responseHandler(successCallback, errorCallback));
-    if(isManual){
-        return r;
+    request.finish = () => request.end(__responseHandler(successCallback, errorCallback));
+    if(!isManual){
+        request.finish();
+        
     }
-    r.finish();
+    return request;
 }
 
 /**
  * Send file fnc
- * @param url {string}
- * @param method {string}
- * @param file {object}
- * @param fieldName [string]
- * @param successCallback [function]
- * @param errorCallback [function]
- * @param progressCallback [function]
+ * @param {string} url
+ * @param {string} method
+ * @param {object | Array} file
+ * @param {string} [fieldName]
+ * @param {function} [successCallback]
+ * @param {function} [errorCallback]
+ * @param {function} [progressCallback]
+ * @returns {Request}
  * @private
  */
-function __sendFile(url, method, file, fieldName, successCallback, errorCallback, progressCallback){
-    method = method || 'POST';
-    fieldName = fieldName || 'files';
-    successCallback = successCallback || _.noop;
-    errorCallback = errorCallback || _.noop;
+function __sendFile(url, method, file, fieldName = 'files', successCallback =  _noop, errorCallback = _noop, progressCallback){
 
-    let r = Request(method.toUpperCase(), url.trim())
+    let request = Request(method.toUpperCase(), url.trim())
         .set('X-Requested-With', 'XMLHttpRequest')
         .timeout(config.fileTimeout);
 
-    if(_.isArrayLike(file)){
-        _.each(file, f => {
-            r.attach(fieldName, f);
+    if(_isArrayLike(file)){
+        _each(file, f => {
+            request.attach(fieldName, f);
         });
     } else {
-        r.attach(fieldName, file);
+        request.attach(fieldName, file);
     }
     if(progressCallback){
-        r.on('progress', progressCallback);
+        request.on('progress', progressCallback);
     }
-    r.end(__responseHandler(successCallback, errorCallback));
+    request.end(__responseHandler(successCallback, errorCallback));
+
+    return request;
 }
 
 /**
  * Abstract response handler
- * @param successCallback {function}
- * @param errorCallback {function}
+ * @param {function} successCallback
+ * @param {function} errorCallback
  * @returns {function}
  * @private
  */
@@ -257,11 +283,11 @@ function __responseHandler(successCallback, errorCallback){
 
 /**
  * Set global configuration object
- * @param conf
+ * @param {object} conf
  * @returns {{timeout: number}}
  */
 function configure(conf){
-    return _.extend(config, conf);
+    return _extend(config, conf);
 }
 
 /** EXPORTS **/
