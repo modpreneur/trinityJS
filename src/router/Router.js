@@ -1,6 +1,9 @@
 'use strict';
 
-import _ from 'lodash';
+import _each from 'lodash/each';
+import _find from 'lodash/find';
+import _isString from 'lodash/isString';
+import queryString from 'query-string';
 
 /**
  * Private help RegExpressions
@@ -9,8 +12,7 @@ import _ from 'lodash';
 const optionalParam = /\((.*?)\)/g,
     namedParam = /(\(\?)?:\w+/g,
     splatParam = /\*\w+/g,
-    escapeRegExp = /[\-{}\[\]+?.,\\\^$|#\s]/g,
-    paramsRegExp = /:\w+/g
+    escapeRegExp = /[\-{}\[\]+?.,\\\^$|#\s]/g
     ;
 
 
@@ -33,7 +35,7 @@ class Router {
      * prepare and parse routes
      */
     _initialize(){
-        _.each(this.routes, (route) => {
+        _each(this.routes, (route) => {
             route.regx = Router.routeToRegExp(route.path);
         });
 
@@ -57,32 +59,23 @@ class Router {
      */
     findController(route = window.location.pathname) {
         let data = null,
-            cache,
-            controllerInfo;
+            controller;
 
-        controllerInfo = _.find(this.routes, function(el) {
-            cache = el.regx.exec(route);
-            if(cache){
-                data = cache;
-                return true;
-            }
-            return false;
+        controller = _find(this.routes, function(el) {
+            data = el.regx.exec(route);
+            return !!data;
         }) || null;
  
 
         // If we found any controller -> create request and return it
-        if(controllerInfo){
-            /** Create request Info object */
-            let search = window.location.search;
-            controllerInfo.request = {
-                path: controllerInfo.path,
-                query: search.length > 0 ? _getQueryObj(search) : null,
-                params: data.length > 2 ? _getParams(controllerInfo.path, data) : null,
+        if(controller){
+            controller.request = {
+                path: controller.path,
+                query: queryString.parse(window.location.search),
+                params: data.length > 2 ? _getParams(controller.path, data) : null
             };
-            //And return all inside one package
-            return controllerInfo;
         }
-        return null;
+        return controller;
     }
 
     /**
@@ -95,9 +88,9 @@ class Router {
         let resultRoute = null;
 
         function inner(routes, prefix = ''){
-            _.each(routes, (route, pathFragment) => {
+            _each(routes, (route, pathFragment) => {
                 let pathTemplate = `${prefix}${pathFragment}`;
-                if(_.isString(route)){
+                if(_isString(route)){
                     if(Router.routeToRegExp(pathTemplate).test(pathName)){
                         resultRoute = {
                             path: pathTemplate,
@@ -128,8 +121,8 @@ class Router {
     static compileRoutes(routeObject, prefix = '') {
         let routesArray = [];
         const inner = (routes, prefix) => {
-            _.each(routes, (route, key) => {
-                if(_.isString(route)) {
+            _each(routes, (route, key) => {
+                if(_isString(route)) {
                     routesArray.push({
                         path: prefix + key,
                         action: route
@@ -138,7 +131,7 @@ class Router {
                     inner(route, prefix + key);
                 }
             });
-        }
+        };
 
         // call
         inner(routeObject, prefix);
@@ -195,7 +188,7 @@ const prefixRegExp = '(?:\/\w+)*';
 /**
  * Adds prefix to regular expression that any path can have any route prefix
  * Note: used only for development purposes. For example symfony have different entry points for developemnt, test and production.
- * @param regx
+ * @param {RegExp} regx
  * @returns {RegExp}
  * @private
  * @ignore
@@ -214,33 +207,16 @@ function __modifyRouteRegx(regx){
  * @private
  */
 function _getParams(path, regxResult){
-    let keys = path.match(paramsRegExp),
-        values = regxResult.slice(1, regxResult.length - 1),
+    let keys = path.match(namedParam),
+        values = regxResult.slice(1, keys.length + 1),
         params = {};
 
     // create pairs
-    _.each(values, (val, i) => {
+    _each(values, (val, i) => {
         params[keys[i].substring(1)] = val;
     });
 
     return params;
-}
-
-/**
- * Creates object with key:value pairs from query string (e.g. location.search)
- * @param {string} str
- * @returns {Object}
- * @private
- */
-function _getQueryObj(str){
-    let pairs = str.substr(1).split('&'),
-        query = {};
-
-    _.each(pairs, p => {
-        let ind = p.indexOf('=');
-        query[p.substr(0, ind)] = p.substr(ind + 1);
-    });
-    return query;
 }
 
 export default Router;

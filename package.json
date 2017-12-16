@@ -41,5 +41,8 @@
     "core-js": "^2.5.1",
     "eslint": "^4.8.0",
     "lodash": "^4.17.4"
+  },
+  "dependencies": {
+    "query-string": "^5.0.1"
   }
 }

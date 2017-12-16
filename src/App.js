@@ -3,7 +3,13 @@
  */
 'use strict';
 
-import _ from 'lodash';
+import _extend from 'lodash/extend';
+import _find from 'lodash/find';
+import _isNull from 'lodash/isNull';
+import _defer from 'lodash/defer';
+import _each from 'lodash/each';
+import _isUndefined from 'lodash/isUndefined';
+import _isArray from 'lodash/isArray';
 import Controller from './Controller.js';
 
 const defaultSettings = {
@@ -16,22 +22,20 @@ const defaultSettings = {
 export default class App {
     /**
      * Constructor of App
-     * @param router {Router}
-     * @param controllers {Object} <Name: classFunction>
-     * @param [settings] {Object}
+     * @param {Router} router
+     * @param {Object} controllers <Name: classFunction>
+     * @param {Object} [settings]
      *
      * @default settings
      * {
      *      attributeName: 'data-ng-scope'
      * }
      */
-    constructor(router, controllers, settings){
-        //Settings FIRST !
-        this.settings = _.defaultsDeep(settings || {}, defaultSettings);
-
+    constructor(router, controllers, settings = defaultSettings){
+        this.settings = settings;
         this.controllers = controllers;
         this.router = router;
-        // this.global = null;
+
         this.activeController = null;
         this.preBootScripts = [];
 
@@ -41,7 +45,7 @@ export default class App {
         });
 
         /** Try to find initial scope **/
-        _.extend(this.$scope, this.parseScope());
+        _extend(this.$scope, this.parseScope());
     }
 
     /**
@@ -51,14 +55,16 @@ export default class App {
      * @returns {boolean}
      */
     start(successCallback, errorCallback){
-        //super cool feature
-        _.find(this.preBootScripts, script => script(this.$scope));
+        let { $scope } = this;
+
+        // if some script returns true, execution will stop
+        _find(this.preBootScripts, script => script($scope));
 
         /**
          * Active controller
          */
         let controllerInfo = this.router.findController();
-        if(_.isNull(controllerInfo)) {
+        if(_isNull(controllerInfo)) {
             return this.finishCallback(false, successCallback);
         }
 
@@ -90,7 +96,7 @@ export default class App {
             throw new Error(name + ' does not inherit from "Controller" class!');
         }
 
-        instance._scope = this.$scope;
+        instance._scope = $scope;
         instance._app = this;
         instance.request = controllerInfo.request;
         this.activeController = instance;
@@ -98,10 +104,10 @@ export default class App {
         /** Run **/
         if(instance[action]){
             // Defer function to make place for initial rendering
-            _.defer(() => {
-                instance.beforeAction(this.$scope);
-                instance[action](this.$scope);
-                instance.afterAction(this.$scope);
+            _defer(() => {
+                instance.beforeAction($scope);
+                instance[action]($scope);
+                instance.afterAction($scope);
 
                 // now run finish
                 this.finishCallback(true, successCallback);
@@ -147,8 +153,8 @@ export default class App {
 
     /**
      * Search in "root" element for every element with attribute defined in settings
-     * @param root
-     * @returns {{}} - bag with {attName.value:element}
+     * @param {HTMLElement} [root]
+     * @returns {Object} - bag with {attName.value:element}
      */
     parseScope(root){
         root = root || window.document;
@@ -156,12 +162,12 @@ export default class App {
             elements = root.querySelectorAll('[' + attName + ']');
 
         let bag = {};
-        _.each(elements, (el, i) => {
+        _each(elements, (el, i) => {
             let name = el.getAttribute(attName) || '' + el.name + i;
-            if(_.isUndefined(bag[name])) {
+            if(_isUndefined(bag[name])) {
                 bag[name] = el;
             } else {
-                if(_.isArray(bag[name])){
+                if(_isArray(bag[name])){
                     bag[name].push(el);
                 } else {
                     // crate new array
