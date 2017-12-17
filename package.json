@@ -11,9 +11,13 @@
     "utils",
     "components",
     "services",
-    "router"
+    "router",
+    "bin"
   ],
   "main": "index.js",
+  "bin": {
+    "trinity-gen-controllers": "./bin/gen-controllers.js"
+  },
   "format": "es6",
   "repository": {
     "type": "git",
