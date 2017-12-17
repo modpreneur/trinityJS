@@ -28,7 +28,7 @@ class Gateway {
      * @returns {Request}
      */
     static get(url, data, successCallback, errorCallback){
-        __send(url, GET, data, successCallback, errorCallback);
+        return __send(url, GET, data, successCallback, errorCallback);
     }
     /**
      * JSON GET request
@@ -39,7 +39,7 @@ class Gateway {
      * @returns {Request}
      */
     static getJSON(url, data, successCallback, errorCallback){
-        __sendJSON(url, GET,  data, successCallback, errorCallback);
+        return __sendJSON(url, GET,  data, successCallback, errorCallback);
     }
 
     /**
@@ -51,7 +51,7 @@ class Gateway {
      * @returns {Request}
      */
     static post(url, data, successCallback, errorCallback){
-        __send(url, POST, data, successCallback, errorCallback);
+        return __send(url, POST, data, successCallback, errorCallback);
     }
 
     /**
@@ -63,7 +63,7 @@ class Gateway {
      * @returns {Request}
      */
     static postJSON(url, data, successCallback, errorCallback){
-        __sendJSON(url, POST,  data, successCallback, errorCallback);
+        return __sendJSON(url, POST,  data, successCallback, errorCallback);
     }
 
     /**
@@ -75,7 +75,7 @@ class Gateway {
      * @returns {Request}
      */
     static put(url, data, successCallback, errorCallback){
-        __send(url, PUT, data, successCallback, errorCallback);
+        return __send(url, PUT, data, successCallback, errorCallback);
     }
 
     /**
@@ -87,7 +87,7 @@ class Gateway {
      * @returns {Request}
      */
     static putJSON(url, data, successCallback, errorCallback){
-        __sendJSON(url, PUT,  data, successCallback, errorCallback);
+        return __sendJSON(url, PUT,  data, successCallback, errorCallback);
     }
 
     /**
@@ -99,7 +99,7 @@ class Gateway {
      * @returns {Request}
      */
     static deleteJSON(url, data, successCallback, errorCallback) {
-        __sendJSON(url, DELETE, data, successCallback, errorCallback);
+        return __sendJSON(url, DELETE, data, successCallback, errorCallback);
     }
 
     /**
@@ -183,7 +183,7 @@ function __send(url, method, data, successCallback, errorCallback, isManual){
 
 /**
  * Private abstract send JSON request method
- *@param {string} url
+ * @param {string} url
  * @param {string} method
  * @param {object} [data]
  * @param {function} [successCallback]
