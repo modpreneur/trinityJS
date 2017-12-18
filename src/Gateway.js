@@ -124,7 +124,7 @@ class Gateway {
      * @param {boolean} [isManual]
      * @returns {Request}
      */
-    static sendJSON = __sendJSON
+    static sendJSON = __sendJSON;
 
     /**
      * Send file fnc
@@ -138,13 +138,13 @@ class Gateway {
      * @returns {Request}
      * @private
      */
-    static sendFile = __sendFile
+    static sendFile = __sendFile;
 
     /**
      * settings for gateway
      * @type {Object}
      */
-    static settings = config
+    static settings = config;
 }
 
 
