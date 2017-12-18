@@ -1,22 +1,22 @@
 'use strict';
 
-let Events = {
+const Events = {
     /**
      * Abbreviation for target.addEventListener
-     * @param target {HTMLElement}
-     * @param event {string}
-     * @param callback {function}
-     * @param capture [boolean]
+     * @param {HTMLElement} target
+     * @param {string} event
+     * @param {function} callback
+     * @param {boolean} [capture]
      * @returns {function}
      */
     on: __listen,
 
     /**
      * Abbreviation for target.addEventListener
-     * @param target {HTMLElement}
-     * @param event {string}
-     * @param callback {function}
-     * @param capture [boolean]
+     * @param {HTMLElement} target
+     * @param {string} event
+     * @param {function} callback
+     * @param {boolean} [capture]
      * @returns {function}
      */
     listen: __listen,
@@ -24,10 +24,10 @@ let Events = {
     /**
      * Adds wrapper around function and after first invocation, remove listener
      * @Note Returns correct listener for removing
-     * @param target {HTMLElement}
-     * @param event {string}
-     * @param callback {function}
-     * @param capture [boolean]
+     * @param {HTMLElement} target
+     * @param {string} event
+     * @param {function} callback
+     * @param {boolean} [capture]
      * @returns {function}
      */
     once: __listenOnce,
@@ -35,30 +35,30 @@ let Events = {
     /**
      * Adds wrapper around function and after first invocation, remove listener
      * @Note Returns correct listener for removing
-     * @param target {HTMLElement}
-     * @param event {string}
-     * @param callback {function}
-     * @param capture [boolean]
+     * @param {HTMLElement} target
+     * @param {string} event
+     * @param {function} callback
+     * @param {boolean} [capture]
      * @returns {function}
      */
     listenOnce: __listenOnce,
 
     /**
      * Abbreviation for target.removeEventListener
-     * @param target {HTMLElement}
-     * @param event {string}
-     * @param callback {function}
-     * @param capture [boolean]
+     * @param {HTMLElement} target
+     * @param {string} event
+     * @param {function} callback
+     * @param {boolean} [capture]
      * @returns {void}
      */
     off: __removeListener,
 
     /**
      * Abbreviation for target.removeEventListener
-     * @param target {HTMLElement}
-     * @param event {string}
-     * @param callback {function}
-     * @param capture [boolean]
+     * @param {HTMLElement} target
+     * @param {string} event
+     * @param {function} callback
+     * @param {boolean} [capture]
      * @returns {void}
      */
     unlisten: __removeListener,
@@ -66,10 +66,10 @@ let Events = {
 
     /**
      * Abbreviation for target.removeEventListener
-     * @param target {HTMLElement}
-     * @param event {string}
-     * @param callback {function}
-     * @param capture [boolean]
+     * @param {HTMLElement} target
+     * @param {string} event
+     * @param {function} callback
+     * @param {boolean} [capture]
      * @returns {void}
      */
     removeListener: __removeListener,
@@ -93,10 +93,10 @@ let Events = {
 
 /**
  * Abbreviation for target.addEventListener
- * @param target {HTMLElement}
- * @param event {string}
- * @param callback {function}
- * @param capture [boolean]
+ * @param {HTMLElement} target
+ * @param {string} event
+ * @param {function} callback
+ * @param {boolean} [capture]
  * @returns {function}
  * @private
  */
@@ -108,10 +108,10 @@ function __listen(target, event, callback, capture = false){
 /**
  * Adds wrapper around function and after first invocation, remove listener
  * @Note Returns correct listener for removing
- * @param target {HTMLElement}
- * @param event {string}
- * @param callback {function}
- * @param capture [boolean]
+ * @param {HTMLElement} target
+ * @param {string} event
+ * @param {function} callback
+ * @param {boolean} [capture]
  * @private
  * @returns {function}
  */
@@ -128,10 +128,10 @@ function __listenOnce(target, event, callback, capture = false){
 
 /**
  * Abbreviation for target.removeEventListener
- * @param target {HTMLElement}
- * @param event {string}
- * @param callback {function}
- * @param capture [boolean]
+ * @param {HTMLElement} target
+ * @param {string} event
+ * @param {function} callback
+ * @param {boolean} [capture]
  * @returns {void}
  * @private
  */
@@ -153,7 +153,7 @@ const ANIMATION_PREFIX = {
 
 /**
  * Finds Correct animation event name for current browser
- * @param type {string} enum:[start, end, iteration]
+ * @param {string} type enum: [start, end, iteration]
  * @returns {string} Animation Event name
  * @throws Incorrect animation type
  * @private
@@ -178,10 +178,10 @@ function __whichAnimationEvent(type){
 
 /**
  * Adds animation event listener
- * @param element {HTMLElement}
- * @param type {string} enum:[start, end, iteration]
- * @param callback {Function}
- * @param capture {boolean}
+ * @param {HTMLElement} element
+ * @param {string} type enum:[start, end, iteration]
+ * @param {Function} callback
+ * @param {boolean} [capture]
  * @returns {Function} - bound callback to remove listener
  * @private
  */
@@ -192,10 +192,10 @@ function __onAnimation(element, type, callback, capture = false){
 
 /**
  * Adds animation event listener and after first execution its removed
- * @param element {HTMLElement}
- * @param type {string} enum:[start, end, iteration]
- * @param callback {Function}
- * @param capture {boolean}
+ * @param {HTMLElement} element
+ * @param {string} type enum:[start, end, iteration]
+ * @param {Function} callback
+ * @param {boolean} [capture]
  * @returns {Function} - bound callback to remove listener
  * @private
  */
@@ -206,10 +206,10 @@ function __onceAnimation(element, type, callback, capture = false){
 
 /**
  * Remove animation event listener
- * @param element {HTMLElement}
- * @param type {string} enum:[start, end, iteration]
- * @param callback {Function}
- * @param capture {boolean}
+ * @param {HTMLElement} element
+ * @param {string} type enum:[start, end, iteration]
+ * @param {Function} callback
+ * @param {boolean} [capture]
  * @returns {void}
  * @private
  */

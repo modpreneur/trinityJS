@@ -1,7 +1,7 @@
 'use strict';
 
-import Dom from '../utils/Dom';
-import ClassList from '../utils/classlist';
+import {createDom, removeNode} from '../utils/Dom';
+import classList from '../utils/classlist';
 
 // Default is value
 const TYPE_VAL_MAP = {
@@ -10,13 +10,17 @@ const TYPE_VAL_MAP = {
 };
 
 export default class FormInput {
+    /**
+     * Constructor for FormInput
+     * @param {HTMLElement} element
+     */
     constructor(element){
         this.element = element;
         this.rules = [];
         this.errors = [];
         this.message = null;
-        this.msgWrapper = Dom.createDom('div', { 'class': 'form-msg-wrapper' });
-        this.errorWrapper = Dom.createDom('div', { 'class': 'form-error-wrapper' });
+        this.msgWrapper = createDom('div', { 'class': 'form-msg-wrapper' });
+        this.errorWrapper = createDom('div', { 'class': 'form-error-wrapper' });
 
         let sibling = element.nextSibling;
         if(sibling){
@@ -41,24 +45,24 @@ export default class FormInput {
      * @returns {boolean}
      */
     isValid(){
-        return this.errors.length === 0 ? ClassList.remove(this.element, 'error') || true : false;
+        return this.errors.length === 0 ? classList.remove(this.element, 'error') || true : false;
     }
 
     /**
      * Adds error to form input
-     * @param error
+     * @param {object} error
      * @returns {*}
      */
     addError(error){
         this.errors.push(error);
         this.errorWrapper.appendChild(error.element);
-        Dom.classlist.add(this.element, 'error');
+        classList.add(this.element, 'error');
         return error.id;
     }
 
     /**
      * Set information message to input
-     * @param msg
+     * @param {object} msg
      * @returns {*}
      */
     setMessage(msg){
@@ -73,7 +77,7 @@ export default class FormInput {
      */
     clearMessage(){
         if(this.message){
-            Dom.removeNode(this.message.element);
+            removeNode(this.message.element);
             this.message = null;
         }
     }

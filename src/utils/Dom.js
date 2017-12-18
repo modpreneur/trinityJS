@@ -6,26 +6,26 @@ import classListHelper from './classlist.js';
 
 /**
  * Just export classlist to have it all in one component
- * @type {{}}
+ * @type {Object}
  */
-export let classlist = classListHelper;
+export const classlist = classListHelper;
 
 /**
  * Disable element by adding attribute disabled="disabled"
- * @param element
+ * @param {HTMLElement} element
  */
 export function disable(element){
-    if(!element.disabled) {
+    if(element && !element.disabled) {
         element.setAttribute('disabled', 'disabled');
     }
 }
 
 /**
  * Enable disabled attribute by removing attribute "disabled"
- * @param element
+ * @param {HTMLElement} element
  */
 export function enable(element){
-    if(element.disabled){
+    if(element && element.disabled){
         element.removeAttribute('disabled');
     }
 }
@@ -52,7 +52,7 @@ export function removeChildren(node){
 
 /**
  * Create document fragment from html string
- * @param htmlString
+ * @param {String} htmlString
  * @returns {*}
  */
 export function htmlToDocumentFragment(htmlString){
@@ -84,7 +84,7 @@ export function replaceNode(newNode, oldNode) {
 
 /**
  * Return HTML string representation of HTML Element object
- * @param element {HTMLElement}
+ * @param {HTMLElement} element
  * @returns {string}
  */
 export function getHtmlString(element){
@@ -95,9 +95,9 @@ export function getHtmlString(element){
 
 /**
  * Creates DOM element
- * @param tagName
- * @param elementAttributes
- * @param innerHTML
+ * @param {String} tagName
+ * @param {object} elementAttributes
+ * @param {String | HTMLElement} innerHTML
  * @returns {Element}
  */
 export function createDom(tagName, elementAttributes, innerHTML){
