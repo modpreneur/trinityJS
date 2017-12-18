@@ -1,4 +1,4 @@
-## Gateway
+# Gateway
 Ajax request service. Provides set of static methods for sending common ajax requests.
 
 ## API
