@@ -160,7 +160,7 @@ class Gateway {
  * @returns {Request}
  * @private
  */
-function __send(url, method, data, successCallback, errorCallback, isManual){
+function __send(url, method = GET, data, successCallback, errorCallback, isManual){
     method = method.toUpperCase();
     let request = Request(method, url.trim())
         .set('X-Requested-With', 'XMLHttpRequest')
