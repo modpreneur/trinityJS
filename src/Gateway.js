@@ -112,7 +112,7 @@ class Gateway {
      * @param {boolean} [isManual]
      * @returns {Request}
      */
-    static send = __send
+    static send = __send;
 
     /**
      * Send JSON request and accepts only json
