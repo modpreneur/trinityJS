@@ -182,7 +182,6 @@ var Router = function () {
          * Create regular expression from route - from backbone framework
          * @param {string} route
          * @returns {RegExp}
-         * @private
          */
 
     }, {
