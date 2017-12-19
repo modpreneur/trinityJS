@@ -1,6 +1,5 @@
 'use strict';
 
-import _contains from 'lodash/contains';
 import _includes from 'lodash/includes';
 import _each from 'lodash/each';
 import _isString from 'lodash/isString';
@@ -110,7 +109,7 @@ classlist.removeAll = function(element, classesToRemove){
     element.className = _filter(classlist.get(element), (className) => {
         // If this class is not one we are trying to remove,
         // add it to the array of new class names.
-        return !_contains(classesToRemove, className);
+        return !_includes(classesToRemove, className);
     }).join(' ');
 };
 
